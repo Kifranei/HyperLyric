@@ -378,8 +378,8 @@ class DynamicIslandNotificationActivity : ComponentActivity() {
                                                     }
                                                 )
                                                 SuperSwitch(
-                                                    title = "保持前台运行",
-                                                    summary = "实验性功能，未测试耗电详细",
+                                                    title = "保持后台运行",
+                                                    summary = "实验性功能，未测试耗电详细\n如果没有通知发送，可尝试手动开关一遍该功能强行唤醒服务",
                                                     checked = persistentEnabled,
                                                     onCheckedChange = { checked ->
                                                         persistentEnabled = checked
@@ -398,7 +398,7 @@ class DynamicIslandNotificationActivity : ComponentActivity() {
                                                 )
                                                 SuperSwitch(
                                                     title = "获取在线歌词",
-                                                    summary = "实验性功能，谨慎启用",
+                                                    summary = "实验性功能，谨慎启用\n开启后可关闭音乐软件车载蓝牙功能",
                                                     checked = onlineLyricEnabled,
                                                     onCheckedChange = { checked ->
                                                         onlineLyricEnabled = checked
