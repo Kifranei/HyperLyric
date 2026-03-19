@@ -564,7 +564,7 @@ fun AboutContent(modifier: Modifier = Modifier) {
                     )
                 },
                 onClick = {
-                    val uri = "http://www.coolapk.com/u/29138188".toUri()
+                    val uri = "https://github.com/limczhh/HyperLyric".toUri()
                     val intent = Intent(Intent.ACTION_VIEW, uri)
                     try {
                         intent.setPackage("com.coolapk.market")

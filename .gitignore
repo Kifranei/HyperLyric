@@ -14,5 +14,5 @@
 .cxx
 local.properties
 .idea
-.agent
+.agent/
 资料/
