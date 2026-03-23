@@ -440,7 +440,7 @@ class DynamicIslandNotificationActivity : ComponentActivity() {
                             ) {
                                 item {
                                     SmallTitle(
-                                        text = "灵动岛胶囊设置",
+                                        text = "小米超级岛设置",
                                         insideMargin = PaddingValues(10.dp, 4.dp)
                                     )
                                     var islandLeftAlbumEnabled by remember {
@@ -452,7 +452,7 @@ class DynamicIslandNotificationActivity : ComponentActivity() {
                                     Card(modifier = Modifier.fillMaxWidth()) {
                                         Column {
                                             SuperSwitch(
-                                                title = "灵动岛左侧专辑封面",
+                                                title = "超级岛左侧专辑封面",
                                                 checked = islandLeftAlbumEnabled,
                                                 onCheckedChange = { checked ->
                                                     islandLeftAlbumEnabled = checked
