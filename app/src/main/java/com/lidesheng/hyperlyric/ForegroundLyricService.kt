@@ -123,7 +123,6 @@ class ForegroundLyricService : Service() {
             targetPackageName = globalState.targetPackageName,
             showIslandLeftAlbum = globalState.showIslandLeftAlbum,
             disableLyricSplit = isDisableLyricSplit,
-            labelBitmap = globalState.labelBitmap?.takeIf { !it.isRecycled },
             notificationAlbumBitmap = globalState.notificationAlbumBitmap?.takeIf { !it.isRecycled },
             focusNotificationType = sp.getInt(Constants.KEY_FOCUS_NOTIFICATION_TYPE, Constants.DEFAULT_FOCUS_NOTIFICATION_TYPE)
         )

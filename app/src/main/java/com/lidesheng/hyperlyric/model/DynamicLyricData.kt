@@ -37,7 +37,6 @@ data class LyricState(
     val targetPackageName: String = "",
     val albumColor: Int = Color.BLACK,
     val albumColorEnd: Int = Color.BLACK,
-    val labelBitmap: Bitmap? = null,
     val albumBitmap: Bitmap? = null,
     val notificationAlbumBitmap: Bitmap? = null,
     
@@ -90,9 +89,8 @@ object DynamicLyricData {
         }
     }
 
-    fun updateBitmaps(labelBmp: Bitmap?, albumBmp: Bitmap?, notificationAlbumBmp: Bitmap? = null) {
+    fun updateBitmaps(albumBmp: Bitmap?, notificationAlbumBmp: Bitmap? = null) {
         _musicState.update { it.copy(
-            labelBitmap = labelBmp, 
             albumBitmap = albumBmp,
             notificationAlbumBitmap = notificationAlbumBmp ?: it.notificationAlbumBitmap
         ) }

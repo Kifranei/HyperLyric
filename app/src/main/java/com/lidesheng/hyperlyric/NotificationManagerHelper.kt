@@ -33,7 +33,6 @@ object NotificationManagerHelper {
         val targetPackageName: String = "",
         val showIslandLeftAlbum: Boolean = false,
         val disableLyricSplit: Boolean = false,
-        val labelBitmap: Bitmap? = null,
         val notificationAlbumBitmap: Bitmap? = null,
         val focusNotificationType: Int = 0
     )
@@ -134,9 +133,6 @@ object NotificationManagerHelper {
         duration: Long
     ): Notification {
         val smallIconCompat = when {
-            uiState.labelBitmap != null && !uiState.labelBitmap.isRecycled ->
-                getLabelIcon(uiState.labelBitmap) ?: androidx.core.graphics.drawable.IconCompat.createWithResource(context, R.drawable.lyrictile)
-
             (uiState.disableLyricSplit || uiState.showIslandLeftAlbum) &&
                     uiState.notificationAlbumBitmap != null && !uiState.notificationAlbumBitmap.isRecycled ->
                 getLabelIcon(uiState.notificationAlbumBitmap) ?: androidx.core.graphics.drawable.IconCompat.createWithResource(context, R.drawable.lyrictile)

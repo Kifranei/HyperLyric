@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
-import kotlin.math.ceil
 import androidx.core.graphics.toColorInt
 
 
@@ -194,7 +193,6 @@ class LiveLyricService : NotificationListenerService() {
         }
     }
 
-    private var previousLabelBitmap: Bitmap? = null
 
     private fun syncToGlobalData(controller: MediaController?, forceUpdate: Boolean = false) {
         controller ?: return
@@ -222,7 +220,7 @@ class LiveLyricService : NotificationListenerService() {
         
         if (isNewSong) {
             currentSongIdentifier = newIdentifier
-            DynamicLyricData.updateBitmaps(null, null, null)
+            DynamicLyricData.updateBitmaps(null, null)
             
             cancelBitmapRetry()
             tickerJob?.cancel()
@@ -430,7 +428,6 @@ class LiveLyricService : NotificationListenerService() {
 
         val showIslandLeftAlbum = pref.getBoolean(Constants.KEY_ISLAND_LEFT_ALBUM, Constants.DEFAULT_ISLAND_LEFT_ALBUM)
         val disableLyricSplit = pref.getBoolean(Constants.KEY_DISABLE_LYRIC_SPLIT, Constants.DEFAULT_DISABLE_LYRIC_SPLIT)
-        val isSendNormalNotification = pref.getBoolean(Constants.KEY_SEND_NORMAL_NOTIFICATION, Constants.DEFAULT_SEND_NORMAL_NOTIFICATION)
 
         val (islandLeft, islandRight, notificationLeft, notificationRight) = splitTitleByPixelWidth(songLyric, showIslandLeftAlbum)
 
@@ -454,36 +451,13 @@ class LiveLyricService : NotificationListenerService() {
                                 data.isPlaying != lastDispatchedIsPlaying || 
                                 showIslandLeftAlbum != lastDispatchedShowAlbum
 
-        val newLabelBitmap = if (shouldUpdateBitmap && data.isPlaying && isSendNormalNotification) {
-            if (finalIslandLeft.isNotBlank()) {
-                if (showIslandLeftAlbum && data.albumBitmap != null && !data.albumBitmap.isRecycled) {
-                    val processedAlbum = data.notificationAlbumBitmap ?: processAlbumBitmap(data.albumBitmap)
-                    val textBitmap = generateTextBitmap(finalIslandLeft)
-                    val combined = combineBitmapsSideBySide(processedAlbum, textBitmap)
-                    textBitmap.recycle()
-                    combined
-                } else {
-                    generateTextBitmap(finalIslandLeft)
-                }
-            } else if (showIslandLeftAlbum && data.albumBitmap != null && !data.albumBitmap.isRecycled) {
-                data.notificationAlbumBitmap ?: processAlbumBitmap(data.albumBitmap)
-            } else null
-        } else if (!shouldUpdateBitmap) {
-            previousLabelBitmap
-        } else null
-        
         if (shouldUpdateBitmap) {
-            val oldBitmapToRecycle = previousLabelBitmap
-            if (oldBitmapToRecycle != null && oldBitmapToRecycle != newLabelBitmap && !oldBitmapToRecycle.isRecycled) {
-                oldBitmapToRecycle.recycle()
-            }
-            previousLabelBitmap = newLabelBitmap
             lastDispatchedIslandLeft = finalIslandLeft
             lastDispatchedIsPlaying = data.isPlaying
             lastDispatchedShowAlbum = showIslandLeftAlbum
         }
 
-        DynamicLyricData.updateBitmaps(previousLabelBitmap, data.albumBitmap, data.notificationAlbumBitmap)
+        DynamicLyricData.updateBitmaps(data.albumBitmap, data.notificationAlbumBitmap)
         DynamicLyricData.updateLeftTitles(finalIslandLeft, finalNotificationLeft)
         DynamicLyricData.updateRightTitles(finalIslandRight,
             notificationRight, songLyric, songInfo, data.duration, data.isPlaying, data.currentPackageName, showIslandLeftAlbum)
@@ -528,19 +502,6 @@ class LiveLyricService : NotificationListenerService() {
         }
     }
 
-    private fun combineBitmapsSideBySide(album: Bitmap, textBitmap: Bitmap): Bitmap {
-        val gap = (ISLAND_BITMAP_HEIGHT * 0.1f).toInt().coerceAtLeast(1)
-        val totalWidth = album.width + gap + textBitmap.width
-
-        val result = createBitmap(totalWidth, ISLAND_BITMAP_HEIGHT)
-        val canvas = Canvas(result)
-
-        canvas.drawBitmap(album, 0f, 0f, null)
-        val textY = (ISLAND_BITMAP_HEIGHT - textBitmap.height) / 2f
-        canvas.drawBitmap(textBitmap, (album.width + gap).toFloat(), textY, null)
-
-        return result
-    }
 
     private fun processAlbumBitmap(source: Bitmap, targetSize: Int = ISLAND_BITMAP_HEIGHT): Bitmap {
         val w = source.width
@@ -568,19 +529,6 @@ class LiveLyricService : NotificationListenerService() {
         return output
     }
 
-    private fun generateTextBitmap(text: String): Bitmap {
-        val fontMetrics = textPaint.fontMetrics
-        val textWidth = ceil(textPaint.measureText(text)).toInt().coerceAtLeast(1)
-
-        val bitmap = createBitmap(textWidth, ISLAND_BITMAP_HEIGHT)
-        val canvas = Canvas(bitmap)
-
-        val centerY = ISLAND_BITMAP_HEIGHT / 2f
-        val textMiddleOffset = (fontMetrics.descent + fontMetrics.ascent) / 2f
-        canvas.drawText(text, 0f, centerY - textMiddleOffset, textPaint)
-
-        return bitmap
-    }
 
     data class ExtractedColors(val dominant: Int, val vibrant: Int)
 
