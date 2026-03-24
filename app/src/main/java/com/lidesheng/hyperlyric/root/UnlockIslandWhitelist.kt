@@ -6,19 +6,11 @@ import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
 
-/**
- * 灵动岛小窗白名单：通过方法 Hook 拦截 Resources.getStringArray() 替换白名单。
- * 只有当前系统中存在名为 config_dynamic_island_miniwindow_media_whitelist 的资源数组，就会自动启动 Hook。
- */
 object UnlockIslandWhitelist {
     private const val TARGET_RES_NAME = "config_dynamic_island_miniwindow_media_whitelist"
 
-    // 缓存目标资源 ID
     private var targetResId: Int = -1
-    // 用于记录已经通过反射查询过但并不是目标 ID 的集合，避免高频抛出异常导致严重掉帧
     private val checkedIds = mutableSetOf<Int>()
-
-    // 保存 XposedModule 引用
     internal lateinit var module: XposedModule
 
     // 自定义白名单列表
@@ -61,14 +53,10 @@ object UnlockIslandWhitelist {
         "cn.toside.music.mobile"
     )
 
-    /**
-     * 方法 Hook 入口，由 HookEntry.onPackageLoaded() 调用
-     */
     @SuppressLint("DiscouragedApi")
     fun hook(xposedModule: XposedModule) {
         module = xposedModule
 
-        // 功能探测：首先尝试在系统资源集中查找目标白名单 ID
         val resId = try {
             Resources.getSystem().getIdentifier(TARGET_RES_NAME, "array", "android")
         } catch (_: Exception) {
@@ -79,7 +67,6 @@ object UnlockIslandWhitelist {
             targetResId = resId
             module.log("[HyperLyric] 功能探测：系统已暴露白名单资源 ID: $resId")
         } else {
-            // 如果系统直接查不到，我们仍启动 Hook，由拦截器尝试在 Package 运行时进行二次动态探测
             module.log("[HyperLyric] 功能探测：系统底层未直接暴露 ID，进入运行时动态匹配模式。")
         }
 
@@ -95,15 +82,10 @@ object UnlockIslandWhitelist {
         }
     }
 
-    /**
-     * Hooker: 拦截 Resources.getStringArray(int)，替换白名单资源
-     * 极速判断策略：缓存已知目标 ID，无效 ID 仅检查一次。
-     */
     class GetStringArrayHooker : Hooker {
         override fun intercept(chain: Chain): Any? {
             val resId = chain.args[0] as? Int ?: return chain.proceed()
 
-            // 1. 已知目标 ID 情况下的极速相等判断
             if (targetResId != -1) {
                 if (resId == targetResId) {
                     return CUSTOM_WHITELIST
@@ -111,12 +93,10 @@ object UnlockIslandWhitelist {
                 return chain.proceed()
             }
 
-            // 2. 动态探测流程：记录已检查过的 ID 防止重复高频报错
             if (!checkedIds.add(resId)) {
                 return chain.proceed()
             }
 
-            // 3. 全新的未检查过的 resId，此时通过名字反射进行确认
             try {
                 val resources = chain.thisObject as? Resources ?: return chain.proceed()
                 val resName = resources.getResourceEntryName(resId)
@@ -126,7 +106,6 @@ object UnlockIslandWhitelist {
                     return CUSTOM_WHITELIST
                 }
             } catch (_: Exception) {
-                // 静默处理无关资源
             }
             return chain.proceed()
         }
