@@ -613,6 +613,7 @@ class HookSettingsActivity : ComponentActivity() {
                                                             saveConfig(Constants.KEY_TEXT_SIZE, textSize)
                                                         },
                                                         steps = 8,
+                                                        hapticEffect = SliderDefaults.SliderHapticEffect.Step,
                                                         valueRange = 8f..16f
                                                     )
                                                 }
@@ -634,6 +635,7 @@ class HookSettingsActivity : ComponentActivity() {
                                                             fontWeight = it.toInt()
                                                             saveConfig(Constants.KEY_FONT_WEIGHT, fontWeight)
                                                         },
+                                                        hapticEffect = SliderDefaults.SliderHapticEffect.Step,
                                                         keyPoints = listOf(100f, 200f, 300f, 400f, 500f, 600f, 700f, 800f, 900f),
                                                         valueRange = 100f..900f
                                                     )
