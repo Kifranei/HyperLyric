@@ -88,6 +88,35 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import androidx.core.net.toUri
 
+private val animLabelMap = mapOf(
+    "default" to "默认",
+    "fade_out_fade_in" to "渐隐渐现",
+    "fade_out_up_fade_in_up" to "向上渐隐＆向上渐现",
+    "fade_out_down_fade_in_down" to "向下渐隐＆向下渐现",
+    "fade_out_left_fade_in_right" to "向左渐隐＆右侧渐现",
+    "fade_out_left_fade_in_up" to "向左渐隐＆向上渐现",
+    "fade_out_left_zoom_in" to "向左渐隐＆缩放渐现",
+    "fade_out_left_landing" to "向左渐隐＆柔缓着陆",
+    "fade_out_right_fade_in_left" to "向右渐隐＆左侧渐现",
+    "fade_out_right_fade_in_up" to "向右渐隐＆向上渐现",
+    "fade_out_right_zoom_in" to "向右渐隐＆缩放渐现",
+    "fade_out_right_landing" to "向右渐隐＆聚焦着陆",
+    "fade_out_left_zoom_in_right" to "向左渐隐＆右侧缩放渐现",
+    "fade_out_right_zoom_in_left" to "向右渐隐＆左侧缩放渐现",
+    "slide_out_left_slide_in_right" to "左侧滑出＆右侧滑入",
+    "slide_out_left_fade_in_up" to "左侧滑出＆向上渐现",
+    "slide_out_left_zoom_in" to "左侧滑出＆缩放渐现",
+    "slide_out_left_landing" to "左侧滑出＆柔缓着陆",
+    "slide_out_right_slide_in_left" to "右侧滑出＆左侧滑入",
+    "slide_out_right_fade_in_up" to "右侧滑出＆向上渐现",
+    "slide_out_right_zoom_in" to "右侧滑出＆缩放渐现",
+    "slide_out_right_landing" to "右侧滑出＆柔缓着陆",
+    "flip_out_x_flip_in_x" to "X轴翻转",
+    "flip_out_y_flip_in_y" to "Y轴翻转",
+    "rotate_out_rotate_in" to "旋转",
+    "zoom_out_zoom_in" to "缩放",
+)
+
 class HookSettingsActivity : ComponentActivity() {
 
     private val prefs: SharedPreferences by lazy {
@@ -239,6 +268,22 @@ class HookSettingsActivity : ComponentActivity() {
                 )
             )
         }
+        var animEnable by remember {
+            mutableStateOf(
+                prefs.getBoolean(
+                    Constants.KEY_ANIM_ENABLE,
+                    Constants.DEFAULT_ANIM_ENABLE
+                )
+            )
+        }
+        var animId by remember {
+            mutableStateOf(
+                prefs.getString(
+                    Constants.KEY_ANIM_ID,
+                    Constants.DEFAULT_ANIM_ID
+                ) ?: Constants.DEFAULT_ANIM_ID
+            )
+        }
 
         // State variables for dialogs
         var showTextSizeDialog by remember { mutableStateOf(false) }
@@ -256,9 +301,24 @@ class HookSettingsActivity : ComponentActivity() {
                     is Int -> putInt(key, value)
                     is Boolean -> putBoolean(key, value)
                     is Float -> putFloat(key, value)
+                    is String -> putString(key, value)
                 }
             }
             ConfigSync.syncPreference(Constants.PREF_NAME, key, value)
+            // 设置变更后通知 Hook 端立即刷新灵动岛
+            val refreshKeys = setOf(
+                Constants.KEY_MAX_LEFT_WIDTH,
+                Constants.KEY_TEXT_SIZE,
+                Constants.KEY_FONT_WEIGHT,
+                Constants.KEY_FONT_BOLD,
+                Constants.KEY_FONT_ITALIC,
+                Constants.KEY_FADING_EDGE_LENGTH,
+                Constants.KEY_ANIM_ENABLE,
+                Constants.KEY_ANIM_ID
+            )
+            if (key in refreshKeys) {
+                sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
+            }
         }
 
         val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
@@ -454,9 +514,9 @@ class HookSettingsActivity : ComponentActivity() {
             NumberInputDialog(
                 show = showIslandLengthDialog,
                 title = "超级岛长度",
-                label = "范围：50 ~ 100",
+                label = "范围：40 ~ 120",
                 initialValue = islandLength,
-                min = 50, max = 100,
+                min = 40, max = 120,
                 onDismiss = { showIslandLengthDialog = false },
                 onConfirm = { value ->
                     islandLength = value
@@ -500,30 +560,29 @@ class HookSettingsActivity : ComponentActivity() {
                             item {
                                 Column {
                                     Card(modifier = Modifier.fillMaxWidth()) {
-                                        Column {
-                                            SuperArrow(
-                                                title = "超级岛长度",
-                                                endActions = {
-                                                    Text(
-                                                        "$islandLength",
-                                                        fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                    )
-                                                },
-                                                onClick = { showIslandLengthDialog = true }
-                                            )
-                                            Slider(
-                                                value = islandLength.toFloat(),
-                                                onValueChange = {
-                                                    islandLength = it.toInt()
-                                                    saveConfig(Constants.KEY_MAX_LEFT_WIDTH, islandLength)
-                                                },
-                                                valueRange = 50f..100f,
-                                                keyPoints = listOf(50f, 60f, 70f, 80f, 90f, 100f),
-                                                hapticEffect = SliderDefaults.SliderHapticEffect.Step,
-                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                            )
-                                        }
+                                        SuperArrow(
+                                            title = "超级岛长度",
+                                            endActions = {
+                                                Text(
+                                                    "$islandLength",
+                                                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                                                    color = MiuixTheme.colorScheme.onSurfaceVariantActions
+                                                )
+                                            },
+                                            onClick = { showIslandLengthDialog = true },
+                                            bottomAction = {
+                                                Slider(
+                                                    value = islandLength.toFloat(),
+                                                    onValueChange = {
+                                                        islandLength = it.toInt()
+                                                        saveConfig(Constants.KEY_MAX_LEFT_WIDTH, islandLength)
+                                                    },
+                                                    valueRange = 40f..120f,
+                                                    keyPoints = listOf(40f, 50f, 60f, 70f, 80f, 90f, 100f, 110f, 120f),
+                                                    hapticEffect = SliderDefaults.SliderHapticEffect.Step
+                                                )
+                                            }
+                                        )
                                     }
                                 }
                             }
@@ -545,7 +604,18 @@ class HookSettingsActivity : ComponentActivity() {
                                                         color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                     )
                                                 },
-                                                onClick = { showTextSizeDialog = true }
+                                                onClick = { showTextSizeDialog = true },
+                                                bottomAction = {
+                                                    Slider(
+                                                        value = textSize.toFloat(),
+                                                        onValueChange = {
+                                                            textSize = it.toInt()
+                                                            saveConfig(Constants.KEY_TEXT_SIZE, textSize)
+                                                        },
+                                                        steps = 8,
+                                                        valueRange = 8f..16f
+                                                    )
+                                                }
                                             )
                                             SuperArrow(
                                                 title = "字重",
@@ -556,7 +626,18 @@ class HookSettingsActivity : ComponentActivity() {
                                                         color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                     )
                                                 },
-                                                onClick = { showFontWeightDialog = true }
+                                                onClick = { showFontWeightDialog = true },
+                                                bottomAction = {
+                                                    Slider(
+                                                        value = fontWeight.toFloat(),
+                                                        onValueChange = {
+                                                            fontWeight = it.toInt()
+                                                            saveConfig(Constants.KEY_FONT_WEIGHT, fontWeight)
+                                                        },
+                                                        keyPoints = listOf(100f, 200f, 300f, 400f, 500f, 600f, 700f, 800f, 900f),
+                                                        valueRange = 100f..900f
+                                                    )
+                                                }
                                             )
                                             SuperSwitch(
                                                 title = "粗体",
@@ -583,7 +664,17 @@ class HookSettingsActivity : ComponentActivity() {
                                                         color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                     )
                                                 },
-                                                onClick = { showTextSizeRatioDialog = true }
+                                                onClick = { showTextSizeRatioDialog = true },
+                                                bottomAction = {
+                                                    Slider(
+                                                        value = textSizeRatio,
+                                                        onValueChange = {
+                                                            textSizeRatio = it
+                                                            saveConfig(Constants.KEY_TEXT_SIZE_RATIO, textSizeRatio)
+                                                        },
+                                                        valueRange = 0.1f..1f
+                                                    )
+                                                }
                                             )
                                             SuperArrow(
                                                 title = "羽化边缘长度",
@@ -594,7 +685,17 @@ class HookSettingsActivity : ComponentActivity() {
                                                         color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                     )
                                                 },
-                                                onClick = { showFadingEdgeDialog = true }
+                                                onClick = { showFadingEdgeDialog = true },
+                                                bottomAction = {
+                                                    Slider(
+                                                        value = fadingEdge.toFloat(),
+                                                        onValueChange = {
+                                                            fadingEdge = it.toInt()
+                                                            saveConfig(Constants.KEY_FADING_EDGE_LENGTH, fadingEdge)
+                                                        },
+                                                        valueRange = 0f..100f
+                                                    )
+                                                }
                                             )
                                             SuperSwitch(
                                                 title = "羽化进度样式",
@@ -638,7 +739,17 @@ class HookSettingsActivity : ComponentActivity() {
                                                                 color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                             )
                                                         },
-                                                        onClick = { showMarqueeSpeedDialog = true }
+                                                        onClick = { showMarqueeSpeedDialog = true },
+                                                        bottomAction = {
+                                                            Slider(
+                                                                value = marqueeSpeed.toFloat(),
+                                                                onValueChange = {
+                                                                    marqueeSpeed = it.toInt()
+                                                                    saveConfig(Constants.KEY_MARQUEE_SPEED, marqueeSpeed)
+                                                                },
+                                                                valueRange = 10f..500f
+                                                            )
+                                                        }
                                                     )
                                                     SuperArrow(
                                                         title = "初始滚动延迟",
@@ -649,7 +760,17 @@ class HookSettingsActivity : ComponentActivity() {
                                                                 color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                             )
                                                         },
-                                                        onClick = { showMarqueeDelayDialog = true }
+                                                        onClick = { showMarqueeDelayDialog = true },
+                                                        bottomAction = {
+                                                            Slider(
+                                                                value = marqueeDelay.toFloat(),
+                                                                onValueChange = {
+                                                                    marqueeDelay = it.toInt()
+                                                                    saveConfig(Constants.KEY_MARQUEE_DELAY, marqueeDelay)
+                                                                },
+                                                                valueRange = 0f..5000f
+                                                            )
+                                                        }
                                                     )
                                                     SuperSwitch(
                                                         title = "无限循环",
@@ -668,7 +789,17 @@ class HookSettingsActivity : ComponentActivity() {
                                                                 color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                             )
                                                         },
-                                                        onClick = { showMarqueeLoopDialog = true }
+                                                        onClick = { showMarqueeLoopDialog = true },
+                                                        bottomAction = {
+                                                            Slider(
+                                                                value = marqueeLoop.toFloat(),
+                                                                onValueChange = {
+                                                                    marqueeLoop = it.toInt()
+                                                                    saveConfig(Constants.KEY_MARQUEE_LOOP_DELAY, marqueeLoop)
+                                                                },
+                                                                valueRange = 0f..5000f
+                                                            )
+                                                        }
                                                     )
                                                     SuperSwitch(
                                                         title = "结束时在末尾停止",
@@ -733,7 +864,50 @@ class HookSettingsActivity : ComponentActivity() {
                             )
                         ) {
                             item {
-                                BasicComponent(title = "占位")
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                                ) {
+                                    SuperSwitch(
+                                        title = "启用歌词切换动画",
+                                        summary = "利用 YoYo 引擎在切歌或换行时显示精美动画效果",
+                                        checked = animEnable,
+                                        onCheckedChange = {
+                                            animEnable = it
+                                            saveConfig(Constants.KEY_ANIM_ENABLE, it)
+                                        }
+                                    )
+                                }
+                            }
+                            item {
+                                SmallTitle(
+                                    text = "动画效果选择",
+                                    insideMargin = PaddingValues(10.dp, 4.dp, 10.dp, 4.dp)
+                                )
+                                Card(modifier = Modifier.fillMaxWidth()) {
+                                    Column {
+                                        val registry = io.github.proify.lyricon.lyric.view.yoyo.YoYoPresets.registry
+                                        val keys = registry.keys.toList()
+                                        keys.forEach { key ->
+                                            val label = animLabelMap[key] ?: key
+                                            BasicComponent(
+                                                title = label,
+                                                onClick = {
+                                                    animId = key
+                                                    saveConfig(Constants.KEY_ANIM_ID, key)
+                                                },
+                                                endActions = {
+                                                    if (animId == key) {
+                                                        Text(
+                                                            text = "使用中",
+                                                            color = MiuixTheme.colorScheme.primary,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
