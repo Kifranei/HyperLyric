@@ -15,13 +15,7 @@
 # --- Serialization 和在线网络模型防止混淆 ---
 -keep @kotlinx.serialization.Serializable class * { *; }
 -keepclassmembers @kotlinx.serialization.Serializable class * { *; }
--keep class com.lidesheng.hyperlyric.model.** { *; }
--keep class com.lidesheng.hyperlyric.online.source.** { *; }
-
-# --- KavaRef & YukiHookAPI ---
--dontwarn java.lang.reflect.AnnotatedType
--dontwarn com.highcapable.kavaref.**
--dontwarn com.highcapable.yukihookapi.**
+-keep class com.lidesheng.hyperlyric.online.** { *; }
 
 # --- Lyricon Receiver ---
 -keep class io.github.proify.lyricon.lyric.model.** { *; }
