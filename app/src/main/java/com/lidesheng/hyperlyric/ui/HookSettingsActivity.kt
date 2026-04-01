@@ -85,6 +85,8 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
@@ -298,6 +300,9 @@ class HookSettingsActivity : ComponentActivity() {
         var showTextSizeRatioDialog by remember { mutableStateOf(false) }
         var showIslandLengthDialog by remember { mutableStateOf(false) }
 
+        var lyricMode by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_LYRIC_MODE, Constants.DEFAULT_LYRIC_MODE)) }
+        val showSwitchModeDialog = remember { mutableStateOf(false) }
+
         fun saveConfig(key: String, value: Any) {
             prefs.edit {
                 when (value) {
@@ -336,6 +341,7 @@ class HookSettingsActivity : ComponentActivity() {
         val pagerState = rememberPagerState { tabs.size }
         val coroutineScope = rememberCoroutineScope()
         val context = LocalContext.current
+        val haptic = LocalHapticFeedback.current
         val providerUiStateFlow = remember { MutableStateFlow(ProviderUiState()) }
         val providerUiState = providerUiStateFlow.collectAsState()
         val pullToRefreshState = rememberPullToRefreshState()
@@ -391,13 +397,17 @@ class HookSettingsActivity : ComponentActivity() {
                             .padding(horizontal = 12.dp)
                             .padding(bottom = 8.dp),
                         pressFeedbackType = PressFeedbackType.Sink,
-                        onClick = { }
+                        onClick = { },
+                        onLongPress = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showSwitchModeDialog.value = true
+                        }
                     ) {
                         Box(modifier = Modifier.fillMaxWidth()) {
                             Box(
                                 modifier = Modifier
                                     .matchParentSize()
-                                    .background(Color(0xFF3582FF).copy(alpha = 0.4f))
+                                    .background(if (lyricMode == 1) Color(0xFFFF3535).copy(alpha = 0.4f) else Color(0xFF3582FF).copy(alpha = 0.4f))
                             )
                             Column(
                                 modifier = Modifier
@@ -433,6 +443,36 @@ class HookSettingsActivity : ComponentActivity() {
                 }
             }
         ) { padding ->
+
+            if (showSwitchModeDialog.value) {
+                WindowDialog(
+                    title = "是否切换模式？",
+                    show = true,
+                    onDismissRequest = { showSwitchModeDialog.value = false }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextButton(
+                            text = "取消",
+                            onClick = { showSwitchModeDialog.value = false },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = "确认",
+                            onClick = {
+                                lyricMode = if (lyricMode == 0) 1 else 0
+                                saveConfig(Constants.KEY_LYRIC_MODE, lyricMode)
+                                showSwitchModeDialog.value = false
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColorsPrimary()
+                        )
+                    }
+                }
+            }
 
             NumberInputDialog(
                 show = showTextSizeDialog,
@@ -998,6 +1038,7 @@ class HookSettingsActivity : ComponentActivity() {
                         .overScrollVertical(),
                     contentPadding = PaddingValues(
                         start = 12.dp,
+                        end = 12.dp,
                         bottom = padding.calculateBottomPadding()
                     )
                 ) {

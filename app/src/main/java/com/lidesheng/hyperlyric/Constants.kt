@@ -13,6 +13,7 @@ object Constants {
     const val KEY_FLOATING_NAV_BAR = "key_floating_nav_bar"
     const val KEY_EXCLUDE_FROM_RECENTS = "key_exclude_from_recents"
     const val KEY_HIDE_NOTCH = "key_hide_notch"
+    const val KEY_LYRIC_MODE = "key_lyric_mode"
 
     // Notification & Hook Features
     const val KEY_SEND_NORMAL_NOTIFICATION = "key_send_normal_notification"
@@ -68,6 +69,7 @@ object Constants {
     const val DEFAULT_FLOATING_NAV_BAR = false
     const val DEFAULT_EXCLUDE_FROM_RECENTS = false
     const val DEFAULT_HIDE_NOTCH = false
+    const val DEFAULT_LYRIC_MODE = 0
 
     // Notification Defaults
     const val DEFAULT_SEND_NORMAL_NOTIFICATION = true
