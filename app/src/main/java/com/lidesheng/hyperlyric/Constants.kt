@@ -14,6 +14,8 @@ object Constants {
     const val KEY_EXCLUDE_FROM_RECENTS = "key_exclude_from_recents"
     const val KEY_HIDE_NOTCH = "key_hide_notch"
     const val KEY_LYRIC_MODE = "key_lyric_mode"
+    const val KEY_ENABLE_SUPER_ISLAND = "key_enable_super_island"
+    const val KEY_ENABLE_DYNAMIC_ISLAND = "key_enable_dynamic_island"
 
     // Notification & Hook Features
     const val KEY_SEND_NORMAL_NOTIFICATION = "key_send_normal_notification"
@@ -31,7 +33,6 @@ object Constants {
     const val KEY_ONLINE_LYRIC_ENABLED = "key_online_lyric_enabled"
     const val KEY_ONLINE_LYRIC_CACHE_LIMIT = "key_online_lyric_cache_limit"
     const val KEY_DISABLE_LYRIC_SPLIT = "key_disable_lyric_split"
-    const val KEY_PAUSE_LISTENING = "key_pause_listening"
     const val KEY_PERSISTENT_FOREGROUND = "key_persistent_foreground"
 
     // Typography & Styling
@@ -70,6 +71,8 @@ object Constants {
     const val DEFAULT_EXCLUDE_FROM_RECENTS = false
     const val DEFAULT_HIDE_NOTCH = false
     const val DEFAULT_LYRIC_MODE = 0
+    const val DEFAULT_ENABLE_SUPER_ISLAND = false
+    const val DEFAULT_ENABLE_DYNAMIC_ISLAND = false
 
     // Notification Defaults
     const val DEFAULT_SEND_NORMAL_NOTIFICATION = true
@@ -86,7 +89,6 @@ object Constants {
     const val DEFAULT_ONLINE_LYRIC_ENABLED = false
     const val DEFAULT_ONLINE_LYRIC_CACHE_LIMIT = 200
     const val DEFAULT_DISABLE_LYRIC_SPLIT = false
-    const val DEFAULT_PAUSE_LISTENING = false
 
     // Typography Defaults
     const val DEFAULT_TEXT_SIZE = 13

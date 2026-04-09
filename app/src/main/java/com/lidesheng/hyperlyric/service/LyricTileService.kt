@@ -16,14 +16,14 @@ class LyricTileService : TileService() {
 
     private fun updateTileState() {
         val prefs = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        val isPaused = prefs.getBoolean(Constants.KEY_PAUSE_LISTENING, Constants.DEFAULT_PAUSE_LISTENING)
+        val isEnabled = prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
         
         val tile = qsTile ?: return
         tile.label = "HyperLyric媒体信息监听"
-        if (isPaused) {
-            tile.state = Tile.STATE_INACTIVE
-        } else {
+        if (isEnabled) {
             tile.state = Tile.STATE_ACTIVE
+        } else {
+            tile.state = Tile.STATE_INACTIVE
         }
         tile.updateTile()
     }
@@ -31,13 +31,13 @@ class LyricTileService : TileService() {
     override fun onClick() {
         super.onClick()
         val prefs = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        val isPaused = prefs.getBoolean(Constants.KEY_PAUSE_LISTENING, Constants.DEFAULT_PAUSE_LISTENING)
-        val nextState = !isPaused
+        val isEnabled = prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+        val nextState = !isEnabled
         
-        prefs.edit { putBoolean(Constants.KEY_PAUSE_LISTENING, nextState) }
+        prefs.edit { putBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, nextState) }
         
         val intent = Intent(this, ForegroundLyricService::class.java).apply {
-            action = if (nextState) ACTION_PAUSE_TOGGLED else ACTION_RESUME_TOGGLED
+            action = if (nextState) ACTION_RESUME_TOGGLED else ACTION_PAUSE_TOGGLED
         }
         startService(intent)
         

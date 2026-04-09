@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -153,11 +154,15 @@ fun MainScreen() {
     
     val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
     var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_FLOATING_NAV_BAR, Constants.DEFAULT_FLOATING_NAV_BAR)) }
+    var enableSuperIsland by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, Constants.DEFAULT_ENABLE_SUPER_ISLAND)) }
+    var enableDynamicIsland by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)) }
 
     val listener = remember {
         SharedPreferences.OnSharedPreferenceChangeListener { p, key ->
-            if (key == Constants.KEY_FLOATING_NAV_BAR) {
-                floatingNavBarEnabled = p.getBoolean(Constants.KEY_FLOATING_NAV_BAR, Constants.DEFAULT_FLOATING_NAV_BAR)
+            when (key) {
+                Constants.KEY_FLOATING_NAV_BAR -> floatingNavBarEnabled = p.getBoolean(Constants.KEY_FLOATING_NAV_BAR, Constants.DEFAULT_FLOATING_NAV_BAR)
+                Constants.KEY_ENABLE_SUPER_ISLAND -> enableSuperIsland = p.getBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, Constants.DEFAULT_ENABLE_SUPER_ISLAND)
+                Constants.KEY_ENABLE_DYNAMIC_ISLAND -> enableDynamicIsland = p.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
             }
         }
     }
@@ -311,20 +316,46 @@ fun MainScreen() {
 
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column {
-                                    ArrowPreference(
-                                        title = "小米超级岛hook自定义配置",
-                                        summary = "需要root，仅支持HyperOS3设备",
-                                        onClick = {
-                                            context.startActivity(Intent(context, HookSettingsActivity::class.java))
+                                    SwitchPreference(
+                                        title = "小米超级岛歌词",
+                                        summary = "仅支持已root的HyperOS3设备",
+                                        checked = enableSuperIsland,
+                                        onCheckedChange = {
+                                            enableSuperIsland = it
+                                            prefs.edit { putBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, it) }
+                                            ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_ENABLE_SUPER_ISLAND, it)
                                         }
                                     )
-                                    ArrowPreference(
+                                    AnimatedVisibility(visible = enableSuperIsland) {
+                                        ArrowPreference(
+                                            title = "小米超级岛歌词自定义配置",
+                                            onClick = {
+                                                context.startActivity(Intent(context, HookSettingsActivity::class.java))
+                                            }
+                                        )
+                                    }
+                                    SwitchPreference(
                                         title = "灵动岛歌词通知",
                                         summary = "适用于无root设备",
-                                        onClick = {
-                                            context.startActivity(Intent(context, DynamicIslandNotificationActivity::class.java))
+                                        checked = enableDynamicIsland,
+                                        onCheckedChange = {
+                                            enableDynamicIsland = it
+                                            prefs.edit { putBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, it) }
+                                            ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_ENABLE_DYNAMIC_ISLAND, it)
+                                            val intent = Intent(context, com.lidesheng.hyperlyric.service.ForegroundLyricService::class.java).apply {
+                                                action = if (it) com.lidesheng.hyperlyric.service.LyricTileService.ACTION_RESUME_TOGGLED else com.lidesheng.hyperlyric.service.LyricTileService.ACTION_PAUSE_TOGGLED
+                                            }
+                                            context.startService(intent)
                                         }
                                     )
+                                    AnimatedVisibility(visible = enableDynamicIsland) {
+                                        ArrowPreference(
+                                            title = "灵动岛歌词通知自定义配置",
+                                            onClick = {
+                                                context.startActivity(Intent(context, DynamicIslandNotificationActivity::class.java))
+                                            }
+                                        )
+                                    }
                                 }
                             }
 

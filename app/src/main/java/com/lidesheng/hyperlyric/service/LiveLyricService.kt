@@ -284,7 +284,8 @@ class LiveLyricService : NotificationListenerService() {
 
     private suspend fun processSyncData(data: SyncData) {
         val sp = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        val pauseListening = sp.getBoolean(Constants.KEY_PAUSE_LISTENING, Constants.DEFAULT_PAUSE_LISTENING)
+        val enableDynamicIsland = sp.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+        val pauseListening = !enableDynamicIsland
         val isWhitelisted = DynamicLyricData.whitelistState.value.contains(data.currentPackageName)
 
         if (pauseListening || !isWhitelisted) {

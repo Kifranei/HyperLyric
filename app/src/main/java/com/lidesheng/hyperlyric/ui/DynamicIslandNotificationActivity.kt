@@ -46,7 +46,6 @@ import androidx.core.net.toUri
 import androidx.compose.runtime.collectAsState
 import com.lidesheng.hyperlyric.Constants
 import com.lidesheng.hyperlyric.service.ForegroundLyricService
-import com.lidesheng.hyperlyric.service.LyricTileService
 import com.lidesheng.hyperlyric.online.model.DynamicLyricData
 import com.lidesheng.hyperlyric.utils.ThemeUtils
 import dev.chrisbanes.haze.HazeState
@@ -384,36 +383,8 @@ class DynamicIslandNotificationActivity : ComponentActivity() {
                                         var sendFocusEnabled by remember {
                                             mutableStateOf(prefs.getBoolean(Constants.KEY_SEND_FOCUS_NOTIFICATION, Constants.DEFAULT_SEND_FOCUS_NOTIFICATION))
                                         }
-                                        var pauseListening by remember {
-                                            mutableStateOf(prefs.getBoolean(Constants.KEY_PAUSE_LISTENING, Constants.DEFAULT_PAUSE_LISTENING))
-                                        }
-
-                                        val sharedPreferenceListener = remember {
-                                            android.content.SharedPreferences.OnSharedPreferenceChangeListener { p, key ->
-                                                if (key == Constants.KEY_PAUSE_LISTENING) {
-                                                    pauseListening = p.getBoolean(Constants.KEY_PAUSE_LISTENING, Constants.DEFAULT_PAUSE_LISTENING)
-                                                }
-                                            }
-                                        }
-                                        LaunchedEffect(Unit) {
-                                            prefs.registerOnSharedPreferenceChangeListener(sharedPreferenceListener)
-                                        }
-
                                         Card(modifier = Modifier.fillMaxWidth()) {
                                             Column {
-                                                SwitchPreference(
-                                                    title = "暂停媒体监听",
-                                                    summary = "关闭所有歌词通知发送",
-                                                    checked = pauseListening,
-                                                    onCheckedChange = { checked ->
-                                                        pauseListening = checked
-                                                        prefs.edit { putBoolean(Constants.KEY_PAUSE_LISTENING, checked) }
-                                                        val intent = Intent(context, ForegroundLyricService::class.java).apply {
-                                                            action = if (checked) LyricTileService.ACTION_PAUSE_TOGGLED else LyricTileService.ACTION_RESUME_TOGGLED
-                                                        }
-                                                        context.startService(intent)
-                                                    }
-                                                )
                                                 SwitchPreference(
                                                     title = "发送实时通知",
                                                     checked = sendNormalEnabled,

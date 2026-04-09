@@ -97,7 +97,7 @@ class ForegroundLyricService : Service() {
         }
 
         val sp = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        if (sp.getBoolean(Constants.KEY_PAUSE_LISTENING, Constants.DEFAULT_PAUSE_LISTENING)) {
+        if (!sp.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)) {
             NotificationManagerHelper.cancelFocusNotification(notificationManager)
             NotificationManagerHelper.cancelNormalNotification(notificationManager)
             if (isPersistentEnabled) switchToPersistentNotification().also { lastUiState = null } else stopWithCleanup()
