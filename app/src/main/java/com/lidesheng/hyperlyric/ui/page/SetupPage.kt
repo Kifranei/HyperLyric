@@ -1,13 +1,8 @@
-package com.lidesheng.hyperlyric.ui
+package com.lidesheng.hyperlyric.ui.page
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,9 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import com.lidesheng.hyperlyric.Constants
 import com.lidesheng.hyperlyric.online.model.DynamicLyricData
-import com.lidesheng.hyperlyric.utils.ThemeUtils
+import com.lidesheng.hyperlyric.online.model.commonMusicApps
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -62,32 +58,9 @@ import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
-import androidx.core.net.toUri
-
-class SetupActivity : ComponentActivity() {
-    @SuppressLint("CommitPrefEdits")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        window.isNavigationBarContrastEnforced = false
-
-        setContent {
-            ThemeUtils.MiuixThemeWrapper {
-                SetupScreen(
-                    onFinish = {
-                        val prefs = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-                        prefs.edit { putBoolean(Constants.KEY_SETUP_COMPLETED, true) }
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Composable
-fun SetupScreen(onFinish: () -> Unit) {
+fun SetupPage(onNavigateToMain: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 4 })
@@ -98,6 +71,11 @@ fun SetupScreen(onFinish: () -> Unit) {
         mutableIntStateOf(initialMode) 
     }
     
+    val onFinish = {
+        prefs.edit { putBoolean(Constants.KEY_SETUP_COMPLETED, true) }
+        onNavigateToMain()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

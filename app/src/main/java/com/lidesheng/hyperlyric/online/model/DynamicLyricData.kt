@@ -13,6 +13,23 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+val commonMusicApps = mapOf(
+    "com.salt.music" to "Salt Player",
+    "com.netease.cloudmusic" to "网易云音乐",
+    "com.tencent.qqmusic" to "QQ音乐",
+    "cn.kuwo.player" to "酷我音乐",
+    "com.kugou.android" to "酷狗音乐",
+    "com.apple.android.music" to "Apple Music",
+    "com.spotify.music" to "Spotify",
+    "cmccwm.mobilemusic" to "咪咕音乐",
+    "com.luna.music" to "汽水音乐",
+    "com.kugou.android.lite" to "酷狗音乐概念版",
+    "com.google.android.apps.youtube.music" to "YouTube Music",
+    "cn.wenyu.bodian" to "波点音乐",
+    "com.miui.player" to "小米音乐",
+    "com.xuncorp.qinalt.music" to "青盐云听"
+)
+
 data class PlaybackAnchor(
     val position: Long = 0L,      // 基础进度 (ms)
     val timestamp: Long = 0L,     // 记录该进度时的系统时间(SystemClock.elapsedRealtime)

@@ -24,26 +24,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round">
 
-        <activity
-            android:name=".ui.PoetryActivity"
-            android:exported="false" />
 
-        <activity
-            android:name=".ui.SetupActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
-
-        <activity
-            android:name=".ui.SettingsActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.DynamicIslandNotificationActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.HookSettingsActivity"
-            android:exported="false" />
 
         <activity
             android:name=".ui.MainActivity"
@@ -79,13 +60,7 @@
             </intent-filter>
         </service>
 
-        <activity
-            android:name=".ui.LogActivity"
-            android:exported="false" />
 
-        <activity
-            android:name=".ui.LicensesActivity"
-            android:exported="false" />
 
         <provider
             android:name="io.github.libxposed.service.XposedProvider"
