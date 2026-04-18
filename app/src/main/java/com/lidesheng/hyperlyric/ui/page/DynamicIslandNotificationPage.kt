@@ -219,7 +219,7 @@ fun DynamicIslandNotificationPage() {
                                     WindowDropdownPreference(title = "点击通知", items = clickOptions, selectedIndex = notificationClickAction, onSelectedIndexChange = { notificationClickAction = it; prefs.edit { putInt(Constants.KEY_NOTIFICATION_CLICK_ACTION, it) } })
 
                                     var showProgressEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)) }
-                                    SwitchPreference(title = "显示进度条", checked = showProgressEnabled, onCheckedChange = { checked -> showProgressEnabled = checked; prefs.edit { putBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, checked) } })
+                                    SwitchPreference(title = "显示进度条", summary = "仅通过澎湃3设备测试，其他系统切勿关闭", checked = showProgressEnabled, onCheckedChange = { checked -> showProgressEnabled = checked; prefs.edit { putBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, checked) } })
 
                                     AnimatedVisibility(visible = showProgressEnabled) {
                                         var progressColorEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, Constants.DEFAULT_PROGRESS_COLOR_ENABLED)) }

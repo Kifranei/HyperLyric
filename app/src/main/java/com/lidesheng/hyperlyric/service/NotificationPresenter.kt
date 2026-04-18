@@ -151,18 +151,20 @@ class NotificationPresenter(
     }
 
     private fun dispatchNotifications(uiState: NotificationManagerHelper.UiState, duration: Long, isScreenOn: Boolean) {
+        val sp = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
+        val showProgressSetting = sp.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)
+        val actualShowProgress = isScreenOn && showProgressSetting
+
         when (notificationType) {
             0 -> {
                 // 实时通知
-                val notification = NotificationManagerHelper.buildNormalNotification(context, uiState, duration)
+                val notification = NotificationManagerHelper.buildNormalNotification(context, uiState, duration, actualShowProgress)
                 notifyWrapper(NotificationManagerHelper.NORMAL_NOTIFICATION_ID, notification)
                 NotificationManagerHelper.cancelFocusNotification(notificationManager)
             }
             1 -> {
                 // 焦点通知
-                val sp = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-                val showProgressSetting = sp.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)
-                val focusNotification = NotificationManagerHelper.buildFocusNotification(context, uiState, isScreenOn && showProgressSetting)
+                val focusNotification = NotificationManagerHelper.buildFocusNotification(context, uiState, actualShowProgress)
                 notifyWrapper(NotificationManagerHelper.FOCUS_NOTIFICATION_ID, focusNotification)
                 NotificationManagerHelper.cancelNormalNotification(notificationManager)
             }

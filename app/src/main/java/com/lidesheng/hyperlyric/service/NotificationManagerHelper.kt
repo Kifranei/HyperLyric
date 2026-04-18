@@ -92,7 +92,8 @@ object NotificationManagerHelper {
     fun buildNormalNotification(
         context: Context,
         uiState: UiState,
-        duration: Long
+        duration: Long,
+        showProgress: Boolean = true
     ): Notification {
         val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
         val showAlbumSmallIcon = prefs.getBoolean(Constants.KEY_NORMAL_NOTIFICATION_ALBUM, Constants.DEFAULT_NORMAL_NOTIFICATION_ALBUM)
@@ -125,7 +126,7 @@ object NotificationManagerHelper {
             .setSubText(uiState.songInfo)
             .setContentText(uiState.notificationTitleRight)
 
-        if (duration > 1000) {
+        if (duration > 1000 && showProgress) {
             try {
                 val remaining = 100 - uiState.progress
                 val segments = ArrayList<NotificationCompat.ProgressStyle.Segment>(2)
@@ -144,10 +145,7 @@ object NotificationManagerHelper {
 
                 builder.setStyle(style)
             } catch (_: Exception) {
-                builder.setStyle(NotificationCompat.BigTextStyle().bigText(uiState.title))
             }
-        } else {
-            builder.setStyle(NotificationCompat.BigTextStyle().bigText(uiState.title))
         }
 
         builder.setRequestPromotedOngoing(true)
