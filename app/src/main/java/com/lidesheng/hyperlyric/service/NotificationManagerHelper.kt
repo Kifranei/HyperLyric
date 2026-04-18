@@ -34,7 +34,8 @@ object NotificationManagerHelper {
         val showIslandLeftAlbum: Boolean = false,
         val disableLyricSplit: Boolean = false,
         val notificationAlbumBitmap: Bitmap? = null,
-        val focusNotificationType: Int = 0
+        val focusNotificationType: Int = 0,
+        val showAlbumArt: Boolean = true
     )
 
     private var lastAlbumBitmap: Bitmap? = null
@@ -110,7 +111,7 @@ object NotificationManagerHelper {
             .setOnlyAlertOnce(true)
 
         val albumIcon = getAlbumIcon(uiState.notificationAlbumBitmap)
-        if (albumIcon != null) {
+        if (albumIcon != null && uiState.showAlbumArt) {
             builder.setLargeIcon(albumIcon)
         }
 
@@ -162,42 +163,7 @@ object NotificationManagerHelper {
         uiState: UiState,
         showProgress: Boolean = true
     ): Notification {
-        val colorHex = if (uiState.color != 0) {
-            String.format("#%06X", 0xFFFFFF and uiState.color)
-        } else {
-            "#2C2C2C"
-        }
-
-        val colorEndHex = if (uiState.colorEnd != 0) {
-            String.format("#%06X", 0xFFFFFF and uiState.colorEnd)
-        } else {
-            "#2C2C2C"
-        }
-        
-        val multiProgressJson = if (showProgress) {
-            ",\"multiProgressInfo\":{\"title\":\"${escapeJson(uiState.songInfo)}\",\"progress\":${uiState.progress},\"color\":\"$colorHex\"}"
-        } else ""
-
-        val progressJson = if (showProgress) {
-            ",\"progressInfo\":{\"progress\":${uiState.progress},\"colorProgress\":\"$colorHex\",\"colorProgressEnd\":\"$colorEndHex\"}"
-        } else ""
-
-        val islandTitle = escapeJson(if (uiState.disableLyricSplit) uiState.notificationTitleLeft else uiState.title)
-        val imageTextInfoLeftJson = if (uiState.disableLyricSplit) {
-            "\"imageTextInfoLeft\":{\"type\":1,\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_album\"}}"
-        } else if (uiState.showIslandLeftAlbum) {
-            "\"imageTextInfoLeft\":{\"type\":1,\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_album\"},\"textInfo\":{\"title\":\"${escapeJson(uiState.islandTitleLeft)}\"}}"
-        } else {
-            "\"imageTextInfoLeft\":{\"type\":1,\"textInfo\":{\"title\":\"${escapeJson(uiState.islandTitleLeft)}\"}}"
-        }
-
-        val paramIslandJson = if (uiState.focusNotificationType == 1) {
-            // 兼容os2
-            "{\"param_v2\":{\"islandFirstFloat\":false,\"updatable\":true,\"reopen\":\"reopen\",\"param_island\":{\"bigIslandArea\":{$imageTextInfoLeftJson,\"textInfo\":{\"title\":\"$islandTitle\"}},\"smallIslandArea\":{\"combinePicInfo\":{\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_album\"},\"progressInfo\":{\"progress\":${uiState.progress},\"colorReach\":\"$colorEndHex\",\"isCCW\":true}}}},\"baseInfo\":{\"type\":2,\"title\":\"${escapeJson(uiState.notificationTitleLeft)}\",\"content\":\"${escapeJson(uiState.songInfo)}\"},\"picInfo\":{\"type\":2,\"pic\":\"miui.focus.pic_album\",\"picDark\":\"miui.focus.pic_album\"}$progressJson,\"ticker\":\"${escapeJson(uiState.notificationTitleLeft)}\",\"tickerPic\":\"miui.focus.pic_album\",\"aodTitle\":\"${escapeJson(uiState.notificationTitleLeft)}\",\"aodPic\":\"miui.focus.pic_album\"}}"
-        } else {
-            // os3
-            "{\"param_v2\":{\"islandFirstFloat\":false,\"updatable\":true,\"reopen\":\"reopen\",\"param_island\":{\"bigIslandArea\":{$imageTextInfoLeftJson,\"textInfo\":{\"title\":\"$islandTitle\"}},\"smallIslandArea\":{\"combinePicInfo\":{\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_album\"},\"progressInfo\":{\"progress\":${uiState.progress},\"colorReach\":\"$colorEndHex\",\"isCCW\":true}}}},\"baseInfo\":{\"type\":2,\"title\":\"${escapeJson(uiState.notificationTitleLeft)}\",\"content\":\"${escapeJson(uiState.notificationTitleRight)}\"},\"picInfo\":{\"type\":2,\"pic\":\"miui.focus.pic_album\",\"picDark\":\"miui.focus.pic_album\"}$multiProgressJson,\"aodTitle\":\"${escapeJson(uiState.notificationTitleLeft)}\",\"aodPic\":\"miui.focus.pic_album\"}}"
-        }
+        val paramIslandJson = FocusNotificationBuilder(uiState, showProgress).build()
         
         val smallIconCompat = androidx.core.graphics.drawable.IconCompat.createWithResource(context, R.drawable.lyrictile)
 
@@ -250,22 +216,6 @@ object NotificationManagerHelper {
     }
 
 
-
-    private fun escapeJson(text: String): String {
-        if (text.isEmpty()) return ""
-        val sb = StringBuilder(text.length + 8)
-        for (c in text) {
-            when (c) {
-                '\\' -> sb.append("\\\\")
-                '\"' -> sb.append("\\\"")
-                '\n' -> sb.append("\\n")
-                '\r' -> sb.append("\\r")
-                '\t' -> sb.append("\\t")
-                else -> sb.append(c)
-            }
-        }
-        return sb.toString()
-    }
 
     private fun getClickPendingIntent(context: Context, targetPackageName: String): PendingIntent? {
         val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)

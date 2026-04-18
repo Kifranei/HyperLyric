@@ -110,7 +110,8 @@ class NotificationPresenter(
             showIslandLeftAlbum = globalState.showIslandLeftAlbum,
             disableLyricSplit = isDisableLyricSplit,
             notificationAlbumBitmap = globalState.notificationAlbumBitmap?.takeIf { !it.isRecycled },
-            focusNotificationType = sp.getInt(Constants.KEY_FOCUS_NOTIFICATION_TYPE, Constants.DEFAULT_FOCUS_NOTIFICATION_TYPE)
+            focusNotificationType = sp.getInt(Constants.KEY_FOCUS_NOTIFICATION_TYPE, Constants.DEFAULT_FOCUS_NOTIFICATION_TYPE),
+            showAlbumArt = sp.getBoolean(Constants.KEY_SHOW_ALBUM_ART, Constants.DEFAULT_SHOW_ALBUM_ART)
         )
 
         if (!force && currentUiState == lastUiState) return
