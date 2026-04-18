@@ -221,6 +221,9 @@ fun DynamicIslandNotificationPage() {
                                     var progressColorEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, Constants.DEFAULT_PROGRESS_COLOR_ENABLED)) }
                                     SwitchPreference(title = "进度条强调色", summary = "切歌后生效", checked = progressColorEnabled, onCheckedChange = { checked -> progressColorEnabled = checked; prefs.edit { putBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, checked) } })
 
+                                    var showAlbumArtEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_SHOW_ALBUM_ART, Constants.DEFAULT_SHOW_ALBUM_ART)) }
+                                    SwitchPreference(title = "显示专辑封面", checked = showAlbumArtEnabled, onCheckedChange = { checked -> showAlbumArtEnabled = checked; prefs.edit { putBoolean(Constants.KEY_SHOW_ALBUM_ART, checked) } })
+
                                     val focusStyleOptions = listOf("OS2", "OS3")
                                     var focusNotificationType by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_FOCUS_NOTIFICATION_TYPE, Constants.DEFAULT_FOCUS_NOTIFICATION_TYPE)) }
                                     AnimatedVisibility(visible = notificationType == 1) {

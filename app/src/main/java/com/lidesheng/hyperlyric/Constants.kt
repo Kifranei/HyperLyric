@@ -23,6 +23,7 @@ object Constants {
     const val KEY_FOCUS_NOTIFICATION_TYPE = "key_focus_notification_type"
     const val KEY_NORMAL_NOTIFICATION_ALBUM = "key_normal_notification_album"
     const val KEY_ISLAND_LEFT_ALBUM = "key_island_left_album"
+    const val KEY_SHOW_ALBUM_ART = "key_show_album_art"
     const val KEY_MAX_LEFT_WIDTH = "key_max_left_width"
     const val KEY_REMOVE_FOCUS_WHITELIST = "remove_focus_whitelist"
     const val KEY_REMOVE_ISLAND_WHITELIST = "remove_island_whitelist"
@@ -87,6 +88,7 @@ object Constants {
     const val DEFAULT_FOCUS_NOTIFICATION_TYPE = 0 // 0: OS3样式, 1: 兼容OS2
     const val DEFAULT_NORMAL_NOTIFICATION_ALBUM = false
     const val DEFAULT_ISLAND_LEFT_ALBUM = false
+    const val DEFAULT_SHOW_ALBUM_ART = true
     const val DEFAULT_MAX_LEFT_WIDTH = 100
     const val DEFAULT_REMOVE_FOCUS_WHITELIST = false
     const val DEFAULT_REMOVE_ISLAND_WHITELIST = false
