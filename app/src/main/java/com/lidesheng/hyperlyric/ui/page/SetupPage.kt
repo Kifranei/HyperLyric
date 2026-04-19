@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants
 import com.lidesheng.hyperlyric.online.model.DynamicLyricData
 import com.lidesheng.hyperlyric.online.model.commonMusicApps
 import kotlinx.coroutines.delay

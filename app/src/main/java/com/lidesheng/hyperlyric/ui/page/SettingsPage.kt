@@ -21,7 +21,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
 import dev.chrisbanes.haze.HazeState
@@ -59,7 +61,7 @@ private fun setExcludeFromRecents(context: Context, exclude: Boolean) {
 }
 
 private fun buildBackupJson(context: Context): String {
-    val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
+    val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
     val config = JSONObject()
     prefs.all.forEach { (key, value) ->
         when (value) {
@@ -84,7 +86,7 @@ private fun buildBackupJson(context: Context): String {
 }
 
 private fun restoreFromJson(context: Context, json: String): Boolean {
-    val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
+    val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
     return try {
         val root = JSONObject(json)
         val version = root.optInt("version", -1)
@@ -102,7 +104,7 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                     continue
                 }
 
-                if (key == Constants.KEY_WHITELIST) {
+                if (key == ServiceConstants.KEY_NOTIFICATION_WHITELIST) {
                     val raw = value.toString()
                     val set = if (raw.isBlank()) emptySet() else raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
                     putStringSet(key, set)
@@ -113,21 +115,21 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                     is Boolean -> putBoolean(key, value)
                     is Int -> {
                         val boundedValue = when (key) {
-                            Constants.KEY_TEXT_SIZE -> value.coerceIn(8, 27)
-                            Constants.KEY_MAX_LEFT_WIDTH -> value.coerceIn(40, 280)
-                            Constants.KEY_MARQUEE_SPEED -> value.coerceIn(10, 500)
-                            Constants.KEY_MARQUEE_DELAY -> value.coerceIn(0, 5000)
-                            Constants.KEY_MARQUEE_LOOP_DELAY -> value.coerceIn(0, 5000)
-                            Constants.KEY_FADING_EDGE_LENGTH -> value.coerceIn(0, 100)
-                            Constants.KEY_ANIM_MODE -> value.coerceIn(0, 4)
-                            Constants.KEY_ONLINE_LYRIC_CACHE_LIMIT -> value.coerceIn(1, 1000)
-                            Constants.KEY_NOTIFICATION_CLICK_ACTION -> value.coerceIn(0, 2)
-                            Constants.KEY_WORK_MODE -> value.coerceIn(0, 1)
-                            Constants.KEY_THEME_MODE -> value.coerceIn(0, 5)
-                            Constants.KEY_MONET_COLOR -> value.coerceIn(0, 7)
-                            Constants.KEY_NOTIFICATION_TYPE -> value.coerceIn(0, 1)
-                            Constants.KEY_FOCUS_NOTIFICATION_TYPE -> value.coerceIn(0, 1)
-                            Constants.KEY_FONT_WEIGHT -> value.coerceIn(100, 900)
+                            RootConstants.KEY_HOOK_TEXT_SIZE -> value.coerceIn(8, 27)
+                            RootConstants.KEY_HOOK_MAX_LEFT_WIDTH -> value.coerceIn(40, 280)
+                            RootConstants.KEY_HOOK_MARQUEE_SPEED -> value.coerceIn(10, 500)
+                            RootConstants.KEY_HOOK_MARQUEE_DELAY -> value.coerceIn(0, 5000)
+                            RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY -> value.coerceIn(0, 5000)
+                            RootConstants.KEY_HOOK_FADING_EDGE_LENGTH -> value.coerceIn(0, 100)
+                            RootConstants.KEY_HOOK_ANIM_MODE -> value.coerceIn(0, 4)
+                            ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT -> value.coerceIn(1, 1000)
+                            ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION -> value.coerceIn(0, 2)
+                            UIConstants.KEY_WORK_MODE -> value.coerceIn(0, 1)
+                            UIConstants.KEY_THEME_MODE -> value.coerceIn(0, 5)
+                            UIConstants.KEY_MONET_COLOR -> value.coerceIn(0, 7)
+                            ServiceConstants.KEY_NOTIFICATION_TYPE -> value.coerceIn(0, 1)
+                            ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE -> value.coerceIn(0, 1)
+                            RootConstants.KEY_HOOK_FONT_WEIGHT -> value.coerceIn(100, 900)
                             else -> value
                         }
                         putInt(key, boundedValue)
@@ -238,8 +240,8 @@ fun SettingsPage() {
                     insideMargin = PaddingValues(10.dp, 4.dp)
                 )
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
-                    var themeMode by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_THEME_MODE, Constants.DEFAULT_THEME_MODE)) }
+                    val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
+                    var themeMode by remember { mutableIntStateOf(prefs.getInt(UIConstants.KEY_THEME_MODE, UIConstants.DEFAULT_THEME_MODE)) }
                     val themeOptions = listOf("跟随系统", "浅色", "深色", "跟随系统（莫奈）", "浅色（莫奈）", "深色（莫奈）")
 
                     WindowDropdownPreference(
@@ -248,12 +250,12 @@ fun SettingsPage() {
                         selectedIndex = themeMode,
                         onSelectedIndexChange = {
                             themeMode = it
-                            prefs.edit { putInt(Constants.KEY_THEME_MODE, it) }
+                            prefs.edit { putInt(UIConstants.KEY_THEME_MODE, it) }
                         }
                     )
 
                     if (themeMode >= 3) {
-                        var monetColorIndex by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_MONET_COLOR, Constants.DEFAULT_MONET_COLOR)) }
+                        var monetColorIndex by remember { mutableIntStateOf(prefs.getInt(UIConstants.KEY_MONET_COLOR, UIConstants.DEFAULT_MONET_COLOR)) }
                         val monetOptions = listOf("默认", "蓝色", "绿色", "红色", "黄色", "橙色", "紫色", "粉色")
 
                         WindowDropdownPreference(
@@ -262,19 +264,19 @@ fun SettingsPage() {
                             selectedIndex = monetColorIndex,
                             onSelectedIndexChange = {
                                 monetColorIndex = it
-                                prefs.edit { putInt(Constants.KEY_MONET_COLOR, it) }
+                                prefs.edit { putInt(UIConstants.KEY_MONET_COLOR, it) }
                             }
                         )
                     }
 
-                    var predictiveBackGestureEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_PREDICTIVE_BACK_GESTURE, Constants.DEFAULT_PREDICTIVE_BACK_GESTURE)) }
+                    var predictiveBackGestureEnabled by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_PREDICTIVE_BACK_GESTURE, UIConstants.DEFAULT_PREDICTIVE_BACK_GESTURE)) }
                     val activity = androidx.activity.compose.LocalActivity.current
                     SwitchPreference(
                         title = "预测性返回手势",
                         checked = predictiveBackGestureEnabled,
                         onCheckedChange = {
                             predictiveBackGestureEnabled = it
-                            prefs.edit { putBoolean(Constants.KEY_PREDICTIVE_BACK_GESTURE, it) }
+                            prefs.edit { putBoolean(UIConstants.KEY_PREDICTIVE_BACK_GESTURE, it) }
                             runCatching {
                                 org.lsposed.hiddenapibypass.HiddenApiBypass.addHiddenApiExemptions("Landroid/content/pm/ApplicationInfo;->setEnableOnBackInvokedCallback")
                                 val applicationInfoClass = android.content.pm.ApplicationInfo::class.java
@@ -286,23 +288,23 @@ fun SettingsPage() {
                         }
                     )
 
-                    var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_FLOATING_NAV_BAR, Constants.DEFAULT_FLOATING_NAV_BAR)) }
+                    var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_FLOATING_NAV_BAR, UIConstants.DEFAULT_FLOATING_NAV_BAR)) }
                     SwitchPreference(
                         title = "悬浮底栏",
                         checked = floatingNavBarEnabled,
                         onCheckedChange = {
                             floatingNavBarEnabled = it
-                            prefs.edit { putBoolean(Constants.KEY_FLOATING_NAV_BAR, it) }
+                            prefs.edit { putBoolean(UIConstants.KEY_FLOATING_NAV_BAR, it) }
                         }
                     )
 
-                    var excludeFromRecents by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_EXCLUDE_FROM_RECENTS, Constants.DEFAULT_EXCLUDE_FROM_RECENTS)) }
+                    var excludeFromRecents by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_EXCLUDE_FROM_RECENTS, UIConstants.DEFAULT_EXCLUDE_FROM_RECENTS)) }
                     SwitchPreference(
                         title = "隐藏后台卡片",
                         checked = excludeFromRecents,
                         onCheckedChange = {
                             excludeFromRecents = it
-                            prefs.edit { putBoolean(Constants.KEY_EXCLUDE_FROM_RECENTS, it) }
+                            prefs.edit { putBoolean(UIConstants.KEY_EXCLUDE_FROM_RECENTS, it) }
                             setExcludeFromRecents(context, it)
                         }
                     )

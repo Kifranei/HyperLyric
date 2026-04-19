@@ -26,7 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
@@ -61,20 +62,20 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 fun SuperIslandSettingsPage() {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
-    val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
+    val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     
-    var islandContentLeft by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_CONTENT_LEFT, Constants.DEFAULT_ISLAND_CONTENT_LEFT)) }
-    var islandContentRight by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_CONTENT_RIGHT, Constants.DEFAULT_ISLAND_CONTENT_RIGHT)) }
+    var islandContentLeft by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT, RootConstants.DEFAULT_HOOK_ISLAND_CONTENT_LEFT)) }
+    var islandContentRight by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT, RootConstants.DEFAULT_HOOK_ISLAND_CONTENT_RIGHT)) }
     
-    var audioCover by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ISLAND_LEFT_ALBUM, Constants.DEFAULT_ISLAND_LEFT_ALBUM)) }
-    var audioRhythm by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, Constants.DEFAULT_PROGRESS_COLOR_ENABLED)) }
+    var audioCover by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ISLAND_LEFT_ALBUM, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_ALBUM)) }
+    var audioRhythm by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ISLAND_RIGHT_ICON, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_ICON)) }
     
-    var leftPaddingLeft by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_LEFT_PADDING_LEFT, Constants.DEFAULT_ISLAND_LEFT_PADDING_LEFT)) }
-    var leftPaddingRight by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_LEFT_PADDING_RIGHT, Constants.DEFAULT_ISLAND_LEFT_PADDING_RIGHT)) }
-    var rightPaddingLeft by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_RIGHT_PADDING_LEFT, Constants.DEFAULT_ISLAND_RIGHT_PADDING_LEFT)) }
-    var rightPaddingRight by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_RIGHT_PADDING_RIGHT, Constants.DEFAULT_ISLAND_RIGHT_PADDING_RIGHT)) }
-    var leftContentWidth by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_LEFT_CONTENT_MAX_WIDTH, Constants.DEFAULT_ISLAND_LEFT_CONTENT_MAX_WIDTH)) }
-    var rightContentWidth by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_ISLAND_RIGHT_CONTENT_MAX_WIDTH, Constants.DEFAULT_ISLAND_RIGHT_CONTENT_MAX_WIDTH)) }
+    var leftPaddingLeft by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_LEFT, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_PADDING_LEFT)) }
+    var leftPaddingRight by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_RIGHT, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_PADDING_RIGHT)) }
+    var rightPaddingLeft by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_LEFT, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_PADDING_LEFT)) }
+    var rightPaddingRight by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_RIGHT, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_PADDING_RIGHT)) }
+    var leftContentWidth by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH)) }
+    var rightContentWidth by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH)) }
 
     var showLeftPaddingDialog by remember { mutableStateOf(false) }
     var showRightPaddingDialog by remember { mutableStateOf(false) }
@@ -88,12 +89,20 @@ fun SuperIslandSettingsPage() {
                 is Boolean -> putBoolean(key, value)
             }
         }
-        ConfigSync.syncPreference(Constants.PREF_NAME, key, value)
-        if (key == Constants.KEY_ISLAND_LEFT_ALBUM || key == Constants.KEY_PROGRESS_COLOR_ENABLED || 
-            key == Constants.KEY_ISLAND_CONTENT_LEFT || key == Constants.KEY_ISLAND_CONTENT_RIGHT ||
-            key == Constants.KEY_ISLAND_LEFT_PADDING_LEFT || key == Constants.KEY_ISLAND_LEFT_PADDING_RIGHT ||
-            key == Constants.KEY_ISLAND_RIGHT_PADDING_LEFT || key == Constants.KEY_ISLAND_RIGHT_PADDING_RIGHT ||
-            key == Constants.KEY_ISLAND_LEFT_CONTENT_MAX_WIDTH || key == Constants.KEY_ISLAND_RIGHT_CONTENT_MAX_WIDTH) {
+        ConfigSync.syncPreference(UIConstants.PREF_NAME, key, value)
+        val refreshKeys = setOf(
+            RootConstants.KEY_HOOK_ISLAND_LEFT_ALBUM,
+            RootConstants.KEY_HOOK_ISLAND_RIGHT_ICON,
+            RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT,
+            RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT,
+            RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_LEFT,
+            RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_RIGHT,
+            RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_LEFT,
+            RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_RIGHT,
+            RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH,
+            RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH
+        )
+        if (key in refreshKeys) {
             context.sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
         }
     }
@@ -116,9 +125,9 @@ fun SuperIslandSettingsPage() {
             )
         }
     ) { padding ->
-        NumberInputDialog(show = showLeftContentWidthDialog, title = "左侧内容长度", label = "范围：0 ~ 100", initialValue = leftContentWidth, min = 0, max = 100, onDismiss = { showLeftContentWidthDialog = false }, onConfirm = { value -> leftContentWidth = value; saveConfig(Constants.KEY_ISLAND_LEFT_CONTENT_MAX_WIDTH, value) })
+        NumberInputDialog(show = showLeftContentWidthDialog, title = "左侧内容长度", label = "范围：0 ~ 100", initialValue = leftContentWidth, min = 0, max = 100, onDismiss = { showLeftContentWidthDialog = false }, onConfirm = { value -> leftContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, value) })
 
-        NumberInputDialog(show = showRightContentWidthDialog, title = "右侧内容长度", label = "范围：0 ~ 100", initialValue = rightContentWidth, min = 0, max = 100, onDismiss = { showRightContentWidthDialog = false }, onConfirm = { value -> rightContentWidth = value; saveConfig(Constants.KEY_ISLAND_RIGHT_CONTENT_MAX_WIDTH, value) })
+        NumberInputDialog(show = showRightContentWidthDialog, title = "右侧内容长度", label = "范围：0 ~ 100", initialValue = rightContentWidth, min = 0, max = 100, onDismiss = { showRightContentWidthDialog = false }, onConfirm = { value -> rightContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, value) })
 
         PaddingInputDialog(
             show = showLeftPaddingDialog,
@@ -129,8 +138,8 @@ fun SuperIslandSettingsPage() {
             onConfirm = { l, r ->
                 leftPaddingLeft = l
                 leftPaddingRight = r
-                saveConfig(Constants.KEY_ISLAND_LEFT_PADDING_LEFT, l)
-                saveConfig(Constants.KEY_ISLAND_LEFT_PADDING_RIGHT, r)
+                saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_LEFT, l)
+                saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_RIGHT, r)
             }
         )
 
@@ -143,8 +152,8 @@ fun SuperIslandSettingsPage() {
             onConfirm = { l, r ->
                 rightPaddingLeft = l
                 rightPaddingRight = r
-                saveConfig(Constants.KEY_ISLAND_RIGHT_PADDING_LEFT, l)
-                saveConfig(Constants.KEY_ISLAND_RIGHT_PADDING_RIGHT, r)
+                saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_LEFT, l)
+                saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_RIGHT, r)
             }
         )
 
@@ -164,7 +173,7 @@ fun SuperIslandSettingsPage() {
                                 value = leftContentWidth.toFloat(),
                                 onValueChange = {
                                     leftContentWidth = it.toInt()
-                                    saveConfig(Constants.KEY_ISLAND_LEFT_CONTENT_MAX_WIDTH, leftContentWidth)
+                                    saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, leftContentWidth)
                                 },
                                 valueRange = 0f..100f
                             )
@@ -180,7 +189,7 @@ fun SuperIslandSettingsPage() {
                                 value = rightContentWidth.toFloat(),
                                 onValueChange = {
                                     rightContentWidth = it.toInt()
-                                    saveConfig(Constants.KEY_ISLAND_RIGHT_CONTENT_MAX_WIDTH, rightContentWidth)
+                                    saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, rightContentWidth)
                                 },
                                 valueRange = 0f..100f
                             )
@@ -207,7 +216,7 @@ fun SuperIslandSettingsPage() {
                             checked = audioCover,
                             onCheckedChange = {
                                 audioCover = it
-                                saveConfig(Constants.KEY_ISLAND_LEFT_ALBUM, it)
+                                saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_ALBUM, it)
                             }
                         )
                         SwitchPreference(
@@ -215,7 +224,7 @@ fun SuperIslandSettingsPage() {
                             checked = audioRhythm,
                             onCheckedChange = {
                                 audioRhythm = it
-                                saveConfig(Constants.KEY_PROGRESS_COLOR_ENABLED, it)
+                                saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_ICON, it)
                             }
                         )
                         OverlayDropdownPreference(
@@ -224,7 +233,7 @@ fun SuperIslandSettingsPage() {
                             selectedIndex = islandContentLeft,
                             onSelectedIndexChange = {
                                 islandContentLeft = it
-                                saveConfig(Constants.KEY_ISLAND_CONTENT_LEFT, it)
+                                saveConfig(RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT, it)
                             }
                         )
                         OverlayDropdownPreference(
@@ -233,7 +242,7 @@ fun SuperIslandSettingsPage() {
                             selectedIndex = islandContentRight,
                             onSelectedIndexChange = {
                                 islandContentRight = it
-                                saveConfig(Constants.KEY_ISLAND_CONTENT_RIGHT, it)
+                                saveConfig(RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT, it)
                             }
                         )
                     }

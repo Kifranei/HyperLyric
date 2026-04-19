@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants
 import com.lidesheng.hyperlyric.ui.navigation.AppNavigation
 import com.lidesheng.hyperlyric.ui.navigation.Route
 import com.lidesheng.hyperlyric.ui.utils.ThemeUtils

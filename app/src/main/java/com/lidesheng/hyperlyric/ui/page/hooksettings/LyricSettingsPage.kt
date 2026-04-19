@@ -28,7 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
@@ -63,23 +64,23 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 fun LyricSettingsPage() {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
-    val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
+    val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     
-    var textSize by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_TEXT_SIZE, Constants.DEFAULT_TEXT_SIZE)) }
-    var fontWeight by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_FONT_WEIGHT, Constants.DEFAULT_FONT_WEIGHT)) }
-    var fontBold by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_FONT_BOLD, Constants.DEFAULT_FONT_BOLD)) }
-    var fontItalic by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_FONT_ITALIC, Constants.DEFAULT_FONT_ITALIC)) }
-    var fadingEdge by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_FADING_EDGE_LENGTH, Constants.DEFAULT_FADING_EDGE_LENGTH)) }
-    var gradientStyle by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_GRADIENT_PROGRESS, Constants.DEFAULT_GRADIENT_PROGRESS)) }
-    var marqueeMode by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_MARQUEE_MODE, Constants.DEFAULT_MARQUEE_MODE)) }
-    var marqueeSpeed by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_MARQUEE_SPEED, Constants.DEFAULT_MARQUEE_SPEED)) }
-    var marqueeDelay by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_MARQUEE_DELAY, Constants.DEFAULT_MARQUEE_DELAY)) }
-    var marqueeLoop by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_MARQUEE_LOOP_DELAY, Constants.DEFAULT_MARQUEE_LOOP_DELAY)) }
-    var marqueeInfinite by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_MARQUEE_INFINITE, Constants.DEFAULT_MARQUEE_INFINITE)) }
-    var marqueeStopEnd by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_MARQUEE_STOP_END, Constants.DEFAULT_MARQUEE_STOP_END)) }
-    var syllableRelative by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_SYLLABLE_RELATIVE, Constants.DEFAULT_SYLLABLE_RELATIVE)) }
-    var syllableHighlight by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_SYLLABLE_HIGHLIGHT, Constants.DEFAULT_SYLLABLE_HIGHLIGHT)) }
-    var textSizeRatio by remember { mutableFloatStateOf(prefs.getFloat(Constants.KEY_TEXT_SIZE_RATIO, Constants.DEFAULT_TEXT_SIZE_RATIO)) }
+    var textSize by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_TEXT_SIZE, RootConstants.DEFAULT_HOOK_TEXT_SIZE)) }
+    var fontWeight by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_FONT_WEIGHT, RootConstants.DEFAULT_HOOK_FONT_WEIGHT)) }
+    var fontBold by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_FONT_BOLD, RootConstants.DEFAULT_HOOK_FONT_BOLD)) }
+    var fontItalic by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_FONT_ITALIC, RootConstants.DEFAULT_HOOK_FONT_ITALIC)) }
+    var fadingEdge by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, RootConstants.DEFAULT_HOOK_FADING_EDGE_LENGTH)) }
+    var gradientStyle by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, RootConstants.DEFAULT_HOOK_GRADIENT_PROGRESS)) }
+    var marqueeMode by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)) }
+    var marqueeSpeed by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_SPEED, RootConstants.DEFAULT_HOOK_MARQUEE_SPEED)) }
+    var marqueeDelay by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_DELAY)) }
+    var marqueeLoop by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_LOOP_DELAY)) }
+    var marqueeInfinite by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_INFINITE, RootConstants.DEFAULT_HOOK_MARQUEE_INFINITE)) }
+    var marqueeStopEnd by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_STOP_END, RootConstants.DEFAULT_HOOK_MARQUEE_STOP_END)) }
+    var syllableRelative by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, RootConstants.DEFAULT_HOOK_SYLLABLE_RELATIVE)) }
+    var syllableHighlight by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, RootConstants.DEFAULT_HOOK_SYLLABLE_HIGHLIGHT)) }
+    var textSizeRatio by remember { mutableFloatStateOf(prefs.getFloat(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, RootConstants.DEFAULT_HOOK_TEXT_SIZE_RATIO)) }
 
     var showTextSizeDialog by remember { mutableStateOf(false) }
     var showFontWeightDialog by remember { mutableStateOf(false) }
@@ -98,13 +99,13 @@ fun LyricSettingsPage() {
                 is String -> putString(key, value)
             }
         }
-        ConfigSync.syncPreference(Constants.PREF_NAME, key, value)
+        ConfigSync.syncPreference(UIConstants.PREF_NAME, key, value)
         val refreshKeys = setOf(
-            Constants.KEY_TEXT_SIZE,
-            Constants.KEY_FONT_WEIGHT,
-            Constants.KEY_FONT_BOLD,
-            Constants.KEY_FONT_ITALIC,
-            Constants.KEY_FADING_EDGE_LENGTH
+            RootConstants.KEY_HOOK_TEXT_SIZE,
+            RootConstants.KEY_HOOK_FONT_WEIGHT,
+            RootConstants.KEY_HOOK_FONT_BOLD,
+            RootConstants.KEY_HOOK_FONT_ITALIC,
+            RootConstants.KEY_HOOK_FADING_EDGE_LENGTH
         )
         if (key in refreshKeys) {
             context.sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
@@ -128,13 +129,13 @@ fun LyricSettingsPage() {
             )
         }
     ) { padding ->
-        NumberInputDialog(show = showTextSizeDialog, title = "文字大小", label = "范围：8 ~ 16", initialValue = textSize, min = 8, max = 16, onDismiss = { showTextSizeDialog = false }, onConfirm = { value -> textSize = value; saveConfig(Constants.KEY_TEXT_SIZE, value) })
-        NumberInputDialog(show = showFontWeightDialog, title = "字重", label = "范围：100 ~ 900", initialValue = fontWeight, min = 100, max = 900, onDismiss = { showFontWeightDialog = false }, onConfirm = { value -> fontWeight = value; saveConfig(Constants.KEY_FONT_WEIGHT, value) })
-        NumberInputDialog(show = showFadingEdgeDialog, title = "羽化边缘长度", label = "范围：0 ~ 100", initialValue = fadingEdge, min = 0, max = 100, onDismiss = { showFadingEdgeDialog = false }, onConfirm = { value -> fadingEdge = value; saveConfig(Constants.KEY_FADING_EDGE_LENGTH, value) })
-        NumberInputDialog(show = showMarqueeSpeedDialog, title = "滚动速度", label = "范围：10 ~ 500", initialValue = marqueeSpeed, min = 10, max = 500, onDismiss = { showMarqueeSpeedDialog = false }, onConfirm = { value -> marqueeSpeed = value; saveConfig(Constants.KEY_MARQUEE_SPEED, value) })
-        NumberInputDialog(show = showMarqueeDelayDialog, title = "初始滚动延迟", label = "ms 范围：0 ~ 5000", initialValue = marqueeDelay, min = 0, max = 5000, onDismiss = { showMarqueeDelayDialog = false }, onConfirm = { value -> marqueeDelay = value; saveConfig(Constants.KEY_MARQUEE_DELAY, value) })
-        NumberInputDialog(show = showMarqueeLoopDialog, title = "循环间隔", label = "ms 范围：0 ~ 5000", initialValue = marqueeLoop, min = 0, max = 5000, onDismiss = { showMarqueeLoopDialog = false }, onConfirm = { value -> marqueeLoop = value; saveConfig(Constants.KEY_MARQUEE_LOOP_DELAY, value) })
-        NumberInputDialog(show = showTextSizeRatioDialog, title = "多行模式下文字大小比例", label = "范围：10 ~ 100", initialValue = (textSizeRatio * 100).toInt(), min = 10, max = 100, onDismiss = { showTextSizeRatioDialog = false }, onConfirm = { value -> textSizeRatio = value.toFloat() / 100f; saveConfig(Constants.KEY_TEXT_SIZE_RATIO, textSizeRatio) })
+        NumberInputDialog(show = showTextSizeDialog, title = "文字大小", label = "范围：8 ~ 16", initialValue = textSize, min = 8, max = 16, onDismiss = { showTextSizeDialog = false }, onConfirm = { value -> textSize = value; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, value) })
+        NumberInputDialog(show = showFontWeightDialog, title = "字重", label = "范围：100 ~ 900", initialValue = fontWeight, min = 100, max = 900, onDismiss = { showFontWeightDialog = false }, onConfirm = { value -> fontWeight = value; saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, value) })
+        NumberInputDialog(show = showFadingEdgeDialog, title = "羽化边缘长度", label = "范围：0 ~ 100", initialValue = fadingEdge, min = 0, max = 100, onDismiss = { showFadingEdgeDialog = false }, onConfirm = { value -> fadingEdge = value; saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, value) })
+        NumberInputDialog(show = showMarqueeSpeedDialog, title = "滚动速度", label = "范围：10 ~ 500", initialValue = marqueeSpeed, min = 10, max = 500, onDismiss = { showMarqueeSpeedDialog = false }, onConfirm = { value -> marqueeSpeed = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_SPEED, value) })
+        NumberInputDialog(show = showMarqueeDelayDialog, title = "初始滚动延迟", label = "ms 范围：0 ~ 5000", initialValue = marqueeDelay, min = 0, max = 5000, onDismiss = { showMarqueeDelayDialog = false }, onConfirm = { value -> marqueeDelay = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_DELAY, value) })
+        NumberInputDialog(show = showMarqueeLoopDialog, title = "循环间隔", label = "ms 范围：0 ~ 5000", initialValue = marqueeLoop, min = 0, max = 5000, onDismiss = { showMarqueeLoopDialog = false }, onConfirm = { value -> marqueeLoop = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, value) })
+        NumberInputDialog(show = showTextSizeRatioDialog, title = "多行模式下文字大小比例", label = "范围：10 ~ 100", initialValue = (textSizeRatio * 100).toInt(), min = 10, max = 100, onDismiss = { showTextSizeRatioDialog = false }, onConfirm = { value -> textSizeRatio = value.toFloat() / 100f; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) })
 
         LazyColumn(
             modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -145,13 +146,13 @@ fun LyricSettingsPage() {
                     SmallTitle(text = "文字", insideMargin = PaddingValues(10.dp, 4.dp))
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            ArrowPreference(title = "大小", endActions = { Text("$textSize", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeDialog = true }, bottomAction = { Slider(value = textSize.toFloat(), onValueChange = { textSize = it.toInt(); saveConfig(Constants.KEY_TEXT_SIZE, textSize) }, steps = 8, hapticEffect = SliderDefaults.SliderHapticEffect.Step, valueRange = 8f..16f) })
-                            ArrowPreference(title = "字重", endActions = { Text(fontWeight.toString(), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFontWeightDialog = true }, bottomAction = { Slider(value = fontWeight.toFloat(), onValueChange = { fontWeight = it.toInt(); saveConfig(Constants.KEY_FONT_WEIGHT, fontWeight) }, hapticEffect = SliderDefaults.SliderHapticEffect.Step, keyPoints = listOf(100f, 200f, 300f, 400f, 500f, 600f, 700f, 800f, 900f), valueRange = 100f..900f) })
-                            SwitchPreference(title = "粗体", checked = fontBold, onCheckedChange = { fontBold = it; saveConfig(Constants.KEY_FONT_BOLD, it) })
-                            SwitchPreference(title = "斜体", checked = fontItalic, onCheckedChange = { fontItalic = it; saveConfig(Constants.KEY_FONT_ITALIC, it) })
-                            ArrowPreference(title = "多行模式下文字大小比例", endActions = { Text("${(textSizeRatio * 100).toInt()}%", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeRatioDialog = true }, bottomAction = { Slider(value = textSizeRatio, onValueChange = { textSizeRatio = it; saveConfig(Constants.KEY_TEXT_SIZE_RATIO, textSizeRatio) }, valueRange = 0.1f..1f) })
-                            ArrowPreference(title = "羽化边缘长度", endActions = { Text("$fadingEdge", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFadingEdgeDialog = true }, bottomAction = { Slider(value = fadingEdge.toFloat(), onValueChange = { fadingEdge = it.toInt(); saveConfig(Constants.KEY_FADING_EDGE_LENGTH, fadingEdge) }, valueRange = 0f..100f) })
-                            SwitchPreference(title = "羽化进度样式", checked = gradientStyle, onCheckedChange = { gradientStyle = it; saveConfig(Constants.KEY_GRADIENT_PROGRESS, it) })
+                            ArrowPreference(title = "大小", endActions = { Text("$textSize", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeDialog = true }, bottomAction = { Slider(value = textSize.toFloat(), onValueChange = { textSize = it.toInt(); saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, textSize) }, steps = 8, hapticEffect = SliderDefaults.SliderHapticEffect.Step, valueRange = 8f..16f) })
+                            ArrowPreference(title = "字重", endActions = { Text(fontWeight.toString(), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFontWeightDialog = true }, bottomAction = { Slider(value = fontWeight.toFloat(), onValueChange = { fontWeight = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, fontWeight) }, hapticEffect = SliderDefaults.SliderHapticEffect.Step, keyPoints = listOf(100f, 200f, 300f, 400f, 500f, 600f, 700f, 800f, 900f), valueRange = 100f..900f) })
+                            SwitchPreference(title = "粗体", checked = fontBold, onCheckedChange = { fontBold = it; saveConfig(RootConstants.KEY_HOOK_FONT_BOLD, it) })
+                            SwitchPreference(title = "斜体", checked = fontItalic, onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) })
+                            ArrowPreference(title = "多行模式下文字大小比例", endActions = { Text("${(textSizeRatio * 100).toInt()}%", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeRatioDialog = true }, bottomAction = { Slider(value = textSizeRatio, onValueChange = { textSizeRatio = it; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) }, valueRange = 0.1f..1f) })
+                            ArrowPreference(title = "羽化边缘长度", endActions = { Text("$fadingEdge", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFadingEdgeDialog = true }, bottomAction = { Slider(value = fadingEdge.toFloat(), onValueChange = { fadingEdge = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, fadingEdge) }, valueRange = 0f..100f) })
+                            SwitchPreference(title = "羽化进度样式", checked = gradientStyle, onCheckedChange = { gradientStyle = it; saveConfig(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, it) })
                         }
                     }
                 }
@@ -161,14 +162,14 @@ fun LyricSettingsPage() {
                     SmallTitle(text = "歌词滚动", insideMargin = PaddingValues(10.dp, 4.dp))
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            SwitchPreference(title = "歌词滚动", checked = marqueeMode, onCheckedChange = { marqueeMode = it; saveConfig(Constants.KEY_MARQUEE_MODE, it) })
+                            SwitchPreference(title = "歌词滚动", checked = marqueeMode, onCheckedChange = { marqueeMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_MODE, it) })
                             AnimatedVisibility(visible = marqueeMode) {
                                 Column {
-                                    ArrowPreference(title = "滚动速度", endActions = { Text("$marqueeSpeed", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeSpeedDialog = true }, bottomAction = { Slider(value = marqueeSpeed.toFloat(), onValueChange = { marqueeSpeed = it.toInt(); saveConfig(Constants.KEY_MARQUEE_SPEED, marqueeSpeed) }, valueRange = 10f..500f) })
-                                    ArrowPreference(title = "初始滚动延迟", endActions = { Text("${marqueeDelay}ms", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeDelayDialog = true }, bottomAction = { Slider(value = marqueeDelay.toFloat(), onValueChange = { marqueeDelay = it.toInt(); saveConfig(Constants.KEY_MARQUEE_DELAY, marqueeDelay) }, valueRange = 0f..5000f) })
-                                    SwitchPreference(title = "无限循环", checked = marqueeInfinite, onCheckedChange = { marqueeInfinite = it; saveConfig(Constants.KEY_MARQUEE_INFINITE, it) })
-                                    ArrowPreference(title = "循环间隔", endActions = { Text("${marqueeLoop}ms", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeLoopDialog = true }, bottomAction = { Slider(value = marqueeLoop.toFloat(), onValueChange = { marqueeLoop = it.toInt(); saveConfig(Constants.KEY_MARQUEE_LOOP_DELAY, marqueeLoop) }, valueRange = 0f..5000f) })
-                                    SwitchPreference(title = "结束时在末尾停止", checked = marqueeStopEnd, onCheckedChange = { marqueeStopEnd = it; saveConfig(Constants.KEY_MARQUEE_STOP_END, it) })
+                                    ArrowPreference(title = "滚动速度", endActions = { Text("$marqueeSpeed", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeSpeedDialog = true }, bottomAction = { Slider(value = marqueeSpeed.toFloat(), onValueChange = { marqueeSpeed = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_SPEED, marqueeSpeed) }, valueRange = 10f..500f) })
+                                    ArrowPreference(title = "初始滚动延迟", endActions = { Text("${marqueeDelay}ms", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeDelayDialog = true }, bottomAction = { Slider(value = marqueeDelay.toFloat(), onValueChange = { marqueeDelay = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_DELAY, marqueeDelay) }, valueRange = 0f..5000f) })
+                                    SwitchPreference(title = "无限循环", checked = marqueeInfinite, onCheckedChange = { marqueeInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_INFINITE, it) })
+                                    ArrowPreference(title = "循环间隔", endActions = { Text("${marqueeLoop}ms", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeLoopDialog = true }, bottomAction = { Slider(value = marqueeLoop.toFloat(), onValueChange = { marqueeLoop = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, marqueeLoop) }, valueRange = 0f..5000f) })
+                                    SwitchPreference(title = "结束时在末尾停止", checked = marqueeStopEnd, onCheckedChange = { marqueeStopEnd = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_STOP_END, it) })
                                 }
                             }
                         }
@@ -180,8 +181,8 @@ fun LyricSettingsPage() {
                     SmallTitle(text = "逐字歌词", insideMargin = PaddingValues(10.dp, 4.dp))
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            SwitchPreference(title = "启用相对进度歌词", checked = syllableRelative, onCheckedChange = { syllableRelative = it; saveConfig(Constants.KEY_SYLLABLE_RELATIVE, it) })
-                            SwitchPreference(title = "显示相对进度歌词高亮进度", checked = syllableHighlight, onCheckedChange = { syllableHighlight = it; saveConfig(Constants.KEY_SYLLABLE_HIGHLIGHT, it) })
+                            SwitchPreference(title = "启用相对进度歌词", checked = syllableRelative, onCheckedChange = { syllableRelative = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, it) })
+                            SwitchPreference(title = "显示相对进度歌词高亮进度", checked = syllableHighlight, onCheckedChange = { syllableHighlight = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, it) })
                         }
                     }
                 }

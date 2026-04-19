@@ -50,7 +50,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.net.toUri
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.Quotes
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
@@ -123,10 +124,10 @@ fun MainPage() {
         tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
     )
     
-    val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
-    var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_FLOATING_NAV_BAR, Constants.DEFAULT_FLOATING_NAV_BAR)) }
-    var enableSuperIsland by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, Constants.DEFAULT_ENABLE_SUPER_ISLAND)) }
-    var enableDynamicIsland by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)) }
+    val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
+    var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_FLOATING_NAV_BAR, UIConstants.DEFAULT_FLOATING_NAV_BAR)) }
+    var enableSuperIsland by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_SUPER_ISLAND)) }
+    var enableDynamicIsland by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)) }
 
     var showPermissionSheet by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -140,9 +141,9 @@ fun MainPage() {
     val listener = remember {
         SharedPreferences.OnSharedPreferenceChangeListener { p, key ->
             when (key) {
-                Constants.KEY_FLOATING_NAV_BAR -> floatingNavBarEnabled = p.getBoolean(Constants.KEY_FLOATING_NAV_BAR, Constants.DEFAULT_FLOATING_NAV_BAR)
-                Constants.KEY_ENABLE_SUPER_ISLAND -> enableSuperIsland = p.getBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, Constants.DEFAULT_ENABLE_SUPER_ISLAND)
-                Constants.KEY_ENABLE_DYNAMIC_ISLAND -> enableDynamicIsland = p.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+                UIConstants.KEY_FLOATING_NAV_BAR -> floatingNavBarEnabled = p.getBoolean(UIConstants.KEY_FLOATING_NAV_BAR, UIConstants.DEFAULT_FLOATING_NAV_BAR)
+                RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND -> enableSuperIsland = p.getBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_SUPER_ISLAND)
+                RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND -> enableDynamicIsland = p.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)
             }
         }
     }
@@ -150,7 +151,7 @@ fun MainPage() {
     LaunchedEffect(Unit) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
         val hasListenerPermission = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
-        val isDynamicIslandEnabled = prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+        val isDynamicIslandEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)
 
         if (hasListenerPermission && isDynamicIslandEnabled) {
             LiveLyricService.ensureListenerBound(context)
@@ -308,8 +309,8 @@ fun MainPage() {
                                         checked = enableSuperIsland,
                                         onCheckedChange = {
                                             enableSuperIsland = it
-                                            prefs.edit { putBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, it) }
-                                            ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_ENABLE_SUPER_ISLAND, it)
+                                            prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, it) }
+                                            ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, it)
                                         }
                                     )
                                     AnimatedVisibility(visible = enableSuperIsland) {
@@ -332,16 +333,16 @@ fun MainPage() {
 
                                                 if (hasPostNotification && hasListenerPermission) {
                                                     enableDynamicIsland = true
-                                                    prefs.edit { putBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, true) }
-                                                    ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_ENABLE_DYNAMIC_ISLAND, true)
+                                                    prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, true) }
+                                                    ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, true)
                                                     LiveLyricService.ensureListenerBound(context)
                                                 } else {
                                                     showPermissionSheet = true
                                                 }
                                             } else {
                                                 enableDynamicIsland = false
-                                                prefs.edit { putBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, false) }
-                                                ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_ENABLE_DYNAMIC_ISLAND, false)
+                                                prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, false) }
+                                                ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, false)
                                             }
                                         }
                                     )
@@ -367,25 +368,25 @@ fun MainPage() {
                                         title = "重启系统界面",
                                         onClick = { showRestartDialog = true }
                                     )
-                                    var removeFocusWhitelist by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_REMOVE_FOCUS_WHITELIST, Constants.DEFAULT_REMOVE_FOCUS_WHITELIST)) }
+                                    var removeFocusWhitelist by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, RootConstants.DEFAULT_HOOK_REMOVE_FOCUS_WHITELIST)) }
                                     SwitchPreference(
                                         title = "移除焦点通知白名单",
                                         summary = "不要和其他模块的相同功能冲突使用",
                                         checked = removeFocusWhitelist,
                                         onCheckedChange = {
                                             removeFocusWhitelist = it
-                                            prefs.edit { putBoolean(Constants.KEY_REMOVE_FOCUS_WHITELIST, it) }
-                                            ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_REMOVE_FOCUS_WHITELIST, it)
+                                            prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, it) }
+                                            ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, it)
                                         }
                                     )
-                                    var removeIslandWhitelist by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_REMOVE_ISLAND_WHITELIST, Constants.DEFAULT_REMOVE_ISLAND_WHITELIST)) }
+                                    var removeIslandWhitelist by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, RootConstants.DEFAULT_HOOK_REMOVE_ISLAND_WHITELIST)) }
                                     SwitchPreference(
                                         title = "移除下拉小窗白名单",
                                         checked = removeIslandWhitelist,
                                         onCheckedChange = {
                                             removeIslandWhitelist = it
-                                            prefs.edit { putBoolean(Constants.KEY_REMOVE_ISLAND_WHITELIST, it) }
-                                            ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_REMOVE_ISLAND_WHITELIST, it)
+                                            prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, it) }
+                                            ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, it)
                                         }
                                     )
                                 }
@@ -449,8 +450,8 @@ fun MainPage() {
                 if (hasPostNotification && hasListenerPermission) {
                     showPermissionSheet = false
                     enableDynamicIsland = true
-                    prefs.edit { putBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, true) }
-                    ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_ENABLE_DYNAMIC_ISLAND, true)
+                    prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, true) }
+                    ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, true)
                     LiveLyricService.ensureListenerBound(context)
                 } else {
                     Toast.makeText(context, "权限还未授予", Toast.LENGTH_SHORT).show()

@@ -13,7 +13,8 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
@@ -141,8 +142,8 @@ object HookIslandLyric {
                 val lyriconPkg = LyriconDataBridge.activePackageName
                 if (lyriconPkg != pkgName) return result
 
-                val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-                val islandLength = prefs.getInt(Constants.KEY_MAX_LEFT_WIDTH, Constants.DEFAULT_MAX_LEFT_WIDTH)
+                val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+                val islandLength = prefs.getInt(RootConstants.KEY_HOOK_MAX_LEFT_WIDTH, RootConstants.DEFAULT_HOOK_MAX_LEFT_WIDTH)
                 val songName = LyriconDataBridge.currentSongName ?: systemTitle
                 val lyricText = LyriconDataBridge.currentLyric
 
@@ -177,8 +178,8 @@ object HookIslandLyric {
                     
                     // 仅当正在播放 且 存在有效的歌词内容时，才强制拉大灵动岛
                     if (!pkgName.isNullOrEmpty() && pkgName == lyriconPkg && LyriconDataBridge.isPlaying && hasLyricInfo) {
-                        val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-                        val islandLengthDp = prefs.getInt(Constants.KEY_MAX_LEFT_WIDTH, Constants.DEFAULT_MAX_LEFT_WIDTH)
+                        val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+                        val islandLengthDp = prefs.getInt(RootConstants.KEY_HOOK_MAX_LEFT_WIDTH, RootConstants.DEFAULT_HOOK_MAX_LEFT_WIDTH)
                         val density = islandView.resources.displayMetrics.density
 
                         val fixedLeftWidthPx = (islandLengthDp * density).toInt()
@@ -228,8 +229,8 @@ object HookIslandLyric {
             if (islandView != null && islandView.isAttachedToWindow) {
                 if (pkg == activePkg) {
                     val currentSong = if (LyriconDataBridge.activePackageName == pkg) LyriconDataBridge.currentSongName ?: "" else ""
-                    val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-                    val islandLength = prefs.getInt(Constants.KEY_MAX_LEFT_WIDTH, Constants.DEFAULT_MAX_LEFT_WIDTH)
+                    val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+                    val islandLength = prefs.getInt(RootConstants.KEY_HOOK_MAX_LEFT_WIDTH, RootConstants.DEFAULT_HOOK_MAX_LEFT_WIDTH)
                     islandView.post {
                         val hasLyricInfo = !newTitle.isBlank()
                         if (LyriconDataBridge.isPlaying && hasLyricInfo) {
@@ -263,8 +264,8 @@ object HookIslandLyric {
             if (islandView != null && islandView.isAttachedToWindow) {
                 if (pkg == activePkg) {
                     islandView.post {
-                        val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-                        val islandLength = prefs.getInt(Constants.KEY_MAX_LEFT_WIDTH, Constants.DEFAULT_MAX_LEFT_WIDTH)
+                        val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+                        val islandLength = prefs.getInt(RootConstants.KEY_HOOK_MAX_LEFT_WIDTH, RootConstants.DEFAULT_HOOK_MAX_LEFT_WIDTH)
 
                         // 先清除旧的注入（包括恢复旧宽度的 tag）
                         clearTextFromIsland(islandView, islandView.context.resources)
@@ -337,8 +338,8 @@ object HookIslandLyric {
                             // 恢复播放：如果有歌词就注入
                             val lyricText = LyriconDataBridge.currentLyric
                             val songName = LyriconDataBridge.currentSongName ?: ""
-                            val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-                            val islandLength = prefs.getInt(Constants.KEY_MAX_LEFT_WIDTH, Constants.DEFAULT_MAX_LEFT_WIDTH)
+                            val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+                            val islandLength = prefs.getInt(RootConstants.KEY_HOOK_MAX_LEFT_WIDTH, RootConstants.DEFAULT_HOOK_MAX_LEFT_WIDTH)
                             if (!lyricText.isNullOrBlank()) {
                                 injectTextToIsland(islandView, songName, lyricText, pkg, islandLength)
                             }
@@ -405,16 +406,16 @@ object HookIslandLyric {
         if (rightTv is io.github.proify.lyricon.lyric.view.RichLyricLineView) {
             val currentLine = LyriconDataBridge.currentLyricLine
             if (rightTv.line != currentLine) {
-                val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-                val isAnimEnabled = prefs.getBoolean(Constants.KEY_ANIM_ENABLE, Constants.DEFAULT_ANIM_ENABLE)
-                val animId = prefs.getString(Constants.KEY_ANIM_ID, Constants.DEFAULT_ANIM_ID)
+                val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+                val isAnimEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ANIM_ENABLE, RootConstants.DEFAULT_HOOK_ANIM_ENABLE)
+                val animId = prefs.getString(RootConstants.KEY_HOOK_ANIM_ID, RootConstants.DEFAULT_HOOK_ANIM_ID)
 
                 needInvalidate = true
 
                 val applyLineExt: io.github.proify.lyricon.lyric.view.RichLyricLineView.() -> Unit = {
                     line = currentLine
                     post { 
-                        if (prefs.getBoolean(Constants.KEY_MARQUEE_MODE, Constants.DEFAULT_MARQUEE_MODE)) {
+                        if (prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)) {
                             tryStartMarquee()
                         } else {
                             stopMarquee()
@@ -552,7 +553,7 @@ object HookIslandLyric {
         var customTv = frame.findViewWithTag<View>(tagStr)
         if (customTv == null) {
             if (tagStr == TAG_RIGHT) {
-                val prefs = module.getRemotePreferences(Constants.PREF_NAME)
+                val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
                 customTv = io.github.proify.lyricon.lyric.view.RichLyricLineView(frame.context).apply {
                     tag = tagStr
                     layoutParams = FrameLayout.LayoutParams(
@@ -562,20 +563,20 @@ object HookIslandLyric {
                     )
                     
                     val config = io.github.proify.lyricon.lyric.view.RichLyricLineConfig().apply {
-                        fadingEdgeLength = prefs.getInt(Constants.KEY_FADING_EDGE_LENGTH, Constants.DEFAULT_FADING_EDGE_LENGTH)
-                        gradientProgressStyle = prefs.getBoolean(Constants.KEY_GRADIENT_PROGRESS, Constants.DEFAULT_GRADIENT_PROGRESS)
+                        fadingEdgeLength = prefs.getInt(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, RootConstants.DEFAULT_HOOK_FADING_EDGE_LENGTH)
+                        gradientProgressStyle = prefs.getBoolean(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, RootConstants.DEFAULT_HOOK_GRADIENT_PROGRESS)
                         
                         placeholderFormat = io.github.proify.lyricon.lyric.view.PlaceholderFormat.NONE
                         
-                        val fontSize = prefs.getInt(Constants.KEY_TEXT_SIZE, Constants.DEFAULT_TEXT_SIZE)
-                        val fontWeight = prefs.getInt(Constants.KEY_FONT_WEIGHT, Constants.DEFAULT_FONT_WEIGHT)
-                        val fontItalic = prefs.getBoolean(Constants.KEY_FONT_ITALIC, Constants.DEFAULT_FONT_ITALIC)
+                        val fontSize = prefs.getInt(RootConstants.KEY_HOOK_TEXT_SIZE, RootConstants.DEFAULT_HOOK_TEXT_SIZE)
+                        val fontWeight = prefs.getInt(RootConstants.KEY_HOOK_FONT_WEIGHT, RootConstants.DEFAULT_HOOK_FONT_WEIGHT)
+                        val fontItalic = prefs.getBoolean(RootConstants.KEY_HOOK_FONT_ITALIC, RootConstants.DEFAULT_HOOK_FONT_ITALIC)
                         
                         val tf =
                             android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, fontWeight, fontItalic)
                         val isTranslationVisible = LyriconDataBridge.isDisplayTranslation
                         
-                        val textSizeRatio = prefs.getFloat(Constants.KEY_TEXT_SIZE_RATIO, Constants.DEFAULT_TEXT_SIZE_RATIO)
+                        val textSizeRatio = prefs.getFloat(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, RootConstants.DEFAULT_HOOK_TEXT_SIZE_RATIO)
                         val primarySizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat(), res.displayMetrics)
                         primary.textSize = primarySizePx
                         primary.typeface = tf
@@ -585,21 +586,21 @@ object HookIslandLyric {
                             secondary.textColor = intArrayOf(Color.TRANSPARENT)
                         }
                         
-                        primary.enableRelativeProgress = prefs.getBoolean(Constants.KEY_SYLLABLE_RELATIVE, Constants.DEFAULT_SYLLABLE_RELATIVE)
-                        primary.enableRelativeProgressHighlight = prefs.getBoolean(Constants.KEY_SYLLABLE_HIGHLIGHT, Constants.DEFAULT_SYLLABLE_HIGHLIGHT)
+                        primary.enableRelativeProgress = prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, RootConstants.DEFAULT_HOOK_SYLLABLE_RELATIVE)
+                        primary.enableRelativeProgressHighlight = prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, RootConstants.DEFAULT_HOOK_SYLLABLE_HIGHLIGHT)
                         primary.isScrollOnly = false
                         
                         syllable.enableSustainGlow = true
                         
-                        val isMarqueeEnabled = prefs.getBoolean(Constants.KEY_MARQUEE_MODE, Constants.DEFAULT_MARQUEE_MODE)
+                        val isMarqueeEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)
                         marquee.disableSyllableScroll = !isMarqueeEnabled
                         if (isMarqueeEnabled) {
-                            marquee.scrollSpeed = prefs.getInt(Constants.KEY_MARQUEE_SPEED, Constants.DEFAULT_MARQUEE_SPEED).toFloat()
-                            marquee.initialDelay = prefs.getInt(Constants.KEY_MARQUEE_DELAY, Constants.DEFAULT_MARQUEE_DELAY)
-                            marquee.loopDelay = prefs.getInt(Constants.KEY_MARQUEE_LOOP_DELAY, Constants.DEFAULT_MARQUEE_LOOP_DELAY)
-                            val infinite = prefs.getBoolean(Constants.KEY_MARQUEE_INFINITE, Constants.DEFAULT_MARQUEE_INFINITE)
+                            marquee.scrollSpeed = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_SPEED, RootConstants.DEFAULT_HOOK_MARQUEE_SPEED).toFloat()
+                            marquee.initialDelay = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_DELAY)
+                            marquee.loopDelay = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_LOOP_DELAY)
+                            val infinite = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_INFINITE, RootConstants.DEFAULT_HOOK_MARQUEE_INFINITE)
                             marquee.repeatCount = if (infinite) -1 else 1
-                            marquee.stopAtEnd = prefs.getBoolean(Constants.KEY_MARQUEE_STOP_END, Constants.DEFAULT_MARQUEE_STOP_END)
+                            marquee.stopAtEnd = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_STOP_END, RootConstants.DEFAULT_HOOK_MARQUEE_STOP_END)
                         } else {
                             marquee.repeatCount = 0
                             marquee.scrollSpeed = 0f
@@ -610,14 +611,14 @@ object HookIslandLyric {
                     updateColor(intArrayOf(Color.WHITE), intArrayOf("#4CFFFFFF".toColorInt()), intArrayOf(Color.WHITE))
                 }
             } else {
-                val prefs = module.getRemotePreferences(Constants.PREF_NAME)
+                val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
                 customTv = TextView(frame.context).apply {
                     tag = tagStr
                     setTextColor(Color.WHITE)
                     
-                    val fontSize = prefs.getInt(Constants.KEY_TEXT_SIZE, Constants.DEFAULT_TEXT_SIZE)
-                    val fontWeight = prefs.getInt(Constants.KEY_FONT_WEIGHT, Constants.DEFAULT_FONT_WEIGHT)
-                    val fontItalic = prefs.getBoolean(Constants.KEY_FONT_ITALIC, Constants.DEFAULT_FONT_ITALIC)
+                    val fontSize = prefs.getInt(RootConstants.KEY_HOOK_TEXT_SIZE, RootConstants.DEFAULT_HOOK_TEXT_SIZE)
+                    val fontWeight = prefs.getInt(RootConstants.KEY_HOOK_FONT_WEIGHT, RootConstants.DEFAULT_HOOK_FONT_WEIGHT)
+                    val fontItalic = prefs.getBoolean(RootConstants.KEY_HOOK_FONT_ITALIC, RootConstants.DEFAULT_HOOK_FONT_ITALIC)
                     
                     val tf =
                         android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, fontWeight, fontItalic)
@@ -628,7 +629,7 @@ object HookIslandLyric {
                     isSingleLine = true
                     ellipsize = null
                     
-                    val fadingEdgeDP = prefs.getInt(Constants.KEY_FADING_EDGE_LENGTH, Constants.DEFAULT_FADING_EDGE_LENGTH)
+                    val fadingEdgeDP = prefs.getInt(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, RootConstants.DEFAULT_HOOK_FADING_EDGE_LENGTH)
                     isHorizontalFadingEdgeEnabled = fadingEdgeDP > 0
                     setFadingEdgeLength(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, fadingEdgeDP.toFloat(), res.displayMetrics).toInt())
 

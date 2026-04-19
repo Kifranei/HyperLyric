@@ -3,7 +3,6 @@ package com.lidesheng.hyperlyric.ui.utils
 import android.app.Application
 import android.content.Context
 import android.os.Build
-import com.lidesheng.hyperlyric.Constants
 
 object AppUtils {
     @JvmStatic

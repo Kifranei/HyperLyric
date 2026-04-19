@@ -15,4 +15,5 @@ sealed interface Route : NavKey {
     data object SuperIslandSettings : Route
     data object Licenses : Route
     data object Poetry : Route
+    data object LyricWhitelist : Route
 }

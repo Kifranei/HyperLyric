@@ -17,7 +17,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
 import dev.chrisbanes.haze.HazeState
@@ -45,7 +46,7 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 fun HookSettingsPage() {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
-    val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
+    val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
     val hazeState = remember { HazeState() }
@@ -54,7 +55,7 @@ fun HookSettingsPage() {
         tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
     )
 
-    var lyricMode by remember { mutableIntStateOf(prefs.getInt(Constants.KEY_LYRIC_MODE, Constants.DEFAULT_LYRIC_MODE)) }
+    var lyricMode by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_LYRIC_MODE, RootConstants.DEFAULT_HOOK_LYRIC_MODE)) }
     val lyricModeOptions = listOf("逐字歌词", "分离歌词")
 
     Scaffold(
@@ -96,7 +97,7 @@ fun HookSettingsPage() {
                         selectedIndex = lyricMode,
                         onSelectedIndexChange = { index ->
                             lyricMode = index
-                            prefs.edit { putInt(Constants.KEY_LYRIC_MODE, index) }
+                            prefs.edit { putInt(RootConstants.KEY_HOOK_LYRIC_MODE, index) }
                         }
                     )
                 }
@@ -120,6 +121,9 @@ fun HookSettingsPage() {
                         })
                         ArrowPreference(title = "歌词提供者", onClick = {
                             navigator.navigate(Route.LyricProvider)
+                        })
+                        ArrowPreference(title = "歌词白名单", onClick = {
+                            navigator.navigate(Route.LyricWhitelist)
                         })
                     }
                 }

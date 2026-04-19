@@ -9,7 +9,9 @@ import android.content.IntentFilter
 import android.media.AudioManager
 import android.os.PowerManager
 import android.view.KeyEvent
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.online.model.DynamicLyricData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,12 +36,12 @@ class NotificationPresenter(
     private val pauseDebounceMs = 150L
 
     private val isDisableLyricSplit: Boolean
-        get() = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-            .getBoolean(Constants.KEY_DISABLE_LYRIC_SPLIT, Constants.DEFAULT_DISABLE_LYRIC_SPLIT)
+        get() = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+            .getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT)
 
     private val notificationType: Int
-        get() = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-            .getInt(Constants.KEY_NOTIFICATION_TYPE, Constants.DEFAULT_NOTIFICATION_TYPE)
+        get() = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+            .getInt(ServiceConstants.KEY_NOTIFICATION_TYPE, ServiceConstants.DEFAULT_NOTIFICATION_TYPE)
 
     // ─── 播控广播接收器 ───────────────────────────────────
     private val playbackToggleReceiver = object : BroadcastReceiver() {
@@ -83,8 +85,8 @@ class NotificationPresenter(
             return
         }
 
-        val sp = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-        if (!sp.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)) {
+        val sp = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+        if (!sp.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)) {
             clearNotifications()
             return
         }
@@ -102,20 +104,20 @@ class NotificationPresenter(
             notificationTitleLeft = globalState.notificationTitleLeft,
             notificationTitleRight = globalState.notificationTitleRight,
             albumBitmap = globalState.albumBitmap?.takeIf { !it.isRecycled },
-            color = if (sp.getBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, Constants.DEFAULT_PROGRESS_COLOR_ENABLED)) globalState.albumColor else 0xFF2C2C2C.toInt(),
-            colorEnd = if (sp.getBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, Constants.DEFAULT_PROGRESS_COLOR_ENABLED)) globalState.albumColorEnd else 0xFF2C2C2C.toInt(),
+            color = if (sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)) globalState.albumColor else 0xFF2C2C2C.toInt(),
+            colorEnd = if (sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)) globalState.albumColorEnd else 0xFF2C2C2C.toInt(),
             progress = progressPercent,
             isPlaying = globalState.isPlaying,
             targetPackageName = globalState.targetPackageName,
             showIslandLeftAlbum = globalState.showIslandLeftAlbum,
             disableLyricSplit = isDisableLyricSplit,
             notificationAlbumBitmap = globalState.notificationAlbumBitmap?.takeIf { !it.isRecycled },
-            focusNotificationType = sp.getInt(Constants.KEY_FOCUS_NOTIFICATION_TYPE, Constants.DEFAULT_FOCUS_NOTIFICATION_TYPE),
-            showAlbumArt = sp.getBoolean(Constants.KEY_SHOW_ALBUM_ART, Constants.DEFAULT_SHOW_ALBUM_ART)
+            focusNotificationType = sp.getInt(ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE, ServiceConstants.DEFAULT_NOTIFICATION_FOCUS_STYLE),
+            showAlbumArt = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM)
         )
 
         val isScreenOn = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive == true
-        val showProgressSetting = sp.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)
+        val showProgressSetting = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS, ServiceConstants.DEFAULT_NOTIFICATION_SHOW_PROGRESS)
 
         if (!force && lastUiState != null) {
             if (currentUiState == lastUiState) return
@@ -159,8 +161,8 @@ class NotificationPresenter(
     }
 
     private fun dispatchNotifications(uiState: NotificationManagerHelper.UiState, duration: Long, isScreenOn: Boolean) {
-        val sp = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-        val showProgressSetting = sp.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)
+        val sp = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+        val showProgressSetting = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS, ServiceConstants.DEFAULT_NOTIFICATION_SHOW_PROGRESS)
         val actualShowProgress = isScreenOn && showProgressSetting
 
         when (notificationType) {

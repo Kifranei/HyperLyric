@@ -5,8 +5,10 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.SystemClock
 import androidx.core.content.edit
-import com.lidesheng.hyperlyric.Constants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -144,17 +146,28 @@ object DynamicLyricData {
     private val _whitelistState = MutableStateFlow<Set<String>>(emptySet())
     val whitelistState = _whitelistState.asStateFlow()
 
+    private val _hookWhitelistState = MutableStateFlow<Set<String>>(emptySet())
+    val hookWhitelistState = _hookWhitelistState.asStateFlow()
+
+    private val _hookAddedState = MutableStateFlow<Set<String>>(emptySet())
+    val hookAddedState = _hookAddedState.asStateFlow()
+
     fun initWhitelist(context: Context) {
-        val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-        val savedSet = prefs.getStringSet(Constants.KEY_WHITELIST, emptySet())?.toSet() ?: emptySet()
+        val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+        val savedSet = prefs.getStringSet(ServiceConstants.KEY_NOTIFICATION_WHITELIST, emptySet())?.toSet() ?: emptySet()
         _whitelistState.value = savedSet
+
+        val hookSavedSet = prefs.getStringSet(RootConstants.KEY_HOOK_WHITELIST, emptySet())?.toSet() ?: emptySet()
+        _hookWhitelistState.value = hookSavedSet
+
+        val hookAddedSet = prefs.getStringSet(RootConstants.KEY_HOOK_ADDED_LIST, emptySet())?.toSet() ?: emptySet()
+        _hookAddedState.value = hookAddedSet
     }
 
+    // --- 通知页白名单 (原有逻辑) ---
     fun addPackageToWhitelist(context: Context, packageName: String): Boolean {
         val currentSet = _whitelistState.value.toMutableSet()
-
         if (!currentSet.add(packageName)) return false
-
         saveWhitelist(context, currentSet)
         return true
     }
@@ -168,11 +181,54 @@ object DynamicLyricData {
 
     private fun saveWhitelist(context: Context, set: Set<String>) {
         _whitelistState.value = set
-
-        context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE).edit {
-            putStringSet(Constants.KEY_WHITELIST, set)
+        context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE).edit {
+            putStringSet(ServiceConstants.KEY_NOTIFICATION_WHITELIST, set)
         }
+        ConfigSync.syncPreference(UIConstants.PREF_NAME, ServiceConstants.KEY_NOTIFICATION_WHITELIST, set)
+    }
 
-        ConfigSync.syncPreference(Constants.PREF_NAME, Constants.KEY_WHITELIST, set)
+    // --- 歌词钩子白名单 (新逻辑) ---
+    fun addPackageToHookList(context: Context, packageName: String): Boolean {
+        val addedSet = _hookAddedState.value.toMutableSet()
+        if (!addedSet.add(packageName)) return false
+        
+        val whitelistSet = _hookWhitelistState.value.toMutableSet()
+        whitelistSet.add(packageName) // 默认开启
+        
+        saveHookLists(context, whitelistSet, addedSet)
+        return true
+    }
+
+    fun toggleHookStatus(context: Context, packageName: String, enabled: Boolean) {
+        val currentSet = _hookWhitelistState.value.toMutableSet()
+        if (enabled) {
+            currentSet.add(packageName)
+        } else {
+            currentSet.remove(packageName)
+        }
+        saveHookLists(context, currentSet, _hookAddedState.value)
+    }
+
+    fun removePackageFromHookPage(context: Context, packageName: String) {
+        val addedSet = _hookAddedState.value.toMutableSet()
+        val whitelistSet = _hookWhitelistState.value.toMutableSet()
+        
+        addedSet.remove(packageName)
+        whitelistSet.remove(packageName)
+        
+        saveHookLists(context, whitelistSet, addedSet)
+    }
+
+    private fun saveHookLists(context: Context, whitelist: Set<String>, added: Set<String>) {
+        _hookWhitelistState.value = whitelist
+        _hookAddedState.value = added
+
+        context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE).edit {
+            putStringSet(RootConstants.KEY_HOOK_WHITELIST, whitelist)
+            putStringSet(RootConstants.KEY_HOOK_ADDED_LIST, added)
+        }
+        
+        ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_WHITELIST, whitelist)
+        ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ADDED_LIST, added)
     }
 }

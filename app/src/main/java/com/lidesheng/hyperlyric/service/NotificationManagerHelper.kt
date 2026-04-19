@@ -1,6 +1,7 @@
 package com.lidesheng.hyperlyric.service
 
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.R
 import android.app.Notification
 import android.app.NotificationChannel
@@ -95,8 +96,8 @@ object NotificationManagerHelper {
         duration: Long,
         showProgress: Boolean = true
     ): Notification {
-        val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-        val showAlbumSmallIcon = prefs.getBoolean(Constants.KEY_NORMAL_NOTIFICATION_ALBUM, Constants.DEFAULT_NORMAL_NOTIFICATION_ALBUM)
+        val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+        val showAlbumSmallIcon = prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_LIVE_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_LIVE_ALBUM)
 
         val smallIconCompat = when {
             showAlbumSmallIcon && uiState.notificationAlbumBitmap != null && !uiState.notificationAlbumBitmap.isRecycled ->
@@ -216,8 +217,8 @@ object NotificationManagerHelper {
 
 
     private fun getClickPendingIntent(context: Context, targetPackageName: String): PendingIntent? {
-        val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-        val action = prefs.getInt(Constants.KEY_NOTIFICATION_CLICK_ACTION, Constants.DEFAULT_NOTIFICATION_CLICK_ACTION)
+        val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+        val action = prefs.getInt(ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION, ServiceConstants.DEFAULT_NOTIFICATION_CLICK_ACTION)
 
         return when (action) {
             1 -> {

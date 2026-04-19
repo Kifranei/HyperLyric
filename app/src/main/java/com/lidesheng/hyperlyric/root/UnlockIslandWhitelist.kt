@@ -1,7 +1,8 @@
 package com.lidesheng.hyperlyric.root
 
 import com.lidesheng.hyperlyric.root.utils.log
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
@@ -36,8 +37,8 @@ object UnlockIslandWhitelist {
 
     class ReturnTrueHooker : Hooker {
         override fun intercept(chain: Chain): Any? {
-            val prefs = module.getRemotePreferences(Constants.PREF_NAME)
-            val enabled = prefs.getBoolean(Constants.KEY_REMOVE_ISLAND_WHITELIST, Constants.DEFAULT_REMOVE_ISLAND_WHITELIST)
+            val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+            val enabled = prefs.getBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, RootConstants.DEFAULT_HOOK_REMOVE_ISLAND_WHITELIST)
             if (!enabled) {
                 return chain.proceed()
             }

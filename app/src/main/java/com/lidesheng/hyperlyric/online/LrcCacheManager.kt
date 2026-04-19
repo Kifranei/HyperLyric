@@ -1,7 +1,8 @@
-﻿package com.lidesheng.hyperlyric.online
+package com.lidesheng.hyperlyric.online
 
 import android.content.Context
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -40,8 +41,8 @@ object LrcCacheManager {
     }
 
     suspend fun saveLyricToCache(context: Context, title: String, artist: String, lrcContent: String) = withContext(Dispatchers.IO) {
-        val prefs = context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
-        val limit = prefs.getInt(Constants.KEY_ONLINE_LYRIC_CACHE_LIMIT, Constants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT)
+        val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
+        val limit = prefs.getInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, ServiceConstants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT)
         
         if (limit == 0) return@withContext
 

@@ -1,5 +1,6 @@
 package com.lidesheng.hyperlyric.service
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 
 
 import android.service.quicksettings.Tile
@@ -14,8 +15,8 @@ class LyricTileService : TileService() {
     }
 
     private fun updateTileState() {
-        val prefs = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        val isEnabled = prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+        val prefs = getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
+        val isEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)
         
         val tile = qsTile ?: return
         tile.label = "HyperLyric媒体信息监听"
@@ -29,11 +30,11 @@ class LyricTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        val prefs = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        val isEnabled = prefs.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+        val prefs = getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
+        val isEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)
         val nextState = !isEnabled
         
-        prefs.edit { putBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, nextState) }
+        prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, nextState) }
         
         // 不再需要发 Intent 给 ForegroundLyricService，
         // LiveLyricService 内的 NotificationPresenter 会通过 Flow 自动感知开关变化。

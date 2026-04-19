@@ -18,7 +18,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
@@ -74,10 +75,10 @@ private val animLabelMap = mapOf(
 fun LyricAnimationPage() {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
-    val prefs = remember { context.getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE) }
+    val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     
-    var animEnable by remember { mutableStateOf(prefs.getBoolean(Constants.KEY_ANIM_ENABLE, Constants.DEFAULT_ANIM_ENABLE)) }
-    var animId by remember { mutableStateOf(prefs.getString(Constants.KEY_ANIM_ID, Constants.DEFAULT_ANIM_ID) ?: Constants.DEFAULT_ANIM_ID) }
+    var animEnable by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ANIM_ENABLE, RootConstants.DEFAULT_HOOK_ANIM_ENABLE)) }
+    var animId by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_ANIM_ID, RootConstants.DEFAULT_HOOK_ANIM_ID) ?: RootConstants.DEFAULT_HOOK_ANIM_ID) }
 
     fun saveConfig(key: String, value: Any) {
         prefs.edit {
@@ -86,7 +87,7 @@ fun LyricAnimationPage() {
                 is String -> putString(key, value)
             }
         }
-        ConfigSync.syncPreference(Constants.PREF_NAME, key, value)
+        ConfigSync.syncPreference(UIConstants.PREF_NAME, key, value)
         context.sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
     }
 
@@ -124,7 +125,7 @@ fun LyricAnimationPage() {
                             selected = !animEnable,
                             onClick = {
                                 animEnable = false
-                                saveConfig(Constants.KEY_ANIM_ENABLE, false)
+                                saveConfig(RootConstants.KEY_HOOK_ANIM_ENABLE, false)
                             }
                         )
                         val registry = YoYoPresets.registry
@@ -136,9 +137,9 @@ fun LyricAnimationPage() {
                                 selected = animEnable && animId == key,
                                 onClick = {
                                     animEnable = true
-                                    saveConfig(Constants.KEY_ANIM_ENABLE, true)
+                                    saveConfig(RootConstants.KEY_HOOK_ANIM_ENABLE, true)
                                     animId = key
-                                    saveConfig(Constants.KEY_ANIM_ID, key)
+                                    saveConfig(RootConstants.KEY_HOOK_ANIM_ID, key)
                                 }
                             )
                         }

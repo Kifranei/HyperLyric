@@ -15,7 +15,9 @@ import android.service.notification.NotificationListenerService
 import android.util.TypedValue
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.toColorInt
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.online.LrcCacheManager
 import com.lidesheng.hyperlyric.online.LrcLine
 import com.lidesheng.hyperlyric.online.OnlineLyricTargeter
@@ -305,8 +307,8 @@ class LiveLyricService : NotificationListenerService() {
     }
 
     private suspend fun processSyncData(data: SyncData) {
-        val sp = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        val enableDynamicIsland = sp.getBoolean(Constants.KEY_ENABLE_DYNAMIC_ISLAND, Constants.DEFAULT_ENABLE_DYNAMIC_ISLAND)
+        val sp = getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
+        val enableDynamicIsland = sp.getBoolean(RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_DYNAMIC_ISLAND)
         val pauseListening = !enableDynamicIsland
         val isWhitelisted = DynamicLyricData.whitelistState.value.contains(data.currentPackageName)
 
@@ -336,7 +338,7 @@ class LiveLyricService : NotificationListenerService() {
 
         // 使用 AlbumImageProcessor 做取色，仅在开关打开时
         if (data.isNewSong) {
-            val progressColorEnabled = sp.getBoolean(Constants.KEY_PROGRESS_COLOR_ENABLED, Constants.DEFAULT_PROGRESS_COLOR_ENABLED)
+            val progressColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)
             val colors = if (progressColorEnabled) AlbumImageProcessor.extractColors(data.albumBitmap) else AlbumImageProcessor.ExtractedColors(
                 "#E0E0E0".toColorInt(),
                 "#E0E0E0".toColorInt()
@@ -351,7 +353,7 @@ class LiveLyricService : NotificationListenerService() {
             lastDispatchedLrc = ""
             currentLyricLines = null
             
-            if (sp.getBoolean(Constants.KEY_ONLINE_LYRIC_ENABLED, Constants.DEFAULT_ONLINE_LYRIC_ENABLED)) {
+            if (sp.getBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, ServiceConstants.DEFAULT_ONLINE_LYRIC_ENABLED)) {
                 DynamicLyricData.updateFetchingLyrics(true)
                 val lines = withContext(Dispatchers.IO) {
                     var l = LrcCacheManager.getLyricFromCache(this@LiveLyricService, data.identityTitle, data.identityArtist)?.let { parseLrc(it) }
@@ -413,8 +415,8 @@ class LiveLyricService : NotificationListenerService() {
 
     private fun launchProgressScheduler() {
         progressJob?.cancel()
-        val sp = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
-        if (!sp.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)) return
+        val sp = getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
+        if (!sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS, ServiceConstants.DEFAULT_NOTIFICATION_SHOW_PROGRESS)) return
         
         progressJob = serviceScope.launch {
             var lastPercent = -1
@@ -443,11 +445,11 @@ class LiveLyricService : NotificationListenerService() {
 
     private fun dispatchLyricContent(targetText: String, data: SyncData) {
         val songLyric = if (currentLyricLines != null) targetText else data.dynamicTitle
-        val pref = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
+        val pref = getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
 
-        val showIslandLeftAlbum = pref.getBoolean(Constants.KEY_ISLAND_LEFT_ALBUM, Constants.DEFAULT_ISLAND_LEFT_ALBUM)
-        val showAlbumArt = pref.getBoolean(Constants.KEY_SHOW_ALBUM_ART, Constants.DEFAULT_SHOW_ALBUM_ART)
-        val disableLyricSplit = pref.getBoolean(Constants.KEY_DISABLE_LYRIC_SPLIT, Constants.DEFAULT_DISABLE_LYRIC_SPLIT)
+        val showIslandLeftAlbum = pref.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_LEFT_ALBUM)
+        val showAlbumArt = pref.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM)
+        val disableLyricSplit = pref.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT)
 
         val (islandLeft, islandRight, notificationLeft, notificationRight) = splitTitleByPixelWidth(songLyric, showIslandLeftAlbum, showAlbumArt)
 
@@ -464,7 +466,7 @@ class LiveLyricService : NotificationListenerService() {
         // 通知栏：始终按自己的像素宽度分割，不受 disableLyricSplit 影响
         val finalNotificationLeft = notificationLeft
 
-        val titleStyle = pref.getInt(Constants.KEY_NORMAL_NOTIFICATION_TITLE_STYLE, Constants.DEFAULT_NORMAL_NOTIFICATION_TITLE_STYLE)
+        val titleStyle = pref.getInt(ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE, ServiceConstants.DEFAULT_NOTIFICATION_TITLE_STYLE)
         val songInfo = when (titleStyle) {
             0 -> ""
             1 -> data.identityTitle

@@ -2,7 +2,7 @@ package com.lidesheng.hyperlyric.root.utils
 
 import android.app.Application
 import android.content.Context
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import io.github.libxposed.service.XposedService
 import io.github.libxposed.service.XposedServiceHelper
 
@@ -51,12 +51,12 @@ class ConfigSync : Application() {
 
         @JvmStatic
         private fun syncAllPreferences(context: Context) {
-            val prefs = context.getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE)
+            val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
             val allEntries = prefs.all
             if (allEntries.isEmpty()) return
 
             allEntries.forEach { (key, value) ->
-                syncPreference(Constants.PREF_NAME, key, value)
+                syncPreference(UIConstants.PREF_NAME, key, value)
             }
         }
     }

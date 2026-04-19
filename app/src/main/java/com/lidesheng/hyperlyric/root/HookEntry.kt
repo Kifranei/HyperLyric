@@ -6,7 +6,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import com.lidesheng.hyperlyric.root.utils.log
 import com.lidesheng.hyperlyric.root.utils.logError
-import com.lidesheng.hyperlyric.Constants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
@@ -38,8 +39,8 @@ class HookEntry : XposedModule() {
                  logError("Failed to hook white-lists", e)
             }
 
-            val prefs = getRemotePreferences(Constants.PREF_NAME)
-            val isSuperIslandEnabled = prefs.getBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, Constants.DEFAULT_ENABLE_SUPER_ISLAND)
+            val prefs = getRemotePreferences(UIConstants.PREF_NAME)
+            val isSuperIslandEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_SUPER_ISLAND)
             if (!isSuperIslandEnabled) {
                 log("Super Island is disabled, skipping island hooks.")
                 return
@@ -69,8 +70,8 @@ class HookEntry : XposedModule() {
             }
 
         } else if (packageName == "miui.systemui.plugin") {
-            val prefs = getRemotePreferences(Constants.PREF_NAME)
-            val isSuperIslandEnabled = prefs.getBoolean(Constants.KEY_ENABLE_SUPER_ISLAND, Constants.DEFAULT_ENABLE_SUPER_ISLAND)
+            val prefs = getRemotePreferences(UIConstants.PREF_NAME)
+            val isSuperIslandEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_SUPER_ISLAND)
             if (!isSuperIslandEnabled) {
                 log("Super Island is disabled, skipping plugin hook.")
                 return
