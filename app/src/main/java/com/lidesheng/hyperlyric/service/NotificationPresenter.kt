@@ -114,25 +114,32 @@ class NotificationPresenter(
             showAlbumArt = sp.getBoolean(Constants.KEY_SHOW_ALBUM_ART, Constants.DEFAULT_SHOW_ALBUM_ART)
         )
 
-        if (!force && currentUiState == lastUiState) return
-
         val isScreenOn = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive == true
-        if (!force && !isScreenOn && lastUiState != null) {
-            if (currentUiState.isProgressOnlyChange(lastUiState!!)) return
-        }
+        val showProgressSetting = sp.getBoolean(Constants.KEY_ISLAND_SHOW_PROGRESS, Constants.DEFAULT_ISLAND_SHOW_PROGRESS)
 
-        lastUiState = currentUiState
+        if (!force && lastUiState != null) {
+            if (currentUiState == lastUiState) return
+            val progressOnly = currentUiState.isProgressOnlyChange(lastUiState!!)
+            if (progressOnly) {
+                // 如果当前关闭了进度条显示，或者屏幕处于关闭状态，则不因进度变化触发通知
+                if (!showProgressSetting || !isScreenOn) return
+            }
+        }
 
         if (currentUiState.isPlaying) {
             pauseDebounceJob?.cancel()
             pauseDebounceJob = null
 
             dispatchNotifications(currentUiState, safeDuration, isScreenOn)
-        } else if (pauseDebounceJob == null || pauseDebounceJob?.isActive != true) {
-            pauseDebounceJob = scope.launch {
-                delay(pauseDebounceMs)
-                if (DynamicLyricData.currentState.isPlaying) return@launch
-                clearNotifications()
+            lastUiState = currentUiState
+        } else {
+            lastUiState = currentUiState
+            if (pauseDebounceJob == null || pauseDebounceJob?.isActive != true) {
+                pauseDebounceJob = scope.launch {
+                    delay(pauseDebounceMs)
+                    if (DynamicLyricData.currentState.isPlaying) return@launch
+                    clearNotifications()
+                }
             }
         }
     }
@@ -140,7 +147,8 @@ class NotificationPresenter(
     // ─── 内部方法 ─────────────────────────────────────────
 
     private fun NotificationManagerHelper.UiState.isProgressOnlyChange(other: NotificationManagerHelper.UiState): Boolean {
-        return title == other.title &&
+        return progress != other.progress &&
+                title == other.title &&
                 islandTitleLeft == other.islandTitleLeft &&
                 notificationTitleLeft == other.notificationTitleLeft &&
                 notificationTitleRight == other.notificationTitleRight &&

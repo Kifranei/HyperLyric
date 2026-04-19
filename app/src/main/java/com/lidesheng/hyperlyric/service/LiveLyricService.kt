@@ -29,6 +29,8 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -104,11 +106,10 @@ class LiveLyricService : NotificationListenerService() {
             lyricUpdateFlow.collectLatest { data -> processSyncData(data) }
         }
 
-        // 订阅状态变化，驱动通知展示
         serviceScope.launch {
-            kotlinx.coroutines.flow.combine(
+            combine(
                 DynamicLyricData.musicState,
-                DynamicLyricData.progressFlow,
+                DynamicLyricData.progressFlow.onStart { emit(0f) },
                 DynamicLyricData.whitelistState
             ) { state, _, _ -> state }.collect { state ->
                 notificationPresenter.updateState(state, force = false)
@@ -379,6 +380,8 @@ class LiveLyricService : NotificationListenerService() {
             } else {
                 dispatchLyricContent(data.dynamicTitle, data)
             }
+            // 新歌强制同步一次通知
+            notificationPresenter.updateState(DynamicLyricData.currentState, force = true)
         } else {
             if (currentLyricLines != null) launchLyricScheduler() else dispatchLyricContent(data.dynamicTitle, data)
             launchProgressScheduler()
