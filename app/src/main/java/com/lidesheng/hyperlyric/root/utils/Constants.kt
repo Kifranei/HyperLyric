@@ -1,4 +1,4 @@
-package com.lidesheng.hyperlyric.root.utils
+﻿package com.lidesheng.hyperlyric.root.utils
 
 object Constants {
     // ================= HOOK & SUPER ISLAND KEYS =================

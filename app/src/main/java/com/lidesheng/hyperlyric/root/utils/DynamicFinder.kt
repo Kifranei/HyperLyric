@@ -1,4 +1,4 @@
-package com.lidesheng.hyperlyric.root.utils
+﻿package com.lidesheng.hyperlyric.root.utils
 
 import android.util.Log
 import java.lang.reflect.Method

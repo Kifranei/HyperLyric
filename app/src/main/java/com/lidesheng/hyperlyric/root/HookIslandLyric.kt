@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
-import com.lidesheng.hyperlyric.root.utils.log
+import com.lidesheng.hyperlyric.root.utils.xLog
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -13,6 +13,7 @@ import android.widget.FrameLayout
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.DynamicFinder
+import com.lidesheng.hyperlyric.root.utils.xLogError
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
@@ -39,32 +40,42 @@ object HookIslandLyric {
         
 
         val islandPkg = "miui.systemui.dynamicisland"
-        log("Entering Preference-Aware Mode.")
 
+        val contentViewClass = try {
+            DynamicFinder.findClassByConstantString(cl, "$islandPkg.window.content", "DynamicIslandContentView")
+                ?: cl.loadClass("$islandPkg.window.content.DynamicIslandContentView")
+        } catch (_: Exception) {
+            // 如果此 ClassLoader 中没有这个类，直接返回，稍后尝试其它 ClassLoader
+            return
+        }
 
         try {
-            val contentViewClass = DynamicFinder.findClassByConstantString(cl, "$islandPkg.window.content", "DynamicIslandContentView")
-                ?: cl.loadClass("$islandPkg.window.content.DynamicIslandContentView")
-            
             contentViewClass.methods.forEach { method ->
                 val name = method.name
                 if (name == "updateBigIslandView") {
                     try {
                         module.deoptimize(method)
                         module.hook(method).intercept(UpdateBigIslandHooker())
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {
+                        xLogError("Failed to hook updateBigIslandView", e)
+                    }
                 } else if (name.contains("Width") || name.contains("BigIslandX")) {
                     if (method.parameterTypes.any { it == Int::class.javaPrimitiveType || it == Float::class.javaPrimitiveType }) {
                         try {
                             module.deoptimize(method)
                             module.hook(method).intercept(ViewSetterHooker(name))
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {
+                            xLogError("Failed to hook $name", e)
+                        }
                     }
                 }
             }
-        } catch (_: Exception) {}
-
-        isHookedSuccess = true
+            
+            isHookedSuccess = true
+            xLog("HyperLyric active: Super Island hooked successfully")
+        } catch (e: Exception) {
+            xLogError("Exception in HookIslandLyric.hook method processing", e)
+        }
     }
 
     class ViewSetterHooker(private val methodName: String) : Hooker {
@@ -138,7 +149,10 @@ object HookIslandLyric {
             val activePkg = LyriconDataBridge.activePackageName
             
             // 增加校验：包名匹配 且 在歌词白名单中开启
-            if (pkgName.isEmpty() || pkgName != activePkg || !isPackageHookEnabled(activePkg)) return result
+            if (pkgName.isEmpty() || pkgName != activePkg || !isPackageHookEnabled(activePkg)) {
+
+                return result
+            }
 
             activeContentView = java.lang.ref.WeakReference(viewGroup)
 
@@ -158,6 +172,11 @@ object HookIslandLyric {
     private fun isPackageHookEnabled(packageName: String?): Boolean {
         if (packageName.isNullOrEmpty()) return false
         val prefs = module.getRemotePreferences(UIConstants.PREF_NAME)
+        // 通过已添加列表判断用户是否配置过白名单
+        // 如果 addedList 为空，说明用户从未添加过任何应用，默认不放行
+        val addedList = prefs.getStringSet(RootConstants.KEY_HOOK_ADDED_LIST, null)
+        if (addedList.isNullOrEmpty()) return false
+        // 用户已配置过白名单，严格校验：只有在启用集合中的包名才放行
         val whitelist = prefs.getStringSet(RootConstants.KEY_HOOK_WHITELIST, emptySet()) ?: emptySet()
         return whitelist.contains(packageName)
     }

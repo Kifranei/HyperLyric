@@ -1,4 +1,4 @@
-package com.lidesheng.hyperlyric.root
+﻿package com.lidesheng.hyperlyric.root
 
 import io.github.proify.lyricon.lyric.model.RichLyricLine
 
