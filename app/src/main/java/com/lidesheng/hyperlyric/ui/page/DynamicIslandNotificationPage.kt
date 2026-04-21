@@ -117,7 +117,7 @@ fun DynamicIslandNotificationPage() {
             ) {
                 TopAppBar(
                     color = Color.Transparent,
-                    title = "灵动岛歌词通知",
+                    title = "通知型灵动岛歌词",
                     scrollBehavior = scrollBehavior,
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "后退") }
