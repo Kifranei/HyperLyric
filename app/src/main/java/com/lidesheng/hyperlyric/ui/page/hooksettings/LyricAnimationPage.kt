@@ -16,8 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
@@ -42,33 +44,33 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
-private val animLabelMap = mapOf(
-    "default" to "默认",
-    "fade_out_fade_in" to "渐隐渐现",
-    "fade_out_up_fade_in_up" to "向上渐隐＆向上渐现",
-    "fade_out_down_fade_in_down" to "向下渐隐＆向下渐现",
-    "fade_out_left_fade_in_right" to "向左渐隐＆右侧渐现",
-    "fade_out_left_fade_in_up" to "向左渐隐＆向上渐现",
-    "fade_out_left_zoom_in" to "向左渐隐＆缩放渐现",
-    "fade_out_left_landing" to "向左渐隐＆柔缓着陆",
-    "fade_out_right_fade_in_left" to "向右渐隐＆左侧渐现",
-    "fade_out_right_fade_in_up" to "向右渐隐＆向上渐现",
-    "fade_out_right_zoom_in" to "向右渐隐＆缩放渐现",
-    "fade_out_right_landing" to "向右渐隐＆聚焦着陆",
-    "fade_out_left_zoom_in_right" to "向左渐隐＆右侧缩放渐现",
-    "fade_out_right_zoom_in_left" to "向右渐隐＆左侧缩放渐现",
-    "slide_out_left_slide_in_right" to "左侧滑出＆右侧滑入",
-    "slide_out_left_fade_in_up" to "左侧滑出＆向上渐现",
-    "slide_out_left_zoom_in" to "左侧滑出＆缩放渐现",
-    "slide_out_left_landing" to "左侧滑出＆柔缓着陆",
-    "slide_out_right_slide_in_left" to "右侧滑出＆左侧滑入",
-    "slide_out_right_fade_in_up" to "右侧滑出＆向上渐现",
-    "slide_out_right_zoom_in" to "右侧滑出＆缩放渐现",
-    "slide_out_right_landing" to "右侧滑出&柔缓着陆",
-    "flip_out_x_flip_in_x" to "X轴翻转",
-    "flip_out_y_flip_in_y" to "Y轴翻转",
-    "rotate_out_rotate_in" to "旋转",
-    "zoom_out_zoom_in" to "缩放",
+private val animLabelResMap = mapOf(
+    "default" to R.string.option_anim_default,
+    "fade_out_fade_in" to R.string.option_anim_fade,
+    "fade_out_up_fade_in_up" to R.string.option_anim_fade_up,
+    "fade_out_down_fade_in_down" to R.string.option_anim_fade_down,
+    "fade_out_left_fade_in_right" to R.string.option_anim_fade_left_right,
+    "fade_out_left_fade_in_up" to R.string.option_anim_fade_left_up,
+    "fade_out_left_zoom_in" to R.string.option_anim_fade_left_zoom,
+    "fade_out_left_landing" to R.string.option_anim_fade_left_landing,
+    "fade_out_right_fade_in_left" to R.string.option_anim_fade_right_left,
+    "fade_out_right_fade_in_up" to R.string.option_anim_fade_right_up,
+    "fade_out_right_zoom_in" to R.string.option_anim_fade_right_zoom,
+    "fade_out_right_landing" to R.string.option_anim_fade_right_landing_focus,
+    "fade_out_left_zoom_in_right" to R.string.option_anim_fade_left_zoom_right,
+    "fade_out_right_zoom_in_left" to R.string.option_anim_fade_right_zoom_left,
+    "slide_out_left_slide_in_right" to R.string.option_anim_slide_left_right,
+    "slide_out_left_fade_in_up" to R.string.option_anim_slide_left_up,
+    "slide_out_left_zoom_in" to R.string.option_anim_slide_left_zoom,
+    "slide_out_left_landing" to R.string.option_anim_slide_left_landing,
+    "slide_out_right_slide_in_left" to R.string.option_anim_slide_right_left,
+    "slide_out_right_fade_in_up" to R.string.option_anim_slide_right_up,
+    "slide_out_right_zoom_in" to R.string.option_anim_slide_right_zoom,
+    "slide_out_right_landing" to R.string.option_anim_slide_right_landing,
+    "flip_out_x_flip_in_x" to R.string.option_anim_flip_x,
+    "flip_out_y_flip_in_y" to R.string.option_anim_flip_y,
+    "rotate_out_rotate_in" to R.string.option_anim_rotate,
+    "zoom_out_zoom_in" to R.string.option_anim_zoom,
 )
 
 @Composable
@@ -99,10 +101,10 @@ fun LyricAnimationPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "歌词切换动画",
+                title = stringResource(id = R.string.title_lyric_anim),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "返回") }
+                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
                 },
                 modifier = Modifier.hazeEffect(hazeState) { style = hazeStyle; blurRadius = 25.dp; noiseFactor = 0f }
             )
@@ -121,7 +123,7 @@ fun LyricAnimationPage() {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column {
                         RadioButtonPreference(
-                            title = "无动画",
+                            title = stringResource(id = R.string.option_anim_none),
                             selected = !animEnable,
                             onClick = {
                                 animEnable = false
@@ -131,7 +133,8 @@ fun LyricAnimationPage() {
                         val registry = YoYoPresets.registry
                         val keys = registry.keys.toList()
                         keys.forEach { key ->
-                            val label = animLabelMap[key] ?: key
+                            val labelRes = animLabelResMap[key]
+                            val label = if (labelRes != null) stringResource(id = labelRes) else key
                             RadioButtonPreference(
                                 title = label,
                                 selected = animEnable && animId == key,

@@ -78,10 +78,10 @@ fun LyricProviderPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "歌词提供者",
+                title = stringResource(id = R.string.title_lyric_provider),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "返回") }
+                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
                 },
                 actions = {
                     IconButton(
@@ -93,7 +93,7 @@ fun LyricProviderPage() {
                         },
                         modifier = Modifier.padding(end = 12.dp)
                     ) {
-                        Icon(painter = painterResource(id = R.drawable.ic_github), contentDescription = "GitHub", tint = MiuixTheme.colorScheme.onBackground, modifier = Modifier.size(26.dp))
+                        Icon(painter = painterResource(id = R.drawable.ic_github), contentDescription = stringResource(id = R.string.github), tint = MiuixTheme.colorScheme.onBackground, modifier = Modifier.size(26.dp))
                     }
                 },
                 modifier = Modifier.hazeEffect(hazeState) { style = hazeStyle; blurRadius = 25.dp; noiseFactor = 0f }
@@ -115,15 +115,31 @@ fun LyricProviderPage() {
 
 @Composable
 private fun LyricProviderTab(uiState: ProviderUiState, padding: PaddingValues, hazeState: HazeState, scrollBehavior: ScrollBehavior, pullToRefreshState: PullToRefreshState, onRefresh: () -> Unit) {
-    val groupedModules = remember(uiState.modules) { LyricProviderManager.categorizeModules(uiState.modules, "其他") }
+    val othersCategoryName = stringResource(id = R.string.category_others)
+    val groupedModules = remember(uiState.modules) { LyricProviderManager.categorizeModules(uiState.modules, othersCategoryName) }
 
-    PullToRefresh(isRefreshing = uiState.isLoading, onRefresh = onRefresh, pullToRefreshState = pullToRefreshState, topAppBarScrollBehavior = scrollBehavior, refreshTexts = listOf("下拉刷新", "松开刷新", "正在刷新...", "刷新成功"), modifier = Modifier.fillMaxSize()) {
+    PullToRefresh(
+        isRefreshing = uiState.isLoading,
+        onRefresh = onRefresh,
+        pullToRefreshState = pullToRefreshState,
+        topAppBarScrollBehavior = scrollBehavior,
+        refreshTexts = listOf(
+            stringResource(id = R.string.refresh_pull_down),
+            stringResource(id = R.string.refresh_release),
+            stringResource(id = R.string.refreshing),
+            stringResource(id = R.string.refresh_success)
+        ),
+        modifier = Modifier.fillMaxSize()
+    ) {
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical(), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())) {
                 if (!uiState.isLoading && uiState.modules.isEmpty()) {
                     item {
                         Card(modifier = Modifier.fillMaxWidth()) {
-                            BasicComponent(title = "暂未发现歌词提供者", summary = "请点击右上角图标前往 LyricProvider 仓库下载安装并启用插件")
+                            BasicComponent(
+                                title = stringResource(id = R.string.title_no_provider),
+                                summary = stringResource(id = R.string.summary_no_provider)
+                            )
                         }
                     }
                 } else {
@@ -151,7 +167,9 @@ private fun ModuleCard(module: LyricModule) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = module.label, style = MiuixTheme.textStyles.title4, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "${module.packageInfo.versionName ?: "未知"} | ${module.author ?: "未知作者"}", style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantActions)
+            val version = module.packageInfo.versionName ?: stringResource(id = R.string.unknown)
+            val author = module.author ?: stringResource(id = R.string.unknown_author)
+            Text(text = stringResource(id = R.string.format_version_author, version, author), style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantActions)
 
             if (!module.description.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(12.dp))

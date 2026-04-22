@@ -40,9 +40,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -259,6 +261,13 @@ fun LogPage() {
     var showFilterPopup by remember { mutableStateOf(false) }
     var showDetailDialog by remember { mutableStateOf(false) }
     var currentDetailLog by remember { mutableStateOf<LogEntry?>(null) }
+
+    val exportHeader = stringResource(id = R.string.export_header)
+    val exportTimeFormat = stringResource(id = R.string.format_export_time)
+    val exportSuccessMsg = stringResource(id = R.string.export_success)
+    val exportFailedMsg = stringResource(id = R.string.format_export_failed)
+    val logsClearedMsg = stringResource(id = R.string.logs_cleared)
+    val copiedMsg = stringResource(id = R.string.copied)
     
     val reloadLogs = {
         coroutineScope.launch {
@@ -286,8 +295,8 @@ fun LogPage() {
             if (uri == null) return@rememberLauncherForActivityResult
             try {
                 val sb = StringBuilder()
-                sb.appendLine("========== HyperLyric 调试日志 ==========")
-                sb.appendLine("导出时间: ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}")
+                sb.appendLine(exportHeader)
+                sb.appendLine(String.format(exportTimeFormat, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
                 sb.appendLine()
                 val toExport = if (checkedStates.isEmpty()) filteredLogs else allLogs.filterIndexed { index, _ -> checkedStates[index] == true }
                 toExport.forEach {
@@ -301,10 +310,10 @@ fun LogPage() {
                         it.write(sb.toString().toByteArray(Charsets.UTF_8))
                         it.flush()
                     }
-                    Toast.makeText(context, "导出成功", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, exportSuccessMsg, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "导出失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, String.format(exportFailedMsg, e.message), Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -323,19 +332,19 @@ fun LogPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "模块日志",
+                title = stringResource(id = R.string.title_module_logs),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(
                         onClick = { navigator.pop() }
                     ) {
-                        Icon(imageVector = MiuixIcons.Back, contentDescription = "返回")
+                        Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back))
                     }
                 },
                 actions = {
                     Box {
                         IconButton(onClick = { showFilterPopup = true }, holdDownState = showFilterPopup) {
-                            Icon(imageVector = MiuixIcons.Filter, contentDescription = "筛选")
+                            Icon(imageVector = MiuixIcons.Filter, contentDescription = stringResource(id = R.string.filter))
                         }
                         WindowListPopup(
                             show = showFilterPopup,
@@ -346,7 +355,14 @@ fun LogPage() {
                             val dismissPopup = LocalDismissState.current
                             ListPopupColumn {
                                 val levels = listOf("ALL", "D", "I", "W", "E", "C")
-                                val levelNames = listOf("全部", "Debug", "Info", "Warn", "Error", "Crash")
+                                val levelNames = listOf(
+                                    stringResource(id = R.string.all),
+                                    stringResource(id = R.string.level_debug),
+                                    stringResource(id = R.string.level_info),
+                                    stringResource(id = R.string.level_warn),
+                                    stringResource(id = R.string.level_error),
+                                    stringResource(id = R.string.level_crash)
+                                )
                                 levels.forEachIndexed { index, level ->
                                     DropdownImpl(
                                         text = levelNames[index],
@@ -364,7 +380,7 @@ fun LogPage() {
                     }
                     Box(modifier = Modifier.padding(end = 12.dp)) {
                         IconButton(onClick = { showMorePopup = true }, holdDownState = showMorePopup) {
-                            Icon(imageVector = MiuixIcons.More, contentDescription = "更多")
+                            Icon(imageVector = MiuixIcons.More, contentDescription = stringResource(id = R.string.more))
                         }
                         WindowListPopup(
                             show = showMorePopup,
@@ -375,7 +391,7 @@ fun LogPage() {
                             val dismissPopup = LocalDismissState.current
                             ListPopupColumn {
                                 DropdownImpl(
-                                    text = "刷新",
+                                    text = stringResource(id = R.string.refresh),
                                     optionSize = 3,
                                     isSelected = false,
                                     onSelectedIndexChange = {
@@ -385,7 +401,7 @@ fun LogPage() {
                                     index = 0
                                 )
                                 DropdownImpl(
-                                    text = "导出全部",
+                                    text = stringResource(id = R.string.export_all),
                                     optionSize = 3,
                                     isSelected = false,
                                     onSelectedIndexChange = {
@@ -397,7 +413,7 @@ fun LogPage() {
                                     index = 1
                                 )
                                 DropdownImpl(
-                                    text = "清空全部",
+                                    text = stringResource(id = R.string.clear_all),
                                     optionSize = 3,
                                     isSelected = false,
                                     onSelectedIndexChange = {
@@ -411,7 +427,7 @@ fun LogPage() {
                                             allLogs.clear()
                                             filteredLogs.clear()
                                             checkedStates.clear()
-                                            Toast.makeText(context, "已彻底清空底层日志", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, logsClearedMsg, Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     index = 2
@@ -450,7 +466,7 @@ fun LogPage() {
                                 onSearch = { },
                                 expanded = searchExpanded,
                                 onExpandedChange = { searchExpanded = it },
-                                label = "搜索"
+                                label = stringResource(id = R.string.search)
                             )
                         },
                         expanded = searchExpanded,
@@ -461,13 +477,13 @@ fun LogPage() {
                 if (isLoading) {
                     item {
                         Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("正在加载日志...", color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                            Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
                         }
                     }
                 } else if (filteredLogs.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("未找到相关日志", color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                            Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary)
                         }
                     }
                 } else {
@@ -513,7 +529,7 @@ fun LogPage() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(
-                            text = if (allSelected) "全不选" else "全选",
+                            text = if (allSelected) stringResource(id = R.string.deselect_all) else stringResource(id = R.string.select_all),
                             onClick = {
                                 val target = !allSelected
                                 filteredLogs.forEach { entry ->
@@ -526,7 +542,7 @@ fun LogPage() {
                         )
                         Spacer(Modifier.width(4.dp))
                         TextButton(
-                            text = "反选",
+                            text = stringResource(id = R.string.inverse_select),
                             onClick = {
                                 filteredLogs.forEach { entry ->
                                     val realIdx = allLogs.indexOf(entry)
@@ -538,7 +554,7 @@ fun LogPage() {
                         )
                         Spacer(Modifier.width(4.dp))
                         TextButton(
-                            text = "导出($selectedCount)",
+                            text = stringResource(id = R.string.format_export_count, selectedCount),
                             colors = ButtonDefaults.textButtonColorsPrimary(),
                             onClick = {
                                 val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
@@ -554,7 +570,7 @@ fun LogPage() {
         if (showDetailDialog && currentDetailLog != null) {
             WindowDialog(
                 show = true,
-                title = "日志详情",
+                title = stringResource(id = R.string.title_log_detail),
                 onDismissRequest = { showDetailDialog = false },
             ) {
                 val log = currentDetailLog!!
@@ -609,20 +625,20 @@ fun LogPage() {
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                     ) {
                         TextButton(
-                            text = "关闭",
+                            text = stringResource(id = R.string.close),
                             onClick = { dismiss?.invoke() },
                             modifier = Modifier.weight(1f)
                         )
                         Spacer(Modifier.width(16.dp))
                         TextButton(
-                            text = "复制",
+                            text = stringResource(id = R.string.copy),
                             colors = ButtonDefaults.textButtonColorsPrimary(),
                             onClick = {
                                 val logText = "[${log.timestamp}][${log.level}][${log.tag}]\n${log.message}"
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 val clip = ClipData.newPlainText("HyperLyric Log", logText)
                                 clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
                             },
                             modifier = Modifier.weight(1f)
                         )
@@ -665,8 +681,8 @@ fun LogItem(
         val firstLine = entry.message.lines().firstOrNull() ?: ""
         val displaySummary = firstLine.take(20) + if(entry.message.lines().size > 1 || firstLine.length > 20) "..." else ""
         CheckboxPreference(
-            title = entry.timestamp,
-            summary = displaySummary,
+            title = displaySummary,
+            summary = entry.timestamp,
             checked = isChecked,
             onCheckedChange = onCheckedChange,
             endActions = {

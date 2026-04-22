@@ -25,9 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
@@ -120,22 +122,22 @@ fun LyricSettingsPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "歌词",
+                title = stringResource(id = R.string.title_lyrics),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "返回") }
+                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
                 },
                 modifier = Modifier.hazeEffect(hazeState) { style = hazeStyle; blurRadius = 25.dp; noiseFactor = 0f }
             )
         }
     ) { padding ->
-        NumberInputDialog(show = showTextSizeDialog, title = "文字大小", label = "范围：8 ~ 16", initialValue = textSize, min = 8, max = 16, onDismiss = { showTextSizeDialog = false }, onConfirm = { value -> textSize = value; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, value) })
-        NumberInputDialog(show = showFontWeightDialog, title = "字重", label = "范围：100 ~ 900", initialValue = fontWeight, min = 100, max = 900, onDismiss = { showFontWeightDialog = false }, onConfirm = { value -> fontWeight = value; saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, value) })
-        NumberInputDialog(show = showFadingEdgeDialog, title = "羽化边缘长度", label = "范围：0 ~ 100", initialValue = fadingEdge, min = 0, max = 100, onDismiss = { showFadingEdgeDialog = false }, onConfirm = { value -> fadingEdge = value; saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, value) })
-        NumberInputDialog(show = showMarqueeSpeedDialog, title = "滚动速度", label = "范围：10 ~ 500", initialValue = marqueeSpeed, min = 10, max = 500, onDismiss = { showMarqueeSpeedDialog = false }, onConfirm = { value -> marqueeSpeed = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_SPEED, value) })
-        NumberInputDialog(show = showMarqueeDelayDialog, title = "初始滚动延迟", label = "ms 范围：0 ~ 5000", initialValue = marqueeDelay, min = 0, max = 5000, onDismiss = { showMarqueeDelayDialog = false }, onConfirm = { value -> marqueeDelay = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_DELAY, value) })
-        NumberInputDialog(show = showMarqueeLoopDialog, title = "循环间隔", label = "ms 范围：0 ~ 5000", initialValue = marqueeLoop, min = 0, max = 5000, onDismiss = { showMarqueeLoopDialog = false }, onConfirm = { value -> marqueeLoop = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, value) })
-        NumberInputDialog(show = showTextSizeRatioDialog, title = "多行模式下文字大小比例", label = "范围：10 ~ 100", initialValue = (textSizeRatio * 100).toInt(), min = 10, max = 100, onDismiss = { showTextSizeRatioDialog = false }, onConfirm = { value -> textSizeRatio = value.toFloat() / 100f; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) })
+        NumberInputDialog(show = showTextSizeDialog, title = stringResource(id = R.string.title_size), label = stringResource(id = R.string.label_size_range), initialValue = textSize, min = 8, max = 16, onDismiss = { showTextSizeDialog = false }, onConfirm = { value -> textSize = value; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, value) })
+        NumberInputDialog(show = showFontWeightDialog, title = stringResource(id = R.string.title_font_weight), label = stringResource(id = R.string.label_font_weight_range), initialValue = fontWeight, min = 100, max = 900, onDismiss = { showFontWeightDialog = false }, onConfirm = { value -> fontWeight = value; saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, value) })
+        NumberInputDialog(show = showFadingEdgeDialog, title = stringResource(id = R.string.title_fading_edge), label = stringResource(id = R.string.label_fading_edge_range), initialValue = fadingEdge, min = 0, max = 100, onDismiss = { showFadingEdgeDialog = false }, onConfirm = { value -> fadingEdge = value; saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, value) })
+        NumberInputDialog(show = showMarqueeSpeedDialog, title = stringResource(id = R.string.title_marquee_speed), label = stringResource(id = R.string.label_marquee_speed_range), initialValue = marqueeSpeed, min = 10, max = 500, onDismiss = { showMarqueeSpeedDialog = false }, onConfirm = { value -> marqueeSpeed = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_SPEED, value) })
+        NumberInputDialog(show = showMarqueeDelayDialog, title = stringResource(id = R.string.title_marquee_delay), label = stringResource(id = R.string.label_marquee_delay_range), initialValue = marqueeDelay, min = 0, max = 5000, onDismiss = { showMarqueeDelayDialog = false }, onConfirm = { value -> marqueeDelay = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_DELAY, value) })
+        NumberInputDialog(show = showMarqueeLoopDialog, title = stringResource(id = R.string.title_marquee_loop), label = stringResource(id = R.string.label_marquee_loop_range), initialValue = marqueeLoop, min = 0, max = 5000, onDismiss = { showMarqueeLoopDialog = false }, onConfirm = { value -> marqueeLoop = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, value) })
+        NumberInputDialog(show = showTextSizeRatioDialog, title = stringResource(id = R.string.title_text_size_ratio), label = stringResource(id = R.string.label_text_size_ratio_range), initialValue = (textSizeRatio * 100).toInt(), min = 10, max = 100, onDismiss = { showTextSizeRatioDialog = false }, onConfirm = { value -> textSizeRatio = value.toFloat() / 100f; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) })
 
         LazyColumn(
             modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -143,33 +145,33 @@ fun LyricSettingsPage() {
         ) {
             item {
                 Column {
-                    SmallTitle(text = "文字", insideMargin = PaddingValues(10.dp, 4.dp))
+                    SmallTitle(text = stringResource(id = R.string.title_text), insideMargin = PaddingValues(10.dp, 4.dp))
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            ArrowPreference(title = "大小", endActions = { Text("$textSize", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeDialog = true }, bottomAction = { Slider(value = textSize.toFloat(), onValueChange = { textSize = it.toInt(); saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, textSize) }, steps = 8, hapticEffect = SliderDefaults.SliderHapticEffect.Step, valueRange = 8f..16f) })
-                            ArrowPreference(title = "字重", endActions = { Text(fontWeight.toString(), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFontWeightDialog = true }, bottomAction = { Slider(value = fontWeight.toFloat(), onValueChange = { fontWeight = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, fontWeight) }, hapticEffect = SliderDefaults.SliderHapticEffect.Step, keyPoints = listOf(100f, 200f, 300f, 400f, 500f, 600f, 700f, 800f, 900f), valueRange = 100f..900f) })
-                            SwitchPreference(title = "粗体", checked = fontBold, onCheckedChange = { fontBold = it; saveConfig(RootConstants.KEY_HOOK_FONT_BOLD, it) })
-                            SwitchPreference(title = "斜体", checked = fontItalic, onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) })
-                            ArrowPreference(title = "多行模式下文字大小比例", endActions = { Text("${(textSizeRatio * 100).toInt()}%", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeRatioDialog = true }, bottomAction = { Slider(value = textSizeRatio, onValueChange = { textSizeRatio = it; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) }, valueRange = 0.1f..1f) })
-                            ArrowPreference(title = "羽化边缘长度", endActions = { Text("$fadingEdge", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFadingEdgeDialog = true }, bottomAction = { Slider(value = fadingEdge.toFloat(), onValueChange = { fadingEdge = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, fadingEdge) }, valueRange = 0f..100f) })
-                            SwitchPreference(title = "羽化进度样式", checked = gradientStyle, onCheckedChange = { gradientStyle = it; saveConfig(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, it) })
+                            ArrowPreference(title = stringResource(id = R.string.title_size), endActions = { Text("$textSize", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeDialog = true }, bottomAction = { Slider(value = textSize.toFloat(), onValueChange = { textSize = it.toInt(); saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, textSize) }, steps = 8, hapticEffect = SliderDefaults.SliderHapticEffect.Step, valueRange = 8f..16f) })
+                            ArrowPreference(title = stringResource(id = R.string.title_font_weight), endActions = { Text(fontWeight.toString(), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFontWeightDialog = true }, bottomAction = { Slider(value = fontWeight.toFloat(), onValueChange = { fontWeight = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, fontWeight) }, hapticEffect = SliderDefaults.SliderHapticEffect.Step, keyPoints = listOf(100f, 200f, 300f, 400f, 500f, 600f, 700f, 800f, 900f), valueRange = 100f..900f) })
+                            SwitchPreference(title = stringResource(id = R.string.title_bold), checked = fontBold, onCheckedChange = { fontBold = it; saveConfig(RootConstants.KEY_HOOK_FONT_BOLD, it) })
+                            SwitchPreference(title = stringResource(id = R.string.title_italic), checked = fontItalic, onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) })
+                            ArrowPreference(title = stringResource(id = R.string.title_text_size_ratio), endActions = { Text(stringResource(id = R.string.format_percent, (textSizeRatio * 100).toInt()), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showTextSizeRatioDialog = true }, bottomAction = { Slider(value = textSizeRatio, onValueChange = { textSizeRatio = it; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) }, valueRange = 0.1f..1f) })
+                            ArrowPreference(title = stringResource(id = R.string.title_fading_edge), endActions = { Text("$fadingEdge", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showFadingEdgeDialog = true }, bottomAction = { Slider(value = fadingEdge.toFloat(), onValueChange = { fadingEdge = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, fadingEdge) }, valueRange = 0f..100f) })
+                            SwitchPreference(title = stringResource(id = R.string.title_gradient_progress), checked = gradientStyle, onCheckedChange = { gradientStyle = it; saveConfig(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, it) })
                         }
                     }
                 }
             }
             item {
                 Column {
-                    SmallTitle(text = "歌词滚动", insideMargin = PaddingValues(10.dp, 4.dp))
+                    SmallTitle(text = stringResource(id = R.string.title_lyric_marquee), insideMargin = PaddingValues(10.dp, 4.dp))
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            SwitchPreference(title = "歌词滚动", checked = marqueeMode, onCheckedChange = { marqueeMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_MODE, it) })
+                            SwitchPreference(title = stringResource(id = R.string.title_lyric_marquee), checked = marqueeMode, onCheckedChange = { marqueeMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_MODE, it) })
                             AnimatedVisibility(visible = marqueeMode) {
                                 Column {
-                                    ArrowPreference(title = "滚动速度", endActions = { Text("$marqueeSpeed", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeSpeedDialog = true }, bottomAction = { Slider(value = marqueeSpeed.toFloat(), onValueChange = { marqueeSpeed = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_SPEED, marqueeSpeed) }, valueRange = 10f..500f) })
-                                    ArrowPreference(title = "初始滚动延迟", endActions = { Text("${marqueeDelay}ms", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeDelayDialog = true }, bottomAction = { Slider(value = marqueeDelay.toFloat(), onValueChange = { marqueeDelay = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_DELAY, marqueeDelay) }, valueRange = 0f..5000f) })
-                                    SwitchPreference(title = "无限循环", checked = marqueeInfinite, onCheckedChange = { marqueeInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_INFINITE, it) })
-                                    ArrowPreference(title = "循环间隔", endActions = { Text("${marqueeLoop}ms", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeLoopDialog = true }, bottomAction = { Slider(value = marqueeLoop.toFloat(), onValueChange = { marqueeLoop = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, marqueeLoop) }, valueRange = 0f..5000f) })
-                                    SwitchPreference(title = "结束时在末尾停止", checked = marqueeStopEnd, onCheckedChange = { marqueeStopEnd = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_STOP_END, it) })
+                                    ArrowPreference(title = stringResource(id = R.string.title_marquee_speed), endActions = { Text("$marqueeSpeed", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeSpeedDialog = true }, bottomAction = { Slider(value = marqueeSpeed.toFloat(), onValueChange = { marqueeSpeed = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_SPEED, marqueeSpeed) }, valueRange = 10f..500f) })
+                                    ArrowPreference(title = stringResource(id = R.string.title_marquee_delay), endActions = { Text(stringResource(id = R.string.format_ms, marqueeDelay), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeDelayDialog = true }, bottomAction = { Slider(value = marqueeDelay.toFloat(), onValueChange = { marqueeDelay = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_DELAY, marqueeDelay) }, valueRange = 0f..5000f) })
+                                    SwitchPreference(title = stringResource(id = R.string.title_infinite_loop), checked = marqueeInfinite, onCheckedChange = { marqueeInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_INFINITE, it) })
+                                    ArrowPreference(title = stringResource(id = R.string.title_marquee_loop), endActions = { Text(stringResource(id = R.string.format_ms, marqueeLoop), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeLoopDialog = true }, bottomAction = { Slider(value = marqueeLoop.toFloat(), onValueChange = { marqueeLoop = it.toInt(); saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, marqueeLoop) }, valueRange = 0f..5000f) })
+                                    SwitchPreference(title = stringResource(id = R.string.title_stop_at_end), checked = marqueeStopEnd, onCheckedChange = { marqueeStopEnd = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_STOP_END, it) })
                                 }
                             }
                         }
@@ -178,11 +180,11 @@ fun LyricSettingsPage() {
             }
             item {
                 Column {
-                    SmallTitle(text = "逐字歌词", insideMargin = PaddingValues(10.dp, 4.dp))
+                    SmallTitle(text = stringResource(id = R.string.lyric_mode_verbatim), insideMargin = PaddingValues(10.dp, 4.dp))
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            SwitchPreference(title = "启用相对进度歌词", checked = syllableRelative, onCheckedChange = { syllableRelative = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, it) })
-                            SwitchPreference(title = "显示相对进度歌词高亮进度", checked = syllableHighlight, onCheckedChange = { syllableHighlight = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, it) })
+                            SwitchPreference(title = stringResource(id = R.string.title_syllable_relative), checked = syllableRelative, onCheckedChange = { syllableRelative = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, it) })
+                            SwitchPreference(title = stringResource(id = R.string.title_syllable_highlight), checked = syllableHighlight, onCheckedChange = { syllableHighlight = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, it) })
                         }
                     }
                 }
@@ -200,9 +202,9 @@ fun NumberInputDialog(show: Boolean, title: String, label: String, initialValue:
         Column(modifier = Modifier.fillMaxWidth()) {
             TextField(value = inputValue, onValueChange = { newValue -> if (newValue.all { it.isDigit() }) inputValue = newValue }, label = label, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 1)
             Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(text = "取消", onClick = onDismiss, modifier = Modifier.weight(1f))
+                TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
                 Spacer(Modifier.width(20.dp))
-                TextButton(text = "确认", onClick = { inputValue.toIntOrNull()?.let { onConfirm(it.coerceIn(min, max)); onDismiss() } }, modifier = Modifier.weight(1f), colors = ButtonDefaults.textButtonColorsPrimary())
+                TextButton(text = stringResource(id = R.string.confirm), onClick = { inputValue.toIntOrNull()?.let { onConfirm(it.coerceIn(min, max)); onDismiss() } }, modifier = Modifier.weight(1f), colors = ButtonDefaults.textButtonColorsPrimary())
             }
         }
     }

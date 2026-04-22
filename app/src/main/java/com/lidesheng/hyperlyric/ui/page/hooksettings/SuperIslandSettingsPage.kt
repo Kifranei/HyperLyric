@@ -57,6 +57,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import top.yukonga.miuix.kmp.window.WindowDialog
+import androidx.compose.ui.res.stringResource
+import com.lidesheng.hyperlyric.R
 
 @Composable
 fun SuperIslandSettingsPage() {
@@ -106,7 +108,18 @@ fun SuperIslandSettingsPage() {
             context.sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
         }
     }
-    val contentOptions = listOf("无内容", "metadata标题", "lyricon标题", "艺术家", "专辑", "lyricon标题-艺术家", "lyricon标题+艺术家", "lyricon标题+艺术家-专辑", "lyricon歌词")
+    val contentOptionResList = listOf(
+        R.string.option_content_none,
+        R.string.option_content_metadata_title,
+        R.string.option_content_lyricon_title,
+        R.string.option_content_artist,
+        R.string.option_content_album,
+        R.string.option_content_lyricon_title_artist,
+        R.string.option_content_lyricon_title_plus_artist,
+        R.string.option_content_lyricon_title_plus_artist_album,
+        R.string.option_content_lyricon_lyric
+    )
+    val contentOptions = contentOptionResList.map { stringResource(id = it) }
 
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
     val hazeState = remember { HazeState() }
@@ -116,22 +129,22 @@ fun SuperIslandSettingsPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "超级岛",
+                title = stringResource(id = R.string.title_super_island),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "返回") }
+                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
                 },
                 modifier = Modifier.hazeEffect(hazeState) { style = hazeStyle; blurRadius = 25.dp; noiseFactor = 0f }
             )
         }
     ) { padding ->
-        NumberInputDialog(show = showLeftContentWidthDialog, title = "左侧内容长度", label = "范围：0 ~ 100", initialValue = leftContentWidth, min = 0, max = 100, onDismiss = { showLeftContentWidthDialog = false }, onConfirm = { value -> leftContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, value) })
+        NumberInputDialog(show = showLeftContentWidthDialog, title = stringResource(id = R.string.title_left_content_width), label = stringResource(id = R.string.label_content_width_range), initialValue = leftContentWidth, min = 0, max = 100, onDismiss = { showLeftContentWidthDialog = false }, onConfirm = { value -> leftContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, value) })
 
-        NumberInputDialog(show = showRightContentWidthDialog, title = "右侧内容长度", label = "范围：0 ~ 100", initialValue = rightContentWidth, min = 0, max = 100, onDismiss = { showRightContentWidthDialog = false }, onConfirm = { value -> rightContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, value) })
+        NumberInputDialog(show = showRightContentWidthDialog, title = stringResource(id = R.string.title_right_content_width), label = stringResource(id = R.string.label_content_width_range), initialValue = rightContentWidth, min = 0, max = 100, onDismiss = { showRightContentWidthDialog = false }, onConfirm = { value -> rightContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, value) })
 
         PaddingInputDialog(
             show = showLeftPaddingDialog,
-            title = "左侧内容内边距",
+            title = stringResource(id = R.string.title_left_padding),
             initialLeft = leftPaddingLeft,
             initialRight = leftPaddingRight,
             onDismiss = { showLeftPaddingDialog = false },
@@ -145,7 +158,7 @@ fun SuperIslandSettingsPage() {
 
         PaddingInputDialog(
             show = showRightPaddingDialog,
-            title = "右侧内容内边距",
+            title = stringResource(id = R.string.title_right_padding),
             initialLeft = rightPaddingLeft,
             initialRight = rightPaddingRight,
             onDismiss = { showRightPaddingDialog = false },
@@ -162,10 +175,10 @@ fun SuperIslandSettingsPage() {
             contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())
         ) {
             item {
-                SmallTitle(text = "布局", insideMargin = PaddingValues(10.dp, 4.dp))
+                SmallTitle(text = stringResource(id = R.string.title_layout), insideMargin = PaddingValues(10.dp, 4.dp))
                 Card(modifier = Modifier.fillMaxWidth()) {
                     ArrowPreference(
-                        title = "左侧内容长度",
+                        title = stringResource(id = R.string.title_left_content_width),
                         endActions = { Text("$leftContentWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
                         onClick = { showLeftContentWidthDialog = true },
                         bottomAction = {
@@ -181,7 +194,7 @@ fun SuperIslandSettingsPage() {
                     )
 
                     ArrowPreference(
-                        title = "右侧内容长度",
+                        title = stringResource(id = R.string.title_right_content_width),
                         endActions = { Text("$rightContentWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
                         onClick = { showRightContentWidthDialog = true },
                         bottomAction = {
@@ -197,22 +210,22 @@ fun SuperIslandSettingsPage() {
                     )
 
                     ArrowPreference(
-                        title = "左侧内容内边距",
-                        endActions = { Text("$leftPaddingLeft,$leftPaddingRight", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
+                        title = stringResource(id = R.string.title_left_padding),
+                        endActions = { Text(stringResource(id = R.string.format_padding_pair, leftPaddingLeft, leftPaddingRight), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
                         onClick = { showLeftPaddingDialog = true }
                     )
                     ArrowPreference(
-                        title = "右侧内容内边距",
-                        endActions = { Text("$rightPaddingLeft,$rightPaddingRight", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
+                        title = stringResource(id = R.string.title_right_padding),
+                        endActions = { Text(stringResource(id = R.string.format_padding_pair, rightPaddingLeft, rightPaddingRight), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
                         onClick = { showRightPaddingDialog = true }
                     )
                 }
 
-                SmallTitle(text = "内容", insideMargin = PaddingValues(10.dp, 4.dp))
+                SmallTitle(text = stringResource(id = R.string.title_content), insideMargin = PaddingValues(10.dp, 4.dp))
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column {
                         SwitchPreference(
-                            title = "音频封面",
+                            title = stringResource(id = R.string.title_audio_cover),
                             checked = audioCover,
                             onCheckedChange = {
                                 audioCover = it
@@ -220,7 +233,7 @@ fun SuperIslandSettingsPage() {
                             }
                         )
                         SwitchPreference(
-                            title = "音频律动",
+                            title = stringResource(id = R.string.title_audio_rhythm),
                             checked = audioRhythm,
                             onCheckedChange = {
                                 audioRhythm = it
@@ -228,7 +241,7 @@ fun SuperIslandSettingsPage() {
                             }
                         )
                         OverlayDropdownPreference(
-                            title = "超级岛左侧",
+                            title = stringResource(id = R.string.title_super_island_left),
                             items = contentOptions,
                             selectedIndex = islandContentLeft,
                             onSelectedIndexChange = {
@@ -237,7 +250,7 @@ fun SuperIslandSettingsPage() {
                             }
                         )
                         OverlayDropdownPreference(
-                            title = "超级岛右侧",
+                            title = stringResource(id = R.string.title_super_island_right),
                             items = contentOptions,
                             selectedIndex = islandContentRight,
                             onSelectedIndexChange = {
@@ -274,7 +287,7 @@ fun PaddingInputDialog(
             TextField(
                 value = leftValue,
                 onValueChange = { if (filter(it)) leftValue = it },
-                label = "左边距",
+                label = stringResource(id = R.string.label_left_padding),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 1
@@ -283,17 +296,17 @@ fun PaddingInputDialog(
             TextField(
                 value = rightValue,
                 onValueChange = { if (filter(it)) rightValue = it },
-                label = "右边距",
+                label = stringResource(id = R.string.label_right_padding),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 1
             )
             Spacer(modifier = Modifier.height(24.dp))
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                TextButton(text = "取消", onClick = onDismiss, modifier = Modifier.weight(1f))
+                TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
                 Spacer(Modifier.width(20.dp))
                 TextButton(
-                    text = "确认",
+                    text = stringResource(id = R.string.confirm),
                     onClick = {
                         val l = leftValue.toIntOrNull() ?: 0
                         val r = rightValue.toIntOrNull() ?: 0

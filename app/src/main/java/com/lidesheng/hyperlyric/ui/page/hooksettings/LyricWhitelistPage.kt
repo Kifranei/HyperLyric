@@ -22,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.online.model.DynamicLyricData
 import com.lidesheng.hyperlyric.online.model.commonMusicApps
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
@@ -59,6 +61,9 @@ fun LyricWhitelistPage() {
     val navigator = LocalNavigator.current
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
+    val msgAppExists = stringResource(id = R.string.toast_app_exists)
+    val msgPkgEmpty = stringResource(id = R.string.toast_pkg_empty)
+
     val hazeState = remember { HazeState() }
     val hazeStyle = HazeStyle(
         backgroundColor = MiuixTheme.colorScheme.surface,
@@ -80,10 +85,10 @@ fun LyricWhitelistPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "歌词白名单",
+                title = stringResource(id = R.string.title_lyric_whitelist),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "返回") }
+                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
                 },
                 modifier = Modifier.hazeEffect(hazeState) {
                     style = hazeStyle
@@ -98,7 +103,7 @@ fun LyricWhitelistPage() {
             ) {
                 Icon(
                     imageVector = MiuixIcons.Add,
-                    contentDescription = "添加",
+                    contentDescription = stringResource(id = R.string.add),
                     tint = Color.White
                 )
             }
@@ -107,19 +112,19 @@ fun LyricWhitelistPage() {
     ) { padding ->
 
         if (showAddWhitelistDialog) {
-            WindowDialog(title = "输入应用包名", show = true, onDismissRequest = { showAddWhitelistDialog = false }) {
+            WindowDialog(title = stringResource(id = R.string.dialog_add_whitelist_title), show = true, onDismissRequest = { showAddWhitelistDialog = false }) {
                 Column {
                     TextField(
                         value = tempWhitelistInput,
                         onValueChange = { tempWhitelistInput = it },
-                        label = "例如 com.netease.cloudmusic",
+                        label = stringResource(id = R.string.dialog_add_whitelist_hint),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                     )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(text = "取消", onClick = { showAddWhitelistDialog = false }, modifier = Modifier.weight(1f))
+                        TextButton(text = stringResource(id = R.string.cancel), onClick = { showAddWhitelistDialog = false }, modifier = Modifier.weight(1f))
                         Spacer(modifier = Modifier.width(20.dp))
                         TextButton(
-                            text = "保存",
+                            text = stringResource(id = R.string.save),
                             colors = ButtonDefaults.textButtonColorsPrimary(),
                             modifier = Modifier.weight(1f),
                             onClick = {
@@ -128,10 +133,10 @@ fun LyricWhitelistPage() {
                                     if (success) {
                                         showAddWhitelistDialog = false
                                     } else {
-                                        Toast.makeText(context, "该应用已存在", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
-                                    Toast.makeText(context, "包名不能为空", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show()
                                 }
                             }
                         )
@@ -141,12 +146,12 @@ fun LyricWhitelistPage() {
         }
 
         if (showDeleteWhitelistDialog) {
-            WindowDialog(title = "确认要从列表中移除该应用吗？", show = true, onDismissRequest = { showDeleteWhitelistDialog = false }) {
+            WindowDialog(title = stringResource(id = R.string.dialog_delete_whitelist_title), show = true, onDismissRequest = { showDeleteWhitelistDialog = false }) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(text = "取消", onClick = { showDeleteWhitelistDialog = false }, modifier = Modifier.weight(1f))
+                    TextButton(text = stringResource(id = R.string.cancel), onClick = { showDeleteWhitelistDialog = false }, modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(20.dp))
                     TextButton(
-                        text = "确认",
+                        text = stringResource(id = R.string.confirm),
                         colors = ButtonDefaults.textButtonColorsPrimary(),
                         modifier = Modifier.weight(1f),
                         onClick = {
@@ -192,8 +197,8 @@ fun LyricWhitelistPage() {
                 } else {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         BasicComponent(
-                            title = "暂无白名单应用",
-                            summary = "点击右下角按钮添加并启用"
+                            title = stringResource(id = R.string.title_no_whitelist),
+                            summary = stringResource(id = R.string.summary_no_whitelist)
                         )
                     }
                 }

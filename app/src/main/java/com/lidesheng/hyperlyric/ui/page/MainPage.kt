@@ -8,6 +8,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -108,12 +109,19 @@ fun MainPage() {
 
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
+    
+    // Toast messages fetched at top level to avoid Lint warnings
+    val msgPermissionGranted = stringResource(R.string.toast_permission_granted)
+    val msgPermissionDenied = stringResource(R.string.toast_permission_denied)
+    val msgNoRoot = stringResource(R.string.toast_no_root)
+    val msgPermissionNotGranted = stringResource(R.string.toast_permission_not_granted)
+    val msgOpenSettingsFailed = stringResource(R.string.toast_open_settings_failed)
 
     var showRestartDialog by remember { mutableStateOf(false) }
 
     val navItems = listOf(
-        NavigationItem("主页", MiuixIcons.Settings),
-        NavigationItem("关于", MiuixIcons.Info)
+        NavigationItem(stringResource(R.string.home), MiuixIcons.Settings),
+        NavigationItem(stringResource(R.string.about), MiuixIcons.Info)
     )
 
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
@@ -133,7 +141,7 @@ fun MainPage() {
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
-            val message = if (isGranted) "已获取通知权限" else "未获取通知权限"
+            val message = if (isGranted) msgPermissionGranted else msgPermissionDenied
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     )
@@ -162,7 +170,7 @@ fun MainPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = if (pagerState.currentPage == 0) "HyperLyric" else "关于",
+                title = if (pagerState.currentPage == 0) "HyperLyric" else stringResource(R.string.about),
                 scrollBehavior = scrollBehavior,
                 modifier = Modifier.hazeEffect(hazeState) {
                     style = hazeStyle
@@ -224,8 +232,8 @@ fun MainPage() {
         }
     ) { padding ->
         WindowDialog(
-            title = "是否重启系统界面？",
-            summary = "重启后也要重启音乐软件哦",
+            title = stringResource(R.string.dialog_restart_title),
+            summary = stringResource(R.string.dialog_restart_summary),
             show = showRestartDialog,
             onDismissRequest = { showRestartDialog = false }
         ) {
@@ -234,13 +242,13 @@ fun MainPage() {
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
-                    text = "取消",
+                    text = stringResource(R.string.cancel),
                     onClick = { showRestartDialog = false },
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 TextButton(
-                    text = "确认",
+                    text = stringResource(R.string.confirm),
                     colors = ButtonDefaults.textButtonColorsPrimary(),
                     modifier = Modifier.weight(1f),
                     onClick = {
@@ -248,7 +256,7 @@ fun MainPage() {
                         scope.launch {
                             val success = ShellUtils.restartSystemUI()
                             if (!success) {
-                                Toast.makeText(context, "应用未获取root权限", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, msgNoRoot, Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -297,15 +305,15 @@ fun MainPage() {
                             }
 
                             SmallTitle(
-                                text = "基础功能",
+                                text = stringResource(R.string.title_basic_features),
                                 insideMargin = PaddingValues(10.dp, 4.dp)
                             )
 
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column {
                                     SwitchPreference(
-                                        title = "小米超级岛歌词",
-                                        summary = "仅支持已安装lsposed的HyperOS3设备",
+                                        title = stringResource(R.string.title_super_island_lyrics),
+                                        summary = stringResource(R.string.summary_super_island_lyrics),
                                         checked = enableSuperIsland,
                                         onCheckedChange = {
                                             enableSuperIsland = it
@@ -315,15 +323,15 @@ fun MainPage() {
                                     )
                                     AnimatedVisibility(visible = enableSuperIsland) {
                                         ArrowPreference(
-                                            title = "小米超级岛歌词自定义配置",
+                                            title = stringResource(R.string.title_super_island_config),
                                             onClick = {
                                                 navigator.navigate(Route.HookSettings)
                                             }
                                         )
                                     }
                                     SwitchPreference(
-                                        title = "通知型灵动岛歌词",
-                                        summary = "利用通知实现灵动岛歌词效果，适用于无root设备",
+                                        title = stringResource(R.string.title_dynamic_island_lyrics),
+                                        summary = stringResource(R.string.summary_dynamic_island_lyrics),
                                         checked = enableDynamicIsland,
                                         onCheckedChange = { isChecked ->
                                             if (isChecked) {
@@ -348,7 +356,7 @@ fun MainPage() {
                                     )
                                     AnimatedVisibility(visible = enableDynamicIsland) {
                                         ArrowPreference(
-                                            title = "通知型灵动岛歌词自定义配置",
+                                            title = stringResource(R.string.title_dynamic_island_config),
                                             onClick = {
                                                 navigator.navigate(Route.DynamicIslandNotification)
                                             }
@@ -358,20 +366,20 @@ fun MainPage() {
                             }
 
                             SmallTitle(
-                                text = "特殊功能",
+                                text = stringResource(R.string.title_special_features),
                                 insideMargin = PaddingValues(10.dp, 4.dp)
                             )
 
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column {
                                     ArrowPreference(
-                                        title = "重启系统界面",
+                                        title = stringResource(R.string.title_restart_ui),
                                         onClick = { showRestartDialog = true }
                                     )
                                     var removeFocusWhitelist by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, RootConstants.DEFAULT_HOOK_REMOVE_FOCUS_WHITELIST)) }
                                     SwitchPreference(
-                                        title = "移除焦点通知白名单",
-                                        summary = "不要和其他模块的相同功能冲突使用",
+                                        title = stringResource(R.string.title_remove_focus_whitelist),
+                                        summary = stringResource(R.string.summary_remove_focus_whitelist),
                                         checked = removeFocusWhitelist,
                                         onCheckedChange = {
                                             removeFocusWhitelist = it
@@ -381,7 +389,7 @@ fun MainPage() {
                                     )
                                     var removeIslandWhitelist by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, RootConstants.DEFAULT_HOOK_REMOVE_ISLAND_WHITELIST)) }
                                     SwitchPreference(
-                                        title = "移除下拉小窗白名单",
+                                        title = stringResource(R.string.title_remove_island_whitelist),
                                         checked = removeIslandWhitelist,
                                         onCheckedChange = {
                                             removeIslandWhitelist = it
@@ -396,8 +404,8 @@ fun MainPage() {
 
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 ArrowPreference(
-                                    title = "应用设置",
-                                    summary = "个性化、备份与恢复等",
+                                    title = stringResource(R.string.title_app_settings),
+                                    summary = stringResource(R.string.summary_app_settings),
                                     onClick = {
                                         navigator.navigate(Route.Settings)
                                     }
@@ -431,7 +439,7 @@ fun MainPage() {
 
     WindowBottomSheet(
         show = showPermissionSheet,
-        title = "通知权限",
+        title = stringResource(R.string.sheet_permission_title),
         allowDismiss = false,
         startAction = {
             IconButton(onClick = { showPermissionSheet = false }) {
@@ -454,7 +462,7 @@ fun MainPage() {
                     ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, true)
                     LiveLyricService.ensureListenerBound(context)
                 } else {
-                    Toast.makeText(context, "权限还未授予", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, msgPermissionNotGranted, Toast.LENGTH_SHORT).show()
                 }
             }) {
                 Icon(
@@ -476,19 +484,19 @@ fun MainPage() {
             Card(modifier = Modifier.fillMaxWidth()
             ) {
                 ArrowPreference(
-                    title = "发送歌词通知权限",
+                    title = stringResource(R.string.title_permission_post_notification),
                     onClick = {
                         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
                 )
                 ArrowPreference(
-                    title = "获取歌词信息权限",
+                    title = stringResource(R.string.title_permission_listener),
                     onClick = {
                         try {
                             val intent = Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                             context.startActivity(intent)
                         } catch (_: Exception) {
-                            Toast.makeText(context, "无法打开通知使用权设置", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, msgOpenSettingsFailed, Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
@@ -546,24 +554,24 @@ fun AboutContent(modifier: Modifier = Modifier) {
 
     Column {
         SmallTitle(
-            text = "系统信息",
+            text = stringResource(R.string.title_system_info),
             insideMargin = PaddingValues(10.dp, 4.dp)
         )
         Card(modifier = Modifier.fillMaxWidth()) {
             Column {
-                BasicComponent(title = deviceModel, summary = "设备型号")
-                BasicComponent(title = osVersion, summary = "系统版本")
-                BasicComponent(title = androidVersion, summary = "Android版本")
+                BasicComponent(title = deviceModel, summary = stringResource(R.string.info_device_model))
+                BasicComponent(title = osVersion, summary = stringResource(R.string.info_os_version))
+                BasicComponent(title = androidVersion, summary = stringResource(R.string.info_android_version))
             }
         }
 
         SmallTitle(
-            text = "使用帮助",
+            text = stringResource(R.string.title_help),
             insideMargin = PaddingValues(10.dp, 4.dp)
         )
         Card(modifier = Modifier.fillMaxWidth()) {
             ArrowPreference(
-                title = "使用帮助",
+                title = stringResource(R.string.title_help),
                 onClick = {
                     navigator.navigate(Route.Help)
                 }
@@ -571,12 +579,12 @@ fun AboutContent(modifier: Modifier = Modifier) {
         }
 
         SmallTitle(
-            text = "开发者",
+            text = stringResource(R.string.title_developer),
             insideMargin = PaddingValues(10.dp, 4.dp)
         )
         Card(modifier = Modifier.fillMaxWidth()) {
             BasicComponent(
-                title = "李得胜",
+                title = stringResource(R.string.dev_name),
                 startAction = {
                     Image(
                         painter = painterResource(id = R.drawable.avatar),
@@ -611,8 +619,8 @@ fun AboutContent(modifier: Modifier = Modifier) {
                 }
             )
             ArrowPreference(
-                title = "项目引用与参考",
-                summary = "感谢@FrancOS 和@于逸风 的帮助，以及一些没列出的项目",
+                title = stringResource(R.string.title_licenses),
+                summary = stringResource(R.string.summary_licenses),
                 onClick = {
                     navigator.navigate(Route.Licenses)
                 }

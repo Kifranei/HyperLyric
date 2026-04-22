@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
 import dev.chrisbanes.haze.HazeState
@@ -56,16 +58,24 @@ fun HookSettingsPage() {
     )
 
     var lyricMode by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_LYRIC_MODE, RootConstants.DEFAULT_HOOK_LYRIC_MODE)) }
-    val lyricModeOptions = listOf("逐字歌词", "分离歌词")
+    val lyricModeOptions = listOf(
+        stringResource(R.string.lyric_mode_verbatim),
+        stringResource(R.string.lyric_mode_separated)
+    )
 
     Scaffold(
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "小米超级岛歌词",
+                title = stringResource(R.string.title_super_island_lyrics),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "返回") }
+                    IconButton(onClick = { navigator.pop() }) { 
+                        Icon(
+                            imageVector = MiuixIcons.Back, 
+                            contentDescription = stringResource(R.string.back)
+                        ) 
+                    }
                 },
                 modifier = Modifier.hazeEffect(hazeState) {
                     style = hazeStyle
@@ -92,7 +102,7 @@ fun HookSettingsPage() {
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     OverlayDropdownPreference(
-                        title = "歌词模式",
+                        title = stringResource(R.string.title_lyric_mode),
                         items = lyricModeOptions,
                         selectedIndex = lyricMode,
                         onSelectedIndexChange = { index ->
@@ -105,24 +115,24 @@ fun HookSettingsPage() {
 
             item {
                 SmallTitle(
-                    text = "自定义配置",
+                    text = stringResource(R.string.title_custom_config),
                     insideMargin = PaddingValues(10.dp, 4.dp)
                 )
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column {
-                        ArrowPreference(title = "超级岛", onClick = {
+                        ArrowPreference(title = stringResource(R.string.title_super_island), onClick = {
                             navigator.navigate(Route.SuperIslandSettings)
                         })
-                        ArrowPreference(title = "歌词", onClick = {
+                        ArrowPreference(title = stringResource(R.string.title_lyrics), onClick = {
                             navigator.navigate(Route.LyricSettings)
                         })
-                        ArrowPreference(title = "歌词切换动画", onClick = {
+                        ArrowPreference(title = stringResource(R.string.title_lyric_anim), onClick = {
                             navigator.navigate(Route.LyricAnimation)
                         })
-                        ArrowPreference(title = "歌词提供者", onClick = {
+                        ArrowPreference(title = stringResource(R.string.title_lyric_provider), onClick = {
                             navigator.navigate(Route.LyricProvider)
                         })
-                        ArrowPreference(title = "歌词白名单", onClick = {
+                        ArrowPreference(title = stringResource(R.string.title_lyric_whitelist), onClick = {
                             navigator.navigate(Route.LyricWhitelist)
                         })
                     }

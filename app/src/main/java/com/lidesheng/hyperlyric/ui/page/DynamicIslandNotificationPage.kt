@@ -33,12 +33,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.online.model.DynamicLyricData
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -89,16 +91,24 @@ fun DynamicIslandNotificationPage() {
         tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
     )
 
+    val onlineLyricCacheLimit = prefs.getInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, ServiceConstants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT)
     var onlineLyricEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, ServiceConstants.DEFAULT_ONLINE_LYRIC_ENABLED)) }
-    var onlineLyricCacheLimit by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, ServiceConstants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT)) }
+    var onlineLyricCacheLimitState by remember { mutableIntStateOf(onlineLyricCacheLimit) }
     var limitWidthEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LIMIT_WIDTH, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_LIMIT_WIDTH)) }
     var maxWidth by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_ISLAND_MAX_WIDTH, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_MAX_WIDTH)) }
     var showCacheLimitDialog by remember { mutableStateOf(false) }
-    var tempCacheLimit by remember { mutableStateOf(onlineLyricCacheLimit.toString()) }
+    var tempCacheLimit by remember { mutableStateOf(onlineLyricCacheLimitState.toString()) }
 
-    val tabs = listOf("自定义配置", "歌词白名单")
+    val tabs = listOf(stringResource(R.string.title_custom_config), stringResource(R.string.title_lyric_whitelist))
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
+
+    val msgAppExists = stringResource(R.string.toast_app_exists)
+    val msgPkgEmpty = stringResource(R.string.toast_pkg_empty)
+    val msgAutostartFailed = stringResource(R.string.toast_autostart_failed)
+    val msgBatteryIgnored = stringResource(R.string.toast_battery_ignored)
+    val msgBatteryFailed = stringResource(R.string.toast_battery_failed)
+    val fmtSongsCount = stringResource(R.string.format_songs_count)
 
     LaunchedEffect(Unit) { DynamicLyricData.initWhitelist(context) }
 
@@ -121,10 +131,10 @@ fun DynamicIslandNotificationPage() {
             ) {
                 TopAppBar(
                     color = Color.Transparent,
-                    title = "通知型灵动岛歌词",
+                    title = stringResource(R.string.title_dynamic_island_lyrics),
                     scrollBehavior = scrollBehavior,
                     navigationIcon = {
-                        IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = "后退") }
+                        IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back)) }
                     }
                 )
                 TabRow(
@@ -139,15 +149,15 @@ fun DynamicIslandNotificationPage() {
     ) { padding ->
 
         if (showCacheLimitDialog) {
-            WindowDialog(title = "在线歌词缓存上限", show = true, onDismissRequest = { showCacheLimitDialog = false }) {
+            WindowDialog(title = stringResource(R.string.dialog_cache_limit_title), show = true, onDismissRequest = { showCacheLimitDialog = false }) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     TextField(value = tempCacheLimit, onValueChange = { tempCacheLimit = it.filter { char -> char.isDigit() } }, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
                     Row(horizontalArrangement = Arrangement.End) {
-                        TextButton(text = "取消", onClick = { showCacheLimitDialog = false }, modifier = Modifier.weight(1f))
+                        TextButton(text = stringResource(R.string.cancel), onClick = { showCacheLimitDialog = false }, modifier = Modifier.weight(1f))
                         Spacer(modifier = Modifier.width(20.dp))
-                        TextButton(text = "确认", colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
+                        TextButton(text = stringResource(R.string.confirm), colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
                             val newLimit = tempCacheLimit.toIntOrNull() ?: ServiceConstants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT
-                            onlineLyricCacheLimit = newLimit
+                            onlineLyricCacheLimitState = newLimit
                             prefs.edit { putInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, newLimit) }
                             showCacheLimitDialog = false
                         })
@@ -157,17 +167,17 @@ fun DynamicIslandNotificationPage() {
         }
 
         if (showAddWhitelistDialog) {
-            WindowDialog(title = "输入应用包名", show = true, onDismissRequest = { showAddWhitelistDialog = false }) {
+            WindowDialog(title = stringResource(R.string.dialog_add_whitelist_title), show = true, onDismissRequest = { showAddWhitelistDialog = false }) {
                 Column {
-                    TextField(value = tempWhitelistInput, onValueChange = { tempWhitelistInput = it }, label = "例如 com.netease.cloudmusic", modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+                    TextField(value = tempWhitelistInput, onValueChange = { tempWhitelistInput = it }, label = stringResource(R.string.dialog_add_whitelist_hint), modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(text = "取消", onClick = { showAddWhitelistDialog = false }, modifier = Modifier.weight(1f))
+                        TextButton(text = stringResource(R.string.cancel), onClick = { showAddWhitelistDialog = false }, modifier = Modifier.weight(1f))
                         Spacer(modifier = Modifier.width(20.dp))
-                        TextButton(text = "保存", colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
+                        TextButton(text = stringResource(R.string.save), colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
                             if (tempWhitelistInput.isNotBlank()) {
                                 val success = DynamicLyricData.addPackageToWhitelist(context, tempWhitelistInput)
-                                if (success) { showAddWhitelistDialog = false } else { Toast.makeText(context, "该应用已存在", Toast.LENGTH_SHORT).show() }
-                            } else { Toast.makeText(context, "包名不能为空", Toast.LENGTH_SHORT).show() }
+                                if (success) { showAddWhitelistDialog = false } else { Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show() }
+                            } else { Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show() }
                         })
                     }
                 }
@@ -175,11 +185,11 @@ fun DynamicIslandNotificationPage() {
         }
 
         if (showDeleteWhitelistDialog) {
-            WindowDialog(title = "确认从白名单中移除应用吗？", show = true, onDismissRequest = { showDeleteWhitelistDialog = false }) {
+            WindowDialog(title = stringResource(R.string.dialog_delete_whitelist_title), show = true, onDismissRequest = { showDeleteWhitelistDialog = false }) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(text = "取消", onClick = { showDeleteWhitelistDialog = false }, modifier = Modifier.weight(1f))
+                    TextButton(text = stringResource(R.string.cancel), onClick = { showDeleteWhitelistDialog = false }, modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(20.dp))
-                    TextButton(text = "确认", colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
+                    TextButton(text = stringResource(R.string.confirm), colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
                         DynamicLyricData.removePackageFromWhitelist(context, packageToDelete)
                         showDeleteWhitelistDialog = false
                     })
@@ -194,12 +204,12 @@ fun DynamicIslandNotificationPage() {
                         item {
                             Column {
                                 var notificationType by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_TYPE, ServiceConstants.DEFAULT_NOTIFICATION_TYPE)) }
-                                val notificationTypeOptions = listOf("实时通知", "焦点通知")
+                                val notificationTypeOptions = listOf(stringResource(R.string.option_notification_live), stringResource(R.string.option_notification_focus))
                                 Card(modifier = Modifier.fillMaxWidth()) {
-                                    OverlayDropdownPreference(title = "通知类型", items = notificationTypeOptions, selectedIndex = notificationType, onSelectedIndexChange = { index -> notificationType = index; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_TYPE, index) } })
+                                    OverlayDropdownPreference(title = stringResource(R.string.title_notification_type), items = notificationTypeOptions, selectedIndex = notificationType, onSelectedIndexChange = { index -> notificationType = index; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_TYPE, index) } })
                                 }
 
-                                SmallTitle(text = "灵动岛设置", insideMargin = PaddingValues(10.dp, 4.dp))
+                                SmallTitle(text = stringResource(R.string.title_island_settings), insideMargin = PaddingValues(10.dp, 4.dp))
                                 var islandLeftAlbumEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_LEFT_ALBUM)) }
                                 var normalNotificationAlbumEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_LIVE_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_LIVE_ALBUM)) }
                                 var disableLyricSplitEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT)) }
@@ -207,25 +217,25 @@ fun DynamicIslandNotificationPage() {
                                     Column {
                                         AnimatedVisibility(visible = notificationType == 1) {
                                             Column {
-                                                SwitchPreference(title = "超级岛左侧专辑封面", checked = islandLeftAlbumEnabled, onCheckedChange = { checked -> islandLeftAlbumEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, checked) }; if (!checked) { disableLyricSplitEnabled = false; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, false) } } })
-                                                SwitchPreference(title = "关闭歌词分割", checked = disableLyricSplitEnabled, onCheckedChange = { checked -> disableLyricSplitEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, checked) } }, enabled = islandLeftAlbumEnabled)
+                                                SwitchPreference(title = stringResource(R.string.title_super_island_left_album), checked = islandLeftAlbumEnabled, onCheckedChange = { checked -> islandLeftAlbumEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, checked) }; if (!checked) { disableLyricSplitEnabled = false; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, false) } } })
+                                                SwitchPreference(title = stringResource(R.string.title_disable_lyric_split), checked = disableLyricSplitEnabled, onCheckedChange = { checked -> disableLyricSplitEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, checked) } }, enabled = islandLeftAlbumEnabled)
                                             }
                                         }
                                         AnimatedVisibility(visible = notificationType == 0) {
                                             Column {
-                                                SwitchPreference(title = "胶囊左侧专辑封面", checked = normalNotificationAlbumEnabled, onCheckedChange = { checked -> normalNotificationAlbumEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_LIVE_ALBUM, checked) } })
+                                                SwitchPreference(title = stringResource(R.string.title_live_island_left_album), checked = normalNotificationAlbumEnabled, onCheckedChange = { checked -> normalNotificationAlbumEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_LIVE_ALBUM, checked) } })
                                             }
                                         }
                                         SwitchPreference(
-                                            title = "限制最大宽度",
-                                            summary = "实验性功能",
+                                            title = stringResource(R.string.title_limit_width),
+                                            summary = stringResource(R.string.summary_experimental),
                                             checked = limitWidthEnabled,
                                             onCheckedChange = { checked -> limitWidthEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LIMIT_WIDTH, checked) } }
                                         )
                                         AnimatedVisibility(visible = limitWidthEnabled){
                                             BasicComponent  (
-                                                title = "过长的文字将被舍弃",
-                                                summary = "参考：一个汉字大概50",
+                                                title = stringResource(R.string.title_limit_width_desc),
+                                                summary = stringResource(R.string.summary_limit_width),
                                                 endActions  = { Text("$maxWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
                                                 bottomAction = {
                                                     Slider(
@@ -241,38 +251,46 @@ fun DynamicIslandNotificationPage() {
                                     }
                                 }
 
-                                SmallTitle(text = "通知设置", insideMargin = PaddingValues(10.dp, 4.dp))
+                                SmallTitle(text = stringResource(R.string.title_notification_settings), insideMargin = PaddingValues(10.dp, 4.dp))
                                 Card(modifier = Modifier.fillMaxWidth()) {
                                     var notificationClickAction by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION, ServiceConstants.DEFAULT_NOTIFICATION_CLICK_ACTION)) }
-                                    val clickOptions = listOf("暂停音乐（默认）", "打开HyperLyric", "打开正在播放的媒体应用")
-                                    WindowDropdownPreference(title = "点击通知", items = clickOptions, selectedIndex = notificationClickAction, onSelectedIndexChange = { notificationClickAction = it; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION, it) } })
+                                    val clickOptions = listOf(stringResource(R.string.option_click_pause), stringResource(R.string.option_click_open_app), stringResource(R.string.option_click_open_media))
+                                    WindowDropdownPreference(title = stringResource(R.string.title_notification_click), items = clickOptions, selectedIndex = notificationClickAction, onSelectedIndexChange = { notificationClickAction = it; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION, it) } })
 
                                     var showProgressEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS, ServiceConstants.DEFAULT_NOTIFICATION_SHOW_PROGRESS)) }
-                                    SwitchPreference(title = "显示进度条", summary = "其他系统切勿关闭！仅通过澎湃3设备测试", checked = showProgressEnabled, onCheckedChange = { checked -> showProgressEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS, checked) } })
+                                    SwitchPreference(title = stringResource(R.string.title_show_progress), summary = stringResource(R.string.summary_show_progress), checked = showProgressEnabled, onCheckedChange = { checked -> showProgressEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS, checked) } })
 
                                     AnimatedVisibility(visible = showProgressEnabled) {
                                         var progressColorEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)) }
-                                        SwitchPreference(title = "进度条强调色", summary = "切歌后生效", checked = progressColorEnabled, onCheckedChange = { checked -> progressColorEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, checked) } })
+                                        SwitchPreference(title = stringResource(R.string.title_progress_color), summary = stringResource(R.string.summary_progress_color), checked = progressColorEnabled, onCheckedChange = { checked -> progressColorEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, checked) } })
                                     }
 
                                     var showAlbumArtEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM)) }
-                                    SwitchPreference(title = "显示专辑封面", checked = showAlbumArtEnabled, onCheckedChange = { checked -> showAlbumArtEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, checked) } })
+                                    SwitchPreference(title = stringResource(R.string.title_show_album_art), checked = showAlbumArtEnabled, onCheckedChange = { checked -> showAlbumArtEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, checked) } })
 
                                     val focusStyleOptions = listOf("OS2", "OS3")
                                     var focusNotificationType by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE, ServiceConstants.DEFAULT_NOTIFICATION_FOCUS_STYLE)) }
                                     AnimatedVisibility(visible = notificationType == 1) {
-                                        WindowDropdownPreference(title = "焦点通知样式", items = focusStyleOptions, selectedIndex = 1 - focusNotificationType, onSelectedIndexChange = { index -> val storedValue = 1 - index; focusNotificationType = storedValue; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE, storedValue) } })
+                                        WindowDropdownPreference(title = stringResource(R.string.title_focus_style), items = focusStyleOptions, selectedIndex = 1 - focusNotificationType, onSelectedIndexChange = { index -> val storedValue = 1 - index; focusNotificationType = storedValue; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE, storedValue) } })
                                     }
 
-                                    val normalTitleOptions = listOf("无", "标题", "艺术家", "专辑", "标题 - 艺术家", "艺术家 - 标题", "艺术家 - 专辑")
+                                    val normalTitleOptions = listOf(
+                                        stringResource(R.string.option_info_none),
+                                        stringResource(R.string.option_info_title),
+                                        stringResource(R.string.option_info_artist),
+                                        stringResource(R.string.option_info_album),
+                                        stringResource(R.string.option_info_title_artist),
+                                        stringResource(R.string.option_info_artist_title),
+                                        stringResource(R.string.option_info_artist_album)
+                                    )
                                     var normalNotificationTitleStyle by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE, ServiceConstants.DEFAULT_NOTIFICATION_TITLE_STYLE)) }
-                                    WindowDropdownPreference(title = "歌曲信息", items = normalTitleOptions, selectedIndex = normalNotificationTitleStyle, onSelectedIndexChange = { normalNotificationTitleStyle = it; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE, it) } })
+                                    WindowDropdownPreference(title = stringResource(R.string.title_song_info), items = normalTitleOptions, selectedIndex = normalNotificationTitleStyle, onSelectedIndexChange = { normalNotificationTitleStyle = it; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE, it) } })
                                 }
 
-                                SmallTitle(text = "高级功能", insideMargin = PaddingValues(10.dp, 4.dp))
+                                SmallTitle(text = stringResource(R.string.title_advanced_features), insideMargin = PaddingValues(10.dp, 4.dp))
                                 Card(modifier = Modifier.fillMaxWidth()) {
                                     Column {
-                                        ArrowPreference(title = "应用自启动", onClick = {
+                                        ArrowPreference(title = stringResource(R.string.title_autostart), onClick = {
                                             try {
                                                 val intent = Intent().apply { component = android.content.ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity") }
                                                 context.startActivity(intent)
@@ -280,26 +298,26 @@ fun DynamicIslandNotificationPage() {
                                                 try {
                                                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply { data = "package:${context.packageName}".toUri() }
                                                     context.startActivity(intent)
-                                                } catch (_: Exception) { Toast.makeText(context, "无法打开自启动设置", Toast.LENGTH_SHORT).show() }
+                                                } catch (_: Exception) { Toast.makeText(context, msgAutostartFailed, Toast.LENGTH_SHORT).show() }
                                             }
                                         })
-                                        ArrowPreference(title = "忽略电池优化", onClick = {
+                                        ArrowPreference(title = stringResource(R.string.title_battery_optimization), onClick = {
                                             try {
                                                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
                                                 if (!pm.isIgnoringBatteryOptimizations(context.packageName)) {
                                                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply { data = "package:${context.packageName}".toUri() }
                                                     context.startActivity(intent)
-                                                } else { Toast.makeText(context, "已忽略电池优化", Toast.LENGTH_SHORT).show() }
+                                                } else { Toast.makeText(context, msgBatteryIgnored, Toast.LENGTH_SHORT).show() }
                                             } catch (_: Exception) {
                                                 try {
                                                     val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                                     context.startActivity(intent)
-                                                } catch (_: Exception) { Toast.makeText(context, "无法打开电池优化设置", Toast.LENGTH_SHORT).show() }
+                                                } catch (_: Exception) { Toast.makeText(context, msgBatteryFailed, Toast.LENGTH_SHORT).show() }
                                             }
                                         })
-                                        SwitchPreference(title = "获取在线歌词", summary = "实验性功能，谨慎启用\n开启后可关闭音乐软件车载蓝牙功能", checked = onlineLyricEnabled, onCheckedChange = { checked -> onlineLyricEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, checked) } })
+                                        SwitchPreference(title = stringResource(R.string.title_online_lyric), summary = stringResource(R.string.summary_online_lyric), checked = onlineLyricEnabled, onCheckedChange = { checked -> onlineLyricEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, checked) } })
                                         if (onlineLyricEnabled) {
-                                            ArrowPreference(title = "在线歌词缓存上限", summary = "$onlineLyricCacheLimit 首", onClick = { tempCacheLimit = onlineLyricCacheLimit.toString(); showCacheLimitDialog = true })
+                                            ArrowPreference(title = stringResource(R.string.dialog_cache_limit_title), summary = fmtSongsCount.format(onlineLyricCacheLimitState), onClick = { tempCacheLimit = onlineLyricCacheLimitState.toString(); showCacheLimitDialog = true })
                                         }
                                     }
                                 }
@@ -311,10 +329,10 @@ fun DynamicIslandNotificationPage() {
                     LazyColumn(modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection), contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())) {
                         item {
                             Card(modifier = Modifier.fillMaxWidth()) {
-                                ArrowPreference(title = "添加白名单应用", onClick = { tempWhitelistInput = ""; showAddWhitelistDialog = true }, holdDownState = showAddWhitelistDialog)
+                                ArrowPreference(title = stringResource(R.string.title_add_whitelist), onClick = { tempWhitelistInput = ""; showAddWhitelistDialog = true }, holdDownState = showAddWhitelistDialog)
                             }
                         }
-                        item { SmallTitle(text = "已添加的应用", insideMargin = PaddingValues(10.dp, 4.dp)) }
+                        item { SmallTitle(text = stringResource(R.string.title_added_apps), insideMargin = PaddingValues(10.dp, 4.dp)) }
                         item {
                             if (whitelist.isNotEmpty()) {
                                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -325,7 +343,7 @@ fun DynamicIslandNotificationPage() {
                                                 title = appName ?: packageName,
                                                 summary = if (appName != null) packageName else null,
                                                 endActions = {
-                                                    IconButton(onClick = { packageToDelete = packageName; showDeleteWhitelistDialog = true }) { Icon(imageVector = MiuixIcons.Delete, contentDescription = "删除", tint = MiuixTheme.colorScheme.onSurfaceVariantActions) }
+                                                    IconButton(onClick = { packageToDelete = packageName; showDeleteWhitelistDialog = true }) { Icon(imageVector = MiuixIcons.Delete, contentDescription = stringResource(R.string.delete), tint = MiuixTheme.colorScheme.onSurfaceVariantActions) }
                                                 },
                                                 onClick = { packageToDelete = packageName; showDeleteWhitelistDialog = true },
                                                 holdDownState = showDeleteWhitelistDialog && packageToDelete == packageName
@@ -336,7 +354,7 @@ fun DynamicIslandNotificationPage() {
                             } else {
                                 Card(modifier = Modifier.fillMaxWidth()) {
                                     BasicComponent(
-                                        title = "暂无白名单应用",
+                                        title = stringResource(R.string.title_no_whitelist),
                                     )
                                 }
                             }

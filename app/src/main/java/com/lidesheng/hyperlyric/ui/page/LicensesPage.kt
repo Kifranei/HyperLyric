@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.lidesheng.hyperlyric.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -70,7 +72,7 @@ fun LicensesPage() {
             LicenseItem("opencc4j", "houbb", "https://github.com/houbb/opencc4j"),
             LicenseItem("OpenCC", "BYVoid", "https://github.com/BYVoid/OpenCC"),
             LicenseItem("LDDC", "chenmozhijin", "https://github.com/chenmozhijin/LDDC"),
-            LicenseItem("HyperCeiler", "HyperCeiler团队", "https://github.com/ReChronoRain/HyperCeiler"),
+            LicenseItem("HyperCeiler", "Sevtinge", "https://github.com/ReChronoRain/HyperCeiler"),
             LicenseItem("HyperOShape","xzakota","https://github.com/xzakota/HyperOShape")
         )
     }
@@ -79,13 +81,13 @@ fun LicensesPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "项目引用与参考",
+                title = stringResource(R.string.title_licenses),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(
                         onClick = { navigator.pop() }
                     ) {
-                        Icon(imageVector = MiuixIcons.Back, contentDescription = "返回")
+                        Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
                     }
                 },
                 modifier = Modifier.hazeEffect(hazeState) {

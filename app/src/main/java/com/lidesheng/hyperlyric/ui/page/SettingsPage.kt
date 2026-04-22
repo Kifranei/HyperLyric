@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -24,6 +25,7 @@ import androidx.core.content.edit
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
 import dev.chrisbanes.haze.HazeState
@@ -152,6 +154,14 @@ fun SettingsPage() {
     val navigator = LocalNavigator.current
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
+    // Toast messages and format strings fetched at top level
+    val msgBackupSuccess = stringResource(R.string.toast_backup_success)
+    val fmtBackupFailed = stringResource(R.string.toast_backup_failed)
+    val msgRestoreEmpty = stringResource(R.string.toast_restore_empty)
+    val msgRestoreSuccess = stringResource(R.string.toast_restore_success)
+    val msgRestoreInvalid = stringResource(R.string.toast_restore_invalid)
+    val msgRestoreFailed = stringResource(R.string.toast_restore_failed)
+
     val hazeState = remember { HazeState() }
     val hazeStyle = HazeStyle(
         backgroundColor = MiuixTheme.colorScheme.surface,
@@ -167,10 +177,10 @@ fun SettingsPage() {
                 val output = context.contentResolver.openOutputStream(uri)
                 if (output != null) {
                     output.use { it.write(jsonBytes); it.flush() }
-                    Toast.makeText(context, "备份成功", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, msgBackupSuccess, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "备份失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, fmtBackupFailed.format(e.message), Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -184,17 +194,17 @@ fun SettingsPage() {
                     input.bufferedReader(Charsets.UTF_8).readText()
                 } ?: ""
                 if (json.isBlank()) {
-                    Toast.makeText(context, "文件内容为空", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, msgRestoreEmpty, Toast.LENGTH_SHORT).show()
                     return@rememberLauncherForActivityResult
                 }
                 val success = restoreFromJson(context, json)
                 Toast.makeText(
                     context,
-                    if (success) "恢复成功，请重启应用" else "文件格式无效",
+                    if (success) msgRestoreSuccess else msgRestoreInvalid,
                     Toast.LENGTH_SHORT
                 ).show()
             } catch (_: Exception) {
-                Toast.makeText(context, "恢复失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, msgRestoreFailed, Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -203,13 +213,16 @@ fun SettingsPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "应用设置",
+                title = stringResource(R.string.title_settings_page),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(
                         onClick = { navigator.pop() }
                     ) {
-                        Icon(imageVector = MiuixIcons.Back, contentDescription = "返回")
+                        Icon(
+                            imageVector = MiuixIcons.Back,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 modifier = Modifier.hazeEffect(hazeState) {
@@ -236,16 +249,23 @@ fun SettingsPage() {
         ) {
             item {
                 SmallTitle(
-                    text = "个性化设置",
+                    text = stringResource(R.string.title_personalization),
                     insideMargin = PaddingValues(10.dp, 4.dp)
                 )
                 Card(modifier = Modifier.fillMaxWidth()) {
                     val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
                     var themeMode by remember { mutableIntStateOf(prefs.getInt(UIConstants.KEY_THEME_MODE, UIConstants.DEFAULT_THEME_MODE)) }
-                    val themeOptions = listOf("跟随系统", "浅色", "深色", "跟随系统（莫奈）", "浅色（莫奈）", "深色（莫奈）")
+                    val themeOptions = listOf(
+                        stringResource(R.string.theme_system),
+                        stringResource(R.string.theme_light),
+                        stringResource(R.string.theme_dark),
+                        stringResource(R.string.theme_system_monet),
+                        stringResource(R.string.theme_light_monet),
+                        stringResource(R.string.theme_dark_monet)
+                    )
 
                     WindowDropdownPreference(
-                        title = "主题颜色",
+                        title = stringResource(R.string.title_theme),
                         items = themeOptions,
                         selectedIndex = themeMode,
                         onSelectedIndexChange = {
@@ -256,10 +276,19 @@ fun SettingsPage() {
 
                     if (themeMode >= 3) {
                         var monetColorIndex by remember { mutableIntStateOf(prefs.getInt(UIConstants.KEY_MONET_COLOR, UIConstants.DEFAULT_MONET_COLOR)) }
-                        val monetOptions = listOf("默认", "蓝色", "绿色", "红色", "黄色", "橙色", "紫色", "粉色")
+                        val monetOptions = listOf(
+                            stringResource(R.string.monet_default),
+                            stringResource(R.string.monet_blue),
+                            stringResource(R.string.monet_green),
+                            stringResource(R.string.monet_red),
+                            stringResource(R.string.monet_yellow),
+                            stringResource(R.string.monet_orange),
+                            stringResource(R.string.monet_purple),
+                            stringResource(R.string.monet_pink)
+                        )
 
                         WindowDropdownPreference(
-                            title = "强调色",
+                            title = stringResource(R.string.title_monet),
                             items = monetOptions,
                             selectedIndex = monetColorIndex,
                             onSelectedIndexChange = {
@@ -272,7 +301,7 @@ fun SettingsPage() {
                     var predictiveBackGestureEnabled by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_PREDICTIVE_BACK_GESTURE, UIConstants.DEFAULT_PREDICTIVE_BACK_GESTURE)) }
                     val activity = androidx.activity.compose.LocalActivity.current
                     SwitchPreference(
-                        title = "预测性返回手势",
+                        title = stringResource(R.string.title_predictive_back),
                         checked = predictiveBackGestureEnabled,
                         onCheckedChange = {
                             predictiveBackGestureEnabled = it
@@ -290,7 +319,7 @@ fun SettingsPage() {
 
                     var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_FLOATING_NAV_BAR, UIConstants.DEFAULT_FLOATING_NAV_BAR)) }
                     SwitchPreference(
-                        title = "悬浮底栏",
+                        title = stringResource(R.string.title_floating_nav),
                         checked = floatingNavBarEnabled,
                         onCheckedChange = {
                             floatingNavBarEnabled = it
@@ -300,7 +329,7 @@ fun SettingsPage() {
 
                     var excludeFromRecents by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_EXCLUDE_FROM_RECENTS, UIConstants.DEFAULT_EXCLUDE_FROM_RECENTS)) }
                     SwitchPreference(
-                        title = "隐藏后台卡片",
+                        title = stringResource(R.string.title_exclude_from_recents),
                         checked = excludeFromRecents,
                         onCheckedChange = {
                             excludeFromRecents = it
@@ -313,13 +342,13 @@ fun SettingsPage() {
 
             item {
                 SmallTitle(
-                    text = "配置管理",
+                    text = stringResource(R.string.title_config_management),
                     insideMargin = PaddingValues(10.dp, 4.dp)
                 )
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column {
                         ArrowPreference(
-                            title = "备份",
+                            title = stringResource(R.string.title_backup),
                             onClick = {
                                 val dateTime = LocalDateTime.now()
                                     .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
@@ -327,7 +356,7 @@ fun SettingsPage() {
                             }
                         )
                         ArrowPreference(
-                            title = "恢复",
+                            title = stringResource(R.string.title_restore),
                             onClick = {
                                 restoreLauncher.launch(arrayOf("application/json"))
                             }
@@ -336,12 +365,12 @@ fun SettingsPage() {
                 }
 
                 SmallTitle(
-                    text = "调试信息",
+                    text = stringResource(R.string.title_debug_info),
                     insideMargin = PaddingValues(10.dp, 4.dp)
                 )
                 Card(modifier = Modifier.fillMaxWidth()) {
                     ArrowPreference(
-                        title = "查看模块日志",
+                        title = stringResource(R.string.title_view_logs),
                         onClick = {
                             navigator.navigate(Route.Log)
                         }
