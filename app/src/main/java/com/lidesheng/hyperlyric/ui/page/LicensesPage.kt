@@ -38,6 +38,7 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
+import com.lidesheng.hyperlyric.ui.utils.LicenseProvider
 
 data class LicenseItem(
     val name: String,
@@ -57,25 +58,7 @@ fun LicensesPage() {
         tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
     )
 
-    val licenses = remember {
-        listOf(
-            LicenseItem("miuix", "YuKongA", "https://github.com/Yukonga/MIUIX"),
-            LicenseItem("libxposed API", "libxposed", "https://github.com/libxposed/api"),
-            LicenseItem("lyricon", "tomakino", "https://github.com/tomakino/lyricon"),
-            LicenseItem("LyricProvider", "tomakino", "https://github.com/tomakino/LyricProvider"),
-            LicenseItem("haze", "chrisbanes", "https://github.com/chrisbanes/haze"),
-            LicenseItem("retrofit", "square", "https://github.com/square/retrofit"),
-            LicenseItem("okhttp", "square", "https://github.com/square/okhttp"),
-            LicenseItem("kotlinx.serialization", "Kotlin", "https://github.com/Kotlin/kotlinx.serialization"),
-            LicenseItem("Jetpack Compose", "Google", "https://developer.android.com/jetpack/compose"),
-            LicenseItem("Lyrico", "Replica0110", "https://github.com/Replica0110/Lyrico"),
-            LicenseItem("opencc4j", "houbb", "https://github.com/houbb/opencc4j"),
-            LicenseItem("OpenCC", "BYVoid", "https://github.com/BYVoid/OpenCC"),
-            LicenseItem("LDDC", "chenmozhijin", "https://github.com/chenmozhijin/LDDC"),
-            LicenseItem("HyperCeiler", "Sevtinge", "https://github.com/ReChronoRain/HyperCeiler"),
-            LicenseItem("HyperOShape","xzakota","https://github.com/xzakota/HyperOShape")
-        )
-    }
+    val licenses = remember { LicenseProvider.getLicenses() }
 
     Scaffold(
         topBar = {
