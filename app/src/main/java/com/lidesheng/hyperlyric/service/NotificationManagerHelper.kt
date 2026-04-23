@@ -60,11 +60,11 @@ object NotificationManagerHelper {
         return lastLabelIcon
     }
 
-    fun createNotificationChannel(notificationManager: NotificationManager) {
+    fun createNotificationChannel(context: Context, notificationManager: NotificationManager) {
         if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "实时通知歌词",
+                context.getString(R.string.channel_name_live),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 setSound(null, null)
@@ -77,10 +77,9 @@ object NotificationManagerHelper {
         if (notificationManager.getNotificationChannel(CHANNEL_ID_FOCUS) == null) {
             val focusChannel = NotificationChannel(
                 CHANNEL_ID_FOCUS,
-                "焦点通知歌词",
+                context.getString(R.string.channel_name_focus),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "焦点通知仅在澎湃3设备上生效，其他设备或系统可以关闭该通知"
                 setSound(null, null)
                 setShowBadge(false)
                 enableVibration(false)

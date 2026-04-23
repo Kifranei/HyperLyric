@@ -62,7 +62,7 @@ class NotificationPresenter(
     fun register() {
         val filter = IntentFilter("com.lidesheng.hyperlyric.ACTION_TOGGLE_PLAYBACK")
         context.registerReceiver(playbackToggleReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        NotificationManagerHelper.createNotificationChannel(notificationManager)
+        NotificationManagerHelper.createNotificationChannel(context, notificationManager)
     }
 
     fun unregister() {

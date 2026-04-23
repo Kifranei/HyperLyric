@@ -274,4 +274,7 @@
     <string name="format_log_read_failed">读取 LSPosed 日志失败: %1$s</string>
     <string name="export_header">========== HyperLyric 调试日志 ==========</string>
     <string name="format_export_time">导出时间: %1$s</string>
+
+    <string name="channel_name_live">实时通知歌词</string>
+    <string name="channel_name_focus">焦点通知歌词</string>
 </resources>

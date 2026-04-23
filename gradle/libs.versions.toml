@@ -21,7 +21,6 @@ libxposed = "101.0.0"
 daimajia-animations = "2.4"
 daimajia-easing = "2.4"
 hiddenapibypass = "4.3"
-ui = "1.10.6"
 
 
 [libraries]
@@ -69,7 +68,6 @@ libxposed-service = { group = "io.github.libxposed", name = "service", version.r
 # --- 动画库 (YoYo) ---
 daimajia-animations = { group = "com.daimajia.androidanimations", name = "library", version.ref = "daimajia-animations" }
 daimajia-easing = { group = "com.daimajia.easing", name = "library", version.ref = "daimajia-easing" }
-androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

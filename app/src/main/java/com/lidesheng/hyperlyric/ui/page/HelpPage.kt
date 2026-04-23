@@ -10,7 +10,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -47,7 +49,7 @@ fun HelpPage() {
         topBar = {
             TopAppBar(
                 color = Color.Transparent,
-                title = "使用帮助",
+                title = stringResource(R.string.title_help),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(
