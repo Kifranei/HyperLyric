@@ -12,7 +12,7 @@ import android.view.KeyEvent
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
-import com.lidesheng.hyperlyric.online.model.DynamicLyricData
+import com.lidesheng.hyperlyric.lyric.DynamicLyricData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -78,7 +78,7 @@ class NotificationPresenter(
      * 由 LiveLyricService 在每次状态变更时调用。
      * 内部完成：开关检查、白名单过滤、状态去重、息屏降频、防抖，最终发射通知。
      */
-    fun updateState(globalState: com.lidesheng.hyperlyric.online.model.LyricState, force: Boolean) {
+    fun updateState(globalState: com.lidesheng.hyperlyric.lyric.LyricState, force: Boolean) {
         val isWhitelisted = DynamicLyricData.whitelistState.value.contains(globalState.targetPackageName)
         if (!isWhitelisted) {
             clearNotifications()

@@ -23,11 +23,6 @@ android {
         }
     }
 
-    @Suppress("UnstableApiUsage")
-    androidResources {
-        localeFilters += listOf("zh", "en")
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -36,6 +31,19 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("online") {
+            dimension = "version"
+            buildConfigField("boolean", "ONLINE_FEATURES_ENABLED", "true")
+            isDefault = true
+        }
+        create("offline") {
+            dimension = "version"
+            buildConfigField("boolean", "ONLINE_FEATURES_ENABLED", "false")
         }
     }
 
@@ -101,10 +109,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // --- 网络与序列化 (在线歌词) ---
-    implementation(libs.retrofit2.retrofit)
-    implementation(libs.squareup.okhttp3)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    "onlineImplementation"(libs.retrofit2.retrofit)
+    "onlineImplementation"(libs.squareup.okhttp3)
+    "onlineImplementation"(libs.retrofit2.kotlinx.serialization.converter)
 
     // --- 动画库 (YoYo) ---
     implementation(libs.daimajia.animations) { artifact { type = "aar" } }

@@ -1,12 +1,11 @@
 package com.lidesheng.hyperlyric.online
 
 import android.content.Context
+import com.lidesheng.hyperlyric.lyric.LrcLine
 import com.lidesheng.hyperlyric.online.model.SongSearchResult
 import com.lidesheng.hyperlyric.online.utils.ChineseUtils
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
-
-data class LrcLine(val startTimeMs: Long, val content: String)
 
 object OnlineLyricTargeter {
     private const val TIMEOUT_MS = 5000L

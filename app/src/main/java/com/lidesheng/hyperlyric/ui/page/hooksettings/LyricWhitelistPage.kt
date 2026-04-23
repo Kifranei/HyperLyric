@@ -25,8 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lidesheng.hyperlyric.R
-import com.lidesheng.hyperlyric.online.model.DynamicLyricData
-import com.lidesheng.hyperlyric.online.model.commonMusicApps
+import com.lidesheng.hyperlyric.lyric.DynamicLyricData
+import com.lidesheng.hyperlyric.lyric.commonMusicApps
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle

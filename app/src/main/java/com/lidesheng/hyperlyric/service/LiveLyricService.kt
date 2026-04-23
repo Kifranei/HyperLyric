@@ -17,10 +17,10 @@ import androidx.core.graphics.toColorInt
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
-import com.lidesheng.hyperlyric.online.LrcCacheManager
-import com.lidesheng.hyperlyric.online.LrcLine
-import com.lidesheng.hyperlyric.online.OnlineLyricTargeter
-import com.lidesheng.hyperlyric.online.model.DynamicLyricData
+import com.lidesheng.hyperlyric.lyric.LyricSearchParams
+import com.lidesheng.hyperlyric.lyric.LyricProviderFactory
+import com.lidesheng.hyperlyric.lyric.LrcLine
+import com.lidesheng.hyperlyric.lyric.DynamicLyricData
 import com.lidesheng.hyperlyric.service.utils.LyricSplitter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -94,6 +94,7 @@ class LiveLyricService : NotificationListenerService() {
     // ─── 解耦模块：通知展示与分割器 ───────────────────────
     private lateinit var notificationPresenter: NotificationPresenter
     private lateinit var lyricSplitter: LyricSplitter
+    private val lyricProvider by lazy { LyricProviderFactory.create(this) }
 
         override fun onCreate() {
         super.onCreate()
@@ -357,16 +358,15 @@ class LiveLyricService : NotificationListenerService() {
             
             if (sp.getBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, ServiceConstants.DEFAULT_ONLINE_LYRIC_ENABLED)) {
                 DynamicLyricData.updateFetchingLyrics(true)
-                val lines = withContext(Dispatchers.IO) {
-                    var l = LrcCacheManager.getLyricFromCache(this@LiveLyricService, data.identityTitle, data.identityArtist)?.let { parseLrc(it) }
-                    if (l.isNullOrEmpty()) {
-                        l = OnlineLyricTargeter.fetchBestLyric(this@LiveLyricService, data.currentPackageName, data.identityTitle, data.identityArtist, data.duration)
-                        if (!l.isNullOrEmpty()) {
-                            LrcCacheManager.saveLyricToCache(this@LiveLyricService, data.identityTitle, data.identityArtist, buildLrcString(l))
-                        }
-                    }
-                    l
-                }
+                val lines = lyricProvider.fetchLyrics(
+                    LyricSearchParams(
+                        title = data.identityTitle,
+                        artist = data.identityArtist,
+                        album = data.identityAlbum,
+                        packageName = data.currentPackageName,
+                        duration = data.duration
+                    )
+                )
                 DynamicLyricData.updateFetchingLyrics(false)
 
                 if (!lines.isNullOrEmpty()) {
@@ -501,35 +501,6 @@ class LiveLyricService : NotificationListenerService() {
             finalNotificationRight, songLyric, songInfo, data.duration, data.isPlaying, data.currentPackageName, showIslandLeftAlbum)
     }
 
-    private fun parseLrc(lrcText: String): List<LrcLine> {
-        val lines = mutableListOf<LrcLine>()
-        val regex = Regex("\\[(\\d{2}):(\\d{2})\\.(\\d{2,3})](.*)")
-        lrcText.lines().forEach { line ->
-            val match = regex.find(line)
-            if (match != null) {
-                val min = match.groupValues[1].toLong()
-                val sec = match.groupValues[2].toLong()
-                val msRaw = match.groupValues[3]
-                val ms = if (msRaw.length == 2) msRaw.toLong() * 10 else msRaw.toLong()
-                val content = match.groupValues[4].trim()
-                if (content.isNotEmpty()) {
-                    lines.add(LrcLine(min * 60000 + sec * 1000 + ms, content))
-                }
-            }
-        }
-        return lines
-    }
-
-    @SuppressLint("DefaultLocale")
-    private fun buildLrcString(lines: List<LrcLine>): String {
-        return lines.joinToString("\n") { line ->
-            val totalMs = line.startTimeMs
-            val min = totalMs / 60000
-            val sec = (totalMs % 60000) / 1000
-            val ms = (totalMs % 1000) / 10
-            String.format("[%02d:%02d.%02d]%s", min, sec, ms, line.content)
-        }
-    }
     
     override fun onDestroy() {
         super.onDestroy()

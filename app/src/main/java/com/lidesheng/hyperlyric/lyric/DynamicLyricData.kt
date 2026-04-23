@@ -1,4 +1,4 @@
-package com.lidesheng.hyperlyric.online.model
+package com.lidesheng.hyperlyric.lyric
 
 import android.content.Context
 import android.graphics.Bitmap

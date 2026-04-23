@@ -1,5 +1,6 @@
 package com.lidesheng.hyperlyric.ui.page
 
+import com.lidesheng.hyperlyric.BuildConfig
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -39,7 +40,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
-import com.lidesheng.hyperlyric.online.model.DynamicLyricData
+import com.lidesheng.hyperlyric.lyric.DynamicLyricData
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
@@ -75,7 +76,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import top.yukonga.miuix.kmp.window.WindowDialog
-import com.lidesheng.hyperlyric.online.model.commonMusicApps
+import com.lidesheng.hyperlyric.lyric.commonMusicApps
 
 @SuppressLint("BatteryLife")
 @Composable
@@ -315,9 +316,11 @@ fun DynamicIslandNotificationPage() {
                                                 } catch (_: Exception) { Toast.makeText(context, msgBatteryFailed, Toast.LENGTH_SHORT).show() }
                                             }
                                         })
-                                        SwitchPreference(title = stringResource(R.string.title_online_lyric), summary = stringResource(R.string.summary_online_lyric), checked = onlineLyricEnabled, onCheckedChange = { checked -> onlineLyricEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, checked) } })
-                                        if (onlineLyricEnabled) {
-                                            ArrowPreference(title = stringResource(R.string.dialog_cache_limit_title), summary = fmtSongsCount.format(onlineLyricCacheLimitState), onClick = { tempCacheLimit = onlineLyricCacheLimitState.toString(); showCacheLimitDialog = true })
+                                        if (BuildConfig.ONLINE_FEATURES_ENABLED) {
+                                            SwitchPreference(title = stringResource(R.string.title_online_lyric), summary = stringResource(R.string.summary_online_lyric), checked = onlineLyricEnabled, onCheckedChange = { checked -> onlineLyricEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, checked) } })
+                                            if (onlineLyricEnabled) {
+                                                ArrowPreference(title = stringResource(R.string.dialog_cache_limit_title), summary = fmtSongsCount.format(onlineLyricCacheLimitState), onClick = { tempCacheLimit = onlineLyricCacheLimitState.toString(); showCacheLimitDialog = true })
+                                            }
                                         }
                                     }
                                 }
