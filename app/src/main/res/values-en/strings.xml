@@ -39,6 +39,7 @@
     <string name="title_permission_post_notification">Post Notification Permission</string>
     <string name="title_permission_listener">Notification Listener Permission</string>
     <string name="toast_open_settings_failed">Failed to open Notification Access settings</string>
+    <string name="toast_xposed_module_not_active">Module is not enabled. Please enable and restart the module.</string>
     <string name="title_system_info">System Info</string>
     <string name="info_device_model">Device Model</string>
     <string name="info_os_version">OS Version</string>

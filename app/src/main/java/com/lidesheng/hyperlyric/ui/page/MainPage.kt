@@ -315,10 +315,20 @@ fun MainPage() {
                                         title = stringResource(R.string.title_super_island_lyrics),
                                         summary = stringResource(R.string.summary_super_island_lyrics),
                                         checked = enableSuperIsland,
-                                        onCheckedChange = {
-                                            enableSuperIsland = it
-                                            prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, it) }
-                                            ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, it)
+                                        onCheckedChange = { isChecked ->
+                                            if (isChecked) {
+                                                if (ConfigSync.xposedService != null) {
+                                                    enableSuperIsland = true
+                                                    prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, true) }
+                                                    ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, true)
+                                                } else {
+                                                    Toast.makeText(context, R.string.toast_xposed_module_not_active, Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                enableSuperIsland = false
+                                                prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, false) }
+                                                ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, false)
+                                            }
                                         }
                                     )
                                     AnimatedVisibility(visible = enableSuperIsland) {

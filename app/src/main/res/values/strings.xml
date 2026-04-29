@@ -39,6 +39,7 @@
     <string name="title_permission_post_notification">发送歌词通知权限</string>
     <string name="title_permission_listener">获取歌词信息权限</string>
     <string name="toast_open_settings_failed">无法打开通知使用权设置</string>
+    <string name="toast_xposed_module_not_active">模块未启用，请启用并重启模块</string>
     <string name="title_system_info">系统信息</string>
     <string name="info_device_model">设备型号</string>
     <string name="info_os_version">系统版本</string>
