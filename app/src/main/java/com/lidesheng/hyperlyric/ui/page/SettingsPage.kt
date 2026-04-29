@@ -106,7 +106,9 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                     continue
                 }
 
-                if (key == ServiceConstants.KEY_NOTIFICATION_WHITELIST) {
+                if (key == ServiceConstants.KEY_NOTIFICATION_WHITELIST
+                    || key == RootConstants.KEY_HOOK_WHITELIST
+                    || key == RootConstants.KEY_HOOK_ADDED_LIST) {
                     val raw = value.toString()
                     val set = if (raw.isBlank()) emptySet() else raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
                     putStringSet(key, set)
@@ -117,26 +119,50 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                     is Boolean -> putBoolean(key, value)
                     is Int -> {
                         val boundedValue = when (key) {
+                            // Service
+                            ServiceConstants.KEY_NOTIFICATION_TYPE -> value.coerceIn(0, 1)
+                            ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE -> value.coerceIn(0, 1)
+                            ServiceConstants.KEY_ISLAND_LEFT_ICON -> value.coerceIn(0, 3)
+                            ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL -> value.coerceIn(0, 3)
+                            ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS -> value.coerceIn(0, 3)
+                            ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION -> value.coerceIn(0, 2)
+                            ServiceConstants.KEY_NOTIFICATION_ISLAND_MAX_WIDTH -> value.coerceIn(100, 720)
+                            ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT -> value.coerceIn(1, 1000)
+                            // Root
+                            RootConstants.KEY_HOOK_LYRIC_MODE -> value.coerceIn(0, 1)
                             RootConstants.KEY_HOOK_TEXT_SIZE -> value.coerceIn(8, 27)
+                            RootConstants.KEY_HOOK_FONT_WEIGHT -> value.coerceIn(100, 900)
                             RootConstants.KEY_HOOK_MAX_LEFT_WIDTH -> value.coerceIn(40, 280)
+                            RootConstants.KEY_HOOK_FADING_EDGE_LENGTH -> value.coerceIn(0, 100)
+                            RootConstants.KEY_HOOK_ANIM_MODE -> value.coerceIn(0, 4)
                             RootConstants.KEY_HOOK_MARQUEE_SPEED -> value.coerceIn(10, 500)
                             RootConstants.KEY_HOOK_MARQUEE_DELAY -> value.coerceIn(0, 5000)
                             RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY -> value.coerceIn(0, 5000)
-                            RootConstants.KEY_HOOK_FADING_EDGE_LENGTH -> value.coerceIn(0, 100)
-                            RootConstants.KEY_HOOK_ANIM_MODE -> value.coerceIn(0, 4)
-                            ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT -> value.coerceIn(1, 1000)
-                            ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION -> value.coerceIn(0, 2)
+                            RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT -> value.coerceIn(0, 8)
+                            RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT -> value.coerceIn(0, 8)
+                            RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_LEFT -> value.coerceIn(-50, 100)
+                            RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_RIGHT -> value.coerceIn(-50, 100)
+                            RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_LEFT -> value.coerceIn(-50, 100)
+                            RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_RIGHT -> value.coerceIn(-50, 100)
+                            RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH -> value.coerceIn(0, 100)
+                            RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH -> value.coerceIn(0, 100)
+                            RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE -> value.coerceIn(0, 1)
+                            // UI
                             UIConstants.KEY_WORK_MODE -> value.coerceIn(0, 1)
                             UIConstants.KEY_THEME_MODE -> value.coerceIn(0, 5)
                             UIConstants.KEY_MONET_COLOR -> value.coerceIn(0, 7)
-                            ServiceConstants.KEY_NOTIFICATION_TYPE -> value.coerceIn(0, 1)
-                            ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE -> value.coerceIn(0, 1)
-                            RootConstants.KEY_HOOK_FONT_WEIGHT -> value.coerceIn(100, 900)
                             else -> value
                         }
                         putInt(key, boundedValue)
                     }
-                    is Double, is Float -> putFloat(key, (value as Number).toFloat())
+                    is Double, is Float -> {
+                        val floatValue = (value as Number).toFloat()
+                        val boundedFloat = when (key) {
+                            RootConstants.KEY_HOOK_TEXT_SIZE_RATIO -> floatValue.coerceIn(0.1f, 1.0f)
+                            else -> floatValue
+                        }
+                        putFloat(key, boundedFloat)
+                    }
                     is Long -> putLong(key, value)
                     is String -> putString(key, value)
                 }

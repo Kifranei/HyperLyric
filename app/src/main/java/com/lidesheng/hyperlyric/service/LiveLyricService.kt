@@ -1,6 +1,5 @@
 package com.lidesheng.hyperlyric.service
 
-import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
@@ -14,13 +13,10 @@ import android.media.session.PlaybackState
 import android.service.notification.NotificationListenerService
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.toColorInt
-import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
-import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
-import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
-import com.lidesheng.hyperlyric.lyric.LyricSearchParams
-import com.lidesheng.hyperlyric.lyric.LyricProviderFactory
-import com.lidesheng.hyperlyric.lyric.LrcLine
 import com.lidesheng.hyperlyric.lyric.DynamicLyricData
+import com.lidesheng.hyperlyric.lyric.LrcLine
+import com.lidesheng.hyperlyric.lyric.LyricProviderFactory
+import com.lidesheng.hyperlyric.lyric.LyricSearchParams
 import com.lidesheng.hyperlyric.service.utils.LyricSplitter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,9 +28,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
+import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
+import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 
 
 class LiveLyricService : NotificationListenerService() {
@@ -81,6 +80,7 @@ class LiveLyricService : NotificationListenerService() {
         val isNewSong: Boolean,
         val albumBitmap: Bitmap?,
         val notificationAlbumBitmap: Bitmap?,
+        val notificationAlbumBitmapCircular: Bitmap?,
         val identifier: String
     )
 
@@ -108,7 +108,7 @@ class LiveLyricService : NotificationListenerService() {
         DynamicLyricData.initWhitelist(this)
 
         serviceScope.launch(Dispatchers.Default) {
-            lyricUpdateFlow.collectLatest { data -> processSyncData(data) }
+            lyricUpdateFlow.debounce(200).collectLatest { data -> processSyncData(data) }
         }
 
         serviceScope.launch {
@@ -257,6 +257,12 @@ class LiveLyricService : NotificationListenerService() {
             DynamicLyricData.currentState.notificationAlbumBitmap
         }
 
+        val notificationAlbumBitmapCircular = if (isNewSong) {
+            albumBitmap?.let { AlbumImageProcessor.processAlbumBitmapCircular(it) }
+        } else {
+            DynamicLyricData.currentState.notificationAlbumBitmapCircular
+        }
+
         val (identityTitle, identityArtist) = if (artist.contains(" - ")) {
             val t = artist.substringAfterLast(" - ").trim()
             val a = artist.substringBeforeLast(" - ").trim()
@@ -275,7 +281,7 @@ class LiveLyricService : NotificationListenerService() {
             SyncData(
                 identityTitle, identityArtist, album, rawTitle,
                 duration, position, isPlaying,
-                currentPackageName, isNewSong, albumBitmap, notificationAlbumBitmap, newIdentifier
+                currentPackageName, isNewSong, albumBitmap, notificationAlbumBitmap, notificationAlbumBitmapCircular, newIdentifier
             )
         )
     }
@@ -449,7 +455,8 @@ class LiveLyricService : NotificationListenerService() {
         val songLyric = if (currentLyricLines != null) targetText else data.dynamicTitle
         val pref = getSharedPreferences(UIConstants.PREF_NAME, MODE_PRIVATE)
 
-        val showIslandLeftAlbum = pref.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_LEFT_ALBUM)
+        val islandLeftIconStyle = pref.getInt(ServiceConstants.KEY_ISLAND_LEFT_ICON, ServiceConstants.DEFAULT_ISLAND_LEFT_ICON)
+        val showIslandLeftAlbum = islandLeftIconStyle in 0..2
         val showAlbumArt = pref.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM)
         val notificationType = pref.getInt(ServiceConstants.KEY_NOTIFICATION_TYPE, ServiceConstants.DEFAULT_NOTIFICATION_TYPE)
         val disableLyricSplit = pref.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT) || notificationType == 0
@@ -495,7 +502,8 @@ class LiveLyricService : NotificationListenerService() {
             lastDispatchedShowAlbum = showIslandLeftAlbum
         }
 
-        DynamicLyricData.updateBitmaps(data.albumBitmap, data.notificationAlbumBitmap)
+        DynamicLyricData.updateBitmaps(data.albumBitmap, data.notificationAlbumBitmap, data.notificationAlbumBitmapCircular)
+        DynamicLyricData.updateIslandLeftIconStyle(islandLeftIconStyle)
         DynamicLyricData.updateLeftTitles(finalIslandLeft, finalNotificationLeft)
         DynamicLyricData.updateRightTitles(finalIslandRight,
             finalNotificationRight, songLyric, songInfo, data.duration, data.isPlaying, data.currentPackageName, showIslandLeftAlbum)

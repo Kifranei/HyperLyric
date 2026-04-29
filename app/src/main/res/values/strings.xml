@@ -22,7 +22,7 @@
     <string name="toast_no_root">应用未获取root权限</string>
     <string name="title_basic_features">基础功能</string>
     <string name="title_super_island_lyrics">小米超级岛歌词</string>
-    <string name="summary_super_island_lyrics">仅支持已安装lsposed的HyperOS3设备</string>
+    <string name="summary_super_island_lyrics">仅支持已安装lsposed 2.0的HyperOS 3设备</string>
     <string name="title_super_island_config">小米超级岛歌词自定义配置</string>
     <string name="title_dynamic_island_lyrics">通知型灵动岛歌词</string>
     <string name="summary_dynamic_island_lyrics">利用通知实现灵动岛歌词效果，适用于无root设备</string>
@@ -108,9 +108,12 @@
     <string name="option_notification_focus">焦点通知</string>
     <string name="title_notification_type">通知类型</string>
     <string name="title_island_settings">灵动岛设置</string>
-    <string name="title_super_island_left_album">超级岛左侧专辑封面</string>
+    <string name="title_island_left_icon">左侧图标</string>
     <string name="title_disable_lyric_split">关闭歌词分割</string>
-    <string name="title_live_island_left_album">胶囊左侧专辑封面</string>
+    <string name="option_icon_style_note">音符图标</string>
+    <string name="option_icon_style_rounded">专辑封面</string>
+    <string name="option_icon_style_circular">圆形专辑封面</string>
+    <string name="option_icon_style_none">无</string>
     <string name="title_limit_width">限制最大宽度</string>
     <string name="summary_experimental">实验性功能</string>
     <string name="title_limit_width_desc">过长的文字将被舍弃</string>

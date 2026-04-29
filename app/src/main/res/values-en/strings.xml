@@ -22,7 +22,7 @@
     <string name="toast_no_root">App does not have root access</string>
     <string name="title_basic_features">Basic Features</string>
     <string name="title_super_island_lyrics">Xiaomi HyperIsland Lyrics</string>
-    <string name="summary_super_island_lyrics">Only supports HyperOS3 devices with LSPosed installed</string>
+    <string name="summary_super_island_lyrics">Only supports HyperOS 3 devices with LSPosed 2.0 installed</string>
     <string name="title_super_island_config">Xiaomi HyperIsland Lyrics Custom Configuration</string>
     <string name="title_dynamic_island_lyrics">Notification Dynamic Island Lyrics</string>
     <string name="summary_dynamic_island_lyrics">Uses notifications for Dynamic Island lyric effects, suitable for non-rooted devices</string>
@@ -108,9 +108,12 @@
     <string name="option_notification_focus">Xiaomi Notification Spotlight</string>
     <string name="title_notification_type">Notification Type</string>
     <string name="title_island_settings">Dynamic Island Settings</string>
-    <string name="title_super_island_left_album">HyperIsland Left Album Art</string>
+    <string name="title_island_left_icon">Left Icon</string>
     <string name="title_disable_lyric_split">Disable Lyric Splitting</string>
-    <string name="title_live_island_left_album">Capsule Left Album Art</string>
+    <string name="option_icon_style_note">Music Note</string>
+    <string name="option_icon_style_rounded">Rounded Album Cover</string>
+    <string name="option_icon_style_circular">Circular Album Cover</string>
+    <string name="option_icon_style_none">None</string>
     <string name="title_limit_width">Limit Maximum Width</string>
     <string name="summary_experimental">Experimental Feature</string>
     <string name="title_limit_width_desc">Text exceeding limit will be discarded</string>

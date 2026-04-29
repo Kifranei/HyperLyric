@@ -5,12 +5,13 @@ object Constants {
     const val KEY_NOTIFICATION_WHITELIST = "key_notification_whitelist_packages"
     const val KEY_NOTIFICATION_TYPE = "key_notification_type"
     const val KEY_NOTIFICATION_FOCUS_STYLE = "key_focus_notification_type"
-    const val KEY_NOTIFICATION_LIVE_ALBUM = "key_notification_live_album"
+    const val KEY_ISLAND_LEFT_ICON = "key_island_left_icon"
+    const val KEY_ISLAND_LEFT_ICON_NORMAL = "key_island_left_icon_normal"
+    const val KEY_ISLAND_LEFT_ICON_FOCUS = "key_island_left_icon_focus"
     const val KEY_NOTIFICATION_TITLE_STYLE = "key_normal_notification_title_style"
     const val KEY_NOTIFICATION_CLICK_ACTION = "key_notification_click_action"
     
     // Decoupled Island-like keys for Notification Page
-    const val KEY_NOTIFICATION_ISLAND_LEFT_ALBUM = "key_notification_island_left_album"
     const val KEY_NOTIFICATION_SHOW_PROGRESS = "key_notification_show_progress"
     const val KEY_NOTIFICATION_PROGRESS_COLOR = "key_notification_progress_color"
     const val KEY_NOTIFICATION_ALBUM = "key_notification_album"
@@ -23,11 +24,10 @@ object Constants {
     // ================= DEFAULTS =================
     const val DEFAULT_NOTIFICATION_TYPE = 0
     const val DEFAULT_NOTIFICATION_FOCUS_STYLE = 0
-    const val DEFAULT_NOTIFICATION_LIVE_ALBUM = false
+    const val DEFAULT_ISLAND_LEFT_ICON = 0 // 0=music note, 1=rounded album, 2=circular album, 3=none
     const val DEFAULT_NOTIFICATION_TITLE_STYLE = 4
     const val DEFAULT_NOTIFICATION_CLICK_ACTION = 0
     
-    const val DEFAULT_NOTIFICATION_ISLAND_LEFT_ALBUM = false
     const val DEFAULT_NOTIFICATION_SHOW_PROGRESS = true
     const val DEFAULT_NOTIFICATION_PROGRESS_COLOR = true
     const val DEFAULT_NOTIFICATION_ALBUM = true

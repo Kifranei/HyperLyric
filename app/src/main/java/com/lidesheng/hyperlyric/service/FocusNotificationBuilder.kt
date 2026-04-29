@@ -61,22 +61,27 @@ class FocusNotificationBuilder(
 
     private fun buildBigIslandArea(): JSONObject {
         val json = JSONObject()
-        
+
         // 大岛左侧内容 (图片/文本 组合)
         val imageTextLeft = JSONObject()
         imageTextLeft.put("type", 1)
-        
-        if (uiState.disableLyricSplit) {
-            // 关闭分割模式：仅显示专辑封面
-            imageTextLeft.put("picInfo", buildPicInfo(1))
-        } else if (uiState.showIslandLeftAlbum) {
-            // 开启左侧封面模式：封面 + 文本
-            imageTextLeft.put("picInfo", buildPicInfo(1))
+
+        val style = uiState.islandLeftIconStyle
+        val showPic = style in 0..2 // 0=note, 1=rounded, 2=circular all show pic; 3=none
+
+        if (uiState.disableLyricSplit && showPic) {
+            // 关闭分割模式：仅显示图标
+            val picKey = if (style == 0) "miui.focus.pic_note" else "miui.focus.pic_album"
+            imageTextLeft.put("picInfo", buildPicInfo(1, picKey))
+        } else if (showPic) {
+            // 图标 + 文本
+            val picKey = if (style == 0) "miui.focus.pic_note" else "miui.focus.pic_album"
+            imageTextLeft.put("picInfo", buildPicInfo(1, picKey))
             val textInfo = JSONObject()
             textInfo.put("title", uiState.islandTitleLeft)
             imageTextLeft.put("textInfo", textInfo)
         } else {
-            // 纯文本模式
+            // 纯文本模式 (style == 3: 无)
             val textInfo = JSONObject()
             textInfo.put("title", uiState.islandTitleLeft)
             imageTextLeft.put("textInfo", textInfo)
@@ -87,7 +92,7 @@ class FocusNotificationBuilder(
         val islandTitleText = JSONObject()
         islandTitleText.put("title", uiState.title)
         json.put("textInfo", islandTitleText)
-        
+
         return json
     }
 
@@ -118,12 +123,12 @@ class FocusNotificationBuilder(
         return json
     }
 
-    private fun buildPicInfo(type: Int): JSONObject {
+    private fun buildPicInfo(type: Int, picKey: String = "miui.focus.pic_album"): JSONObject {
         val json = JSONObject()
         json.put("type", type)
-        json.put("pic", "miui.focus.pic_album")
+        json.put("pic", picKey)
         if (type == 2) {
-            json.put("picDark", "miui.focus.pic_album")
+            json.put("picDark", picKey)
         }
         return json
     }

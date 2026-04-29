@@ -206,26 +206,57 @@ fun DynamicIslandNotificationPage() {
                             Column {
                                 var notificationType by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_TYPE, ServiceConstants.DEFAULT_NOTIFICATION_TYPE)) }
                                 val notificationTypeOptions = listOf(stringResource(R.string.option_notification_live), stringResource(R.string.option_notification_focus))
+                                val initialIconStyleKey = if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                var islandLeftIconStyle by remember { mutableIntStateOf(prefs.getInt(initialIconStyleKey, ServiceConstants.DEFAULT_ISLAND_LEFT_ICON)) }
                                 Card(modifier = Modifier.fillMaxWidth()) {
-                                    OverlayDropdownPreference(title = stringResource(R.string.title_notification_type), items = notificationTypeOptions, selectedIndex = notificationType, onSelectedIndexChange = { index -> notificationType = index; prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_TYPE, index) } })
+                                    OverlayDropdownPreference(title = stringResource(R.string.title_notification_type), items = notificationTypeOptions, selectedIndex = notificationType, onSelectedIndexChange = { index ->
+                                        val oldTypeKey = if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                        prefs.edit { putInt(oldTypeKey, islandLeftIconStyle) }
+                                        notificationType = index
+                                        prefs.edit { putInt(ServiceConstants.KEY_NOTIFICATION_TYPE, index) }
+                                        val newTypeKey = if (index == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                        islandLeftIconStyle = prefs.getInt(newTypeKey, ServiceConstants.DEFAULT_ISLAND_LEFT_ICON)
+                                        prefs.edit { putInt(ServiceConstants.KEY_ISLAND_LEFT_ICON, islandLeftIconStyle) }
+                                    })
                                 }
 
                                 SmallTitle(text = stringResource(R.string.title_island_settings), insideMargin = PaddingValues(10.dp, 4.dp))
-                                var islandLeftAlbumEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_LEFT_ALBUM)) }
-                                var normalNotificationAlbumEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_LIVE_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_LIVE_ALBUM)) }
                                 var disableLyricSplitEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT)) }
                                 Card(modifier = Modifier.fillMaxWidth()) {
                                     Column {
-                                        AnimatedVisibility(visible = notificationType == 1) {
-                                            Column {
-                                                SwitchPreference(title = stringResource(R.string.title_super_island_left_album), checked = islandLeftAlbumEnabled, onCheckedChange = { checked -> islandLeftAlbumEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LEFT_ALBUM, checked) }; if (!checked) { disableLyricSplitEnabled = false; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, false) } } })
-                                                SwitchPreference(title = stringResource(R.string.title_disable_lyric_split), checked = disableLyricSplitEnabled, onCheckedChange = { checked -> disableLyricSplitEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, checked) } }, enabled = islandLeftAlbumEnabled)
-                                            }
+                                        val iconStyleOptions = if (notificationType == 1) {
+                                            listOf(
+                                                stringResource(R.string.option_icon_style_note),
+                                                stringResource(R.string.option_icon_style_rounded),
+                                                stringResource(R.string.option_icon_style_circular),
+                                                stringResource(R.string.option_icon_style_none)
+                                            )
+                                        } else {
+                                            listOf(
+                                                stringResource(R.string.option_icon_style_note),
+                                                stringResource(R.string.option_icon_style_rounded),
+                                                stringResource(R.string.option_icon_style_circular)
+                                            )
                                         }
-                                        AnimatedVisibility(visible = notificationType == 0) {
-                                            Column {
-                                                SwitchPreference(title = stringResource(R.string.title_live_island_left_album), checked = normalNotificationAlbumEnabled, onCheckedChange = { checked -> normalNotificationAlbumEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_LIVE_ALBUM, checked) } })
+                                        val iconStyleKey = if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                        WindowDropdownPreference(
+                                            title = stringResource(R.string.title_island_left_icon),
+                                            items = iconStyleOptions,
+                                            selectedIndex = islandLeftIconStyle,
+                                            onSelectedIndexChange = { index ->
+                                                islandLeftIconStyle = index
+                                                prefs.edit {
+                                                    putInt(iconStyleKey, index)
+                                                    putInt(ServiceConstants.KEY_ISLAND_LEFT_ICON, index)
+                                                }
+                                                if (index !in 0..2) {
+                                                    disableLyricSplitEnabled = false
+                                                    prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, false) }
+                                                }
                                             }
+                                        )
+                                        AnimatedVisibility(visible = notificationType == 1 && islandLeftIconStyle in 0..2) {
+                                            SwitchPreference(title = stringResource(R.string.title_disable_lyric_split), checked = disableLyricSplitEnabled, onCheckedChange = { checked -> disableLyricSplitEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT, checked) } })
                                         }
                                         SwitchPreference(
                                             title = stringResource(R.string.title_limit_width),

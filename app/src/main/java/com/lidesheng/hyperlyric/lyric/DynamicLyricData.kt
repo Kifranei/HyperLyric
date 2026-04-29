@@ -54,6 +54,8 @@ data class LyricState(
     val albumColorEnd: Int = Color.BLACK,
     val albumBitmap: Bitmap? = null,
     val notificationAlbumBitmap: Bitmap? = null,
+    val notificationAlbumBitmapCircular: Bitmap? = null,
+    val islandLeftIconStyle: Int = 0,
     
     val isFetchingLyrics: Boolean = false,
     val isLoadingAlbumArt: Boolean = false,
@@ -101,11 +103,16 @@ object DynamicLyricData {
         }
     }
 
-    fun updateBitmaps(albumBmp: Bitmap?, notificationAlbumBmp: Bitmap? = null) {
+    fun updateBitmaps(albumBmp: Bitmap?, notificationAlbumBmp: Bitmap? = null, notificationAlbumBmpCircular: Bitmap? = null) {
         _musicState.update { it.copy(
             albumBitmap = albumBmp,
-            notificationAlbumBitmap = notificationAlbumBmp ?: it.notificationAlbumBitmap
+            notificationAlbumBitmap = notificationAlbumBmp ?: it.notificationAlbumBitmap,
+            notificationAlbumBitmapCircular = notificationAlbumBmpCircular ?: it.notificationAlbumBitmapCircular
         ) }
+    }
+
+    fun updateIslandLeftIconStyle(style: Int) {
+        _musicState.update { it.copy(islandLeftIconStyle = style) }
     }
 
     fun updateColor(color: Int, colorEnd: Int) {

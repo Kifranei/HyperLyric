@@ -55,6 +55,31 @@ object AlbumImageProcessor {
         return output
     }
 
+    fun processAlbumBitmapCircular(source: Bitmap, targetSize: Int = 128): Bitmap {
+        val w = source.width
+        val h = source.height
+        val cropSize = minOf(w, h)
+        val xOffset = (w - cropSize) / 2
+        val yOffset = (h - cropSize) / 2
+
+        val output = createBitmap(targetSize, targetSize)
+        val canvas = Canvas(output)
+        val radius = targetSize / 2f
+
+        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        canvas.drawCircle(radius, radius, radius, maskPaint)
+
+        val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            isFilterBitmap = true
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        }
+        val srcRect = android.graphics.Rect(xOffset, yOffset, xOffset + cropSize, yOffset + cropSize)
+        val dstRect = android.graphics.Rect(0, 0, targetSize, targetSize)
+        canvas.drawBitmap(source, srcRect, dstRect, bitmapPaint)
+
+        return output
+    }
+
     /**
      * 从专辑封面提取主色和强调色。
      * 当用户未开启进度条强调色开关时，调用方不应调用此方法。

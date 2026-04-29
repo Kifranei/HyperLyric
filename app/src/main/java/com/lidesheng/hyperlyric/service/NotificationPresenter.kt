@@ -112,6 +112,8 @@ class NotificationPresenter(
             showIslandLeftAlbum = globalState.showIslandLeftAlbum,
             disableLyricSplit = isDisableLyricSplit,
             notificationAlbumBitmap = globalState.notificationAlbumBitmap?.takeIf { !it.isRecycled },
+            notificationAlbumBitmapCircular = globalState.notificationAlbumBitmapCircular?.takeIf { !it.isRecycled },
+            islandLeftIconStyle = sp.getInt(ServiceConstants.KEY_ISLAND_LEFT_ICON, ServiceConstants.DEFAULT_ISLAND_LEFT_ICON),
             focusNotificationType = sp.getInt(ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE, ServiceConstants.DEFAULT_NOTIFICATION_FOCUS_STYLE),
             showAlbumArt = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM)
         )
@@ -157,7 +159,8 @@ class NotificationPresenter(
                 songLyric == other.songLyric &&
                 songInfo == other.songInfo &&
                 isPlaying == other.isPlaying &&
-                showIslandLeftAlbum == other.showIslandLeftAlbum
+                showIslandLeftAlbum == other.showIslandLeftAlbum &&
+                islandLeftIconStyle == other.islandLeftIconStyle
     }
 
     private fun dispatchNotifications(uiState: NotificationManagerHelper.UiState, duration: Long, isScreenOn: Boolean) {
