@@ -18,5 +18,6 @@ docs/
 app/build/
 app/release/
 app/offline/
+app/online/
 app/src/androidTest
 app/src/test
