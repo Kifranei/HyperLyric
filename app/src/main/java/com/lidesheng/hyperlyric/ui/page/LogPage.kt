@@ -6,13 +6,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,18 +16,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,8 +58,8 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -77,12 +71,9 @@ import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 import top.yukonga.miuix.kmp.theme.LocalDismissState
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
-import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.window.WindowListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
@@ -183,7 +174,7 @@ private suspend fun readXposedLogs(): List<LogEntry> = withContext(Dispatchers.I
                 val blockStr = currentBlock.toString()
                 if (blockStr.contains("hyperlyric", ignoreCase = true) || blockStr.contains("HyperLyric")) {
                     val firstLine = blockStr.lineSequence().firstOrNull() ?: ""
-                    
+
                     val timeMatcher = timeRegex.matcher(firstLine)
                     val rawTime = if (timeMatcher.find()) timeMatcher.group(1) ?: "未知时间" else "未知时间"
                     val time = if (rawTime.length >= 19) rawTime.substring(5).replace('T', ' ') else rawTime
@@ -240,13 +231,25 @@ private suspend fun readXposedLogs(): List<LogEntry> = withContext(Dispatchers.I
                 "日志目录: $dirsArg"))
         }
     } catch (e: Exception) {
-        entries.add(LogEntry("NOW", "E", "Logger", "读取 LSPosed 日志失败: ${e.message}"))
+        val msg = if (e.message?.contains("Permission denied") == true ||
+                      e.message?.contains("su:") == true ||
+                      e.message?.contains("not found") == true) {
+            "应用未获取root权限，无法获取lsposed日志"
+        } else {
+            "读取 LSPosed 日志失败: ${e.message}"
+        }
+        entries.add(LogEntry("NOW", "E", "Logger", msg))
     }
     entries.sortedByDescending { it.timestamp }
 }
 
 private suspend fun collectAllLogs(): List<LogEntry> {
     return readXposedLogs()
+}
+
+private fun formatTimestamp(raw: String): String {
+    val dotIndex = raw.lastIndexOf('.')
+    return if (dotIndex != -1 && raw.length - dotIndex == 4) raw.substring(0, dotIndex) else raw
 }
 
 @Composable
@@ -262,7 +265,6 @@ fun LogPage() {
     )
     val allLogs = remember { mutableStateListOf<LogEntry>() }
     val filteredLogs = remember { mutableStateListOf<LogEntry>() }
-    val checkedStates = remember { mutableStateMapOf<Int, Boolean>() }
     var isLoading by remember { mutableStateOf(true) }
     val searchLabel = stringResource(id = R.string.search)
     var searchStatus by remember { mutableStateOf(SearchStatus(label = searchLabel)) }
@@ -271,8 +273,6 @@ fun LogPage() {
     val pullToRefreshState = rememberPullToRefreshState()
     var showMorePopup by remember { mutableStateOf(false) }
     var showFilterPopup by remember { mutableStateOf(false) }
-    var showDetailDialog by remember { mutableStateOf(false) }
-    var currentDetailLog by remember { mutableStateOf<LogEntry?>(null) }
 
     val exportHeader = stringResource(id = R.string.export_header)
     val exportTimeFormat = stringResource(id = R.string.format_export_time)
@@ -280,14 +280,13 @@ fun LogPage() {
     val exportFailedMsg = stringResource(id = R.string.format_export_failed)
     val logsClearedMsg = stringResource(id = R.string.logs_cleared)
     val copiedMsg = stringResource(id = R.string.copied)
-    
+
     val reloadLogs = {
         coroutineScope.launch {
             isLoading = true
             val logs = collectAllLogs()
             allLogs.clear()
             allLogs.addAll(logs)
-            checkedStates.clear()
             updateFilteredLogs(allLogs, searchStatus.searchText, selectedLevel, filteredLogs)
             isLoading = false
         }
@@ -310,8 +309,7 @@ fun LogPage() {
                 sb.appendLine(exportHeader)
                 sb.appendLine(String.format(exportTimeFormat, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
                 sb.appendLine()
-                val toExport = if (checkedStates.isEmpty()) filteredLogs else allLogs.filterIndexed { index, _ -> checkedStates[index] == true }
-                toExport.forEach {
+                filteredLogs.forEach {
                     sb.appendLine("[${it.timestamp}][${it.level}][${it.tag}]")
                     sb.appendLine(it.message)
                     sb.appendLine()
@@ -329,16 +327,6 @@ fun LogPage() {
             }
         }
     )
-
-    val hasSelection by remember { derivedStateOf { checkedStates.values.any { it } } }
-    val allSelected by remember { derivedStateOf { 
-        if (filteredLogs.isEmpty()) false 
-        else filteredLogs.all { entry -> 
-            val realIndex = allLogs.indexOf(entry)
-            checkedStates[realIndex] == true 
-        }
-    }}
-    val selectedCount by remember { derivedStateOf { checkedStates.values.count { it } } }
 
     Scaffold(
         topBar = {
@@ -410,7 +398,6 @@ fun LogPage() {
                                     onSelectedIndexChange = {
                                         dismissPopup?.invoke()
                                         val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
-                                        checkedStates.clear()
                                         exportLauncher.launch("hyperlyric_debug_$dateTime.txt")
                                     },
                                     index = 0
@@ -429,7 +416,6 @@ fun LogPage() {
                                             }
                                             allLogs.clear()
                                             filteredLogs.clear()
-                                            checkedStates.clear()
                                             Toast.makeText(context, logsClearedMsg, Toast.LENGTH_SHORT).show()
                                         }
                                     },
@@ -484,7 +470,7 @@ fun LogPage() {
                         if (isLoading) {
                             item {
                                 Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                                    CircularProgressIndicator()
                                 }
                             }
                         } else if (filteredLogs.isEmpty()) {
@@ -494,25 +480,8 @@ fun LogPage() {
                                 }
                             }
                         } else {
-                            itemsIndexed(filteredLogs) { _, entry ->
-                                val realIndex = allLogs.indexOf(entry)
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                                ) {
-                                    LogItem(
-                                        entry = entry,
-                                        isChecked = checkedStates[realIndex] == true,
-                                        onCheckedChange = { checked ->
-                                            if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
-                                        },
-                                        onClick = {
-                                            currentDetailLog = entry
-                                            showDetailDialog = true
-                                        }
-                                    )
-                                }
+                            items(filteredLogs) { entry ->
+                                LogItem(entry = entry, copiedMsg = copiedMsg)
                             }
                         }
                     }
@@ -545,13 +514,13 @@ fun LogPage() {
                                 .nestedScroll(scrollBehavior.nestedScrollConnection),
                             contentPadding = PaddingValues(
                                 top = padding.calculateTopPadding(),
-                                bottom = padding.calculateBottomPadding() + if (hasSelection) 80.dp else 16.dp
+                                bottom = padding.calculateBottomPadding() + 16.dp
                             )
                         ) {
                             if (isLoading) {
                                 item {
                                     Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                        Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                                        CircularProgressIndicator()
                                     }
                                 }
                             } else if (filteredLogs.isEmpty()) {
@@ -561,164 +530,11 @@ fun LogPage() {
                                     }
                                 }
                             } else {
-                                itemsIndexed(filteredLogs) { _, entry ->
-                                    val realIndex = allLogs.indexOf(entry)
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 12.dp, vertical = 4.dp)
-                                    ) {
-                                        LogItem(
-                                            entry = entry,
-                                            isChecked = checkedStates[realIndex] == true,
-                                            onCheckedChange = { checked ->
-                                                if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
-                                            },
-                                            onClick = {
-                                                currentDetailLog = entry
-                                                showDetailDialog = true
-                                            }
-                                        )
-                                    }
+                                items(filteredLogs) { entry ->
+                                    LogItem(entry = entry, copiedMsg = copiedMsg)
                                 }
                             }
                         }
-                    }
-                }
-            }
-
-            AnimatedVisibility(
-                visible = hasSelection,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it }),
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            text = if (allSelected) stringResource(id = R.string.deselect_all) else stringResource(id = R.string.select_all),
-                            onClick = {
-                                val target = !allSelected
-                                filteredLogs.forEach { entry ->
-                                    val realIdx = allLogs.indexOf(entry)
-                                    if (target) checkedStates[realIdx] = true
-                                    else checkedStates.remove(realIdx)
-                                }
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        TextButton(
-                            text = stringResource(id = R.string.inverse_select),
-                            onClick = {
-                                filteredLogs.forEach { entry ->
-                                    val realIdx = allLogs.indexOf(entry)
-                                    if (checkedStates[realIdx] == true) checkedStates.remove(realIdx)
-                                    else checkedStates[realIdx] = true
-                                }
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        TextButton(
-                            text = stringResource(id = R.string.format_export_count, selectedCount),
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                            onClick = {
-                                val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
-                                exportLauncher.launch("hyperlyric_selected_debug_$dateTime.txt")
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-        }
-
-        if (showDetailDialog && currentDetailLog != null) {
-            WindowDialog(
-                show = true,
-                title = stringResource(id = R.string.title_log_detail),
-                onDismissRequest = { showDetailDialog = false },
-            ) {
-                val log = currentDetailLog!!
-                val dismiss = LocalDismissState.current
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .background(Color(0x409E9E9E), RoundedCornerShape(4.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(text = log.tag, fontSize = 12.sp, color = Color(0xFF616161))
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(log.levelColorBg, RoundedCornerShape(4.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = log.displayLevel,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = log.levelColorText
-                            )
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(text = log.timestamp, fontSize = 12.sp, color = MiuixTheme.colorScheme.onSurfaceSecondary)
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 300.dp)
-                            .background(MiuixTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = log.message,
-                            fontSize = 14.sp,
-                            color = if (log.level == "C") Color(0xFFD32F2F) else MiuixTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    ) {
-                        TextButton(
-                            text = stringResource(id = R.string.close),
-                            onClick = { dismiss?.invoke() },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(16.dp))
-                        TextButton(
-                            text = stringResource(id = R.string.copy),
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                            onClick = {
-                                val logText = "[${log.timestamp}][${log.level}][${log.tag}]\n${log.message}"
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("HyperLyric Log", logText)
-                                clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
                     }
                 }
             }
@@ -746,36 +562,53 @@ private fun updateFilteredLogs(
 @Composable
 fun LogItem(
     entry: LogEntry,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onClick: () -> Unit
+    copiedMsg: String
 ) {
-    Box(
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        insideMargin = PaddingValues(12.dp),
+        showIndication = true,
+        onClick = { expanded = !expanded },
+        onLongPress = {
+            val logText = "[${entry.timestamp}][${entry.level}][${entry.tag}]\n${entry.message}"
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("HyperLyric Log", logText)
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
+        }
     ) {
-        val firstLine = entry.message.lines().firstOrNull() ?: ""
-        val displaySummary = firstLine.take(20) + if(entry.message.lines().size > 1 || firstLine.length > 20) "..." else ""
-        CheckboxPreference(
-            title = displaySummary,
-            summary = entry.timestamp,
-            checked = isChecked,
-            onCheckedChange = onCheckedChange,
-            endActions = {
-                Box(
-                    modifier = Modifier
-                        .background(entry.levelColorBg, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = entry.displayLevel,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = entry.levelColorText
-                    )
-                }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .background(entry.levelColorBg, RoundedCornerShape(3.dp))
+                    .padding(horizontal = 4.dp, vertical = 1.dp)
+            ) {
+                Text(
+                    text = entry.displayLevel,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = entry.levelColorText
+                )
             }
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = formatTimestamp(entry.timestamp),
+                fontSize = 11.sp,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            modifier = Modifier.animateContentSize(),
+            text = entry.message,
+            fontSize = 13.sp,
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            color = if (entry.level == "E" || entry.level == "C") Color(0xFFF44336) else MiuixTheme.colorScheme.onSurface
         )
     }
 }

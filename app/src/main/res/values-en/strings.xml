@@ -265,12 +265,8 @@
     <string name="level_crash">Crash</string>
     <string name="export_all">Export All</string>
     <string name="clear_all">Clear All</string>
-    <string name="loading_logs">Loading logs...</string>
     <string name="no_logs_found">No logs found</string>
-    <string name="select_all">Select All</string>
-    <string name="deselect_all">Deselect All</string>
-    <string name="inverse_select">Inverse Selection</string>
-    <string name="format_export_count">Export (%1$d)</string>
+    <string name="no_root_permission">App does not have root permission, cannot read LSPosed logs</string>
     <string name="title_log_detail">Log Detail</string>
     <string name="export_success">Export successful</string>
     <string name="format_export_failed">Export failed: %1$s</string>
