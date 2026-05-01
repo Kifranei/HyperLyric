@@ -90,8 +90,7 @@ fun LyricProviderPage() {
                                 val intent = Intent(Intent.ACTION_VIEW, providerReleaseHome.toUri())
                                 context.startActivity(intent)
                             } catch (_: Exception) { }
-                        },
-                        modifier = Modifier.padding(end = 12.dp)
+                        }
                     ) {
                         Icon(painter = painterResource(id = R.drawable.ic_github), contentDescription = stringResource(id = R.string.github), tint = MiuixTheme.colorScheme.onBackground, modifier = Modifier.size(26.dp))
                     }

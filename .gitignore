@@ -9,7 +9,10 @@
 local.properties
 .idea
 .agent/
+.claude/
+.kotlin/
 .vscode/
+docs/
 资料/
 小米超级岛反编译相关/
 app/build/

@@ -11,6 +11,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,14 +38,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lidesheng.hyperlyric.R
+import com.lidesheng.hyperlyric.ui.component.SearchBarFake
+import com.lidesheng.hyperlyric.ui.component.SearchBox
+import com.lidesheng.hyperlyric.ui.component.SearchPager
+import com.lidesheng.hyperlyric.ui.component.SearchStatus
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -59,13 +69,11 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -254,9 +262,10 @@ fun LogPage() {
     val filteredLogs = remember { mutableStateListOf<LogEntry>() }
     val checkedStates = remember { mutableStateMapOf<Int, Boolean>() }
     var isLoading by remember { mutableStateOf(true) }
-    var searchQuery by remember { mutableStateOf("") }
-    var searchExpanded by remember { mutableStateOf(false) }
+    val searchLabel = stringResource(id = R.string.search)
+    var searchStatus by remember { mutableStateOf(SearchStatus(label = searchLabel)) }
     var selectedLevel by remember { mutableStateOf("ALL") }
+    val density = LocalDensity.current
     var showMorePopup by remember { mutableStateOf(false) }
     var showFilterPopup by remember { mutableStateOf(false) }
     var showDetailDialog by remember { mutableStateOf(false) }
@@ -276,7 +285,7 @@ fun LogPage() {
             allLogs.clear()
             allLogs.addAll(logs)
             checkedStates.clear()
-            updateFilteredLogs(allLogs, searchQuery, selectedLevel, filteredLogs)
+            updateFilteredLogs(allLogs, searchStatus.searchText, selectedLevel, filteredLogs)
             isLoading = false
         }
     }
@@ -285,8 +294,8 @@ fun LogPage() {
         reloadLogs()
     }
 
-    LaunchedEffect(searchQuery, selectedLevel) {
-        updateFilteredLogs(allLogs, searchQuery, selectedLevel, filteredLogs)
+    LaunchedEffect(searchStatus.searchText, selectedLevel) {
+        updateFilteredLogs(allLogs, searchStatus.searchText, selectedLevel, filteredLogs)
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -330,18 +339,19 @@ fun LogPage() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(id = R.string.title_module_logs),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navigator.pop() }
-                    ) {
-                        Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back))
-                    }
-                },
-                actions = {
+            searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(id = R.string.title_module_logs),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navigator.pop() }
+                        ) {
+                            Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back))
+                        }
+                    },
+                    actions = {
                     Box {
                         IconButton(onClick = { showFilterPopup = true }, holdDownState = showFilterPopup) {
                             Icon(imageVector = MiuixIcons.Filter, contentDescription = stringResource(id = R.string.filter))
@@ -378,7 +388,7 @@ fun LogPage() {
                             }
                         }
                     }
-                    Box(modifier = Modifier.padding(end = 12.dp)) {
+                    Box {
                         IconButton(onClick = { showMorePopup = true }, holdDownState = showMorePopup) {
                             Icon(imageVector = MiuixIcons.More, contentDescription = stringResource(id = R.string.more))
                         }
@@ -436,75 +446,132 @@ fun LogPage() {
                         }
                     }
                 },
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
+                bottomContent = {
+                    Box(
+                        modifier = Modifier
+                            .alpha(if (searchStatus.isCollapsed()) 1f else 0f)
+                            .onGloballyPositioned { coordinates ->
+                                with(density) {
+                                    val newOffsetY = coordinates.positionInWindow().y.toDp()
+                                    if (searchStatus.offsetY != newOffsetY) {
+                                        searchStatus = searchStatus.copy(offsetY = newOffsetY)
+                                    }
+                                }
+                            }
+                            .then(
+                                if (searchStatus.isCollapsed()) {
+                                    Modifier.pointerInput(Unit) {
+                                        detectTapGestures {
+                                            searchStatus = searchStatus.copy(current = SearchStatus.Status.EXPANDING)
+                                        }
+                                    }
+                                } else Modifier
+                            )
+                    ) {
+                        SearchBarFake(stringResource(id = R.string.search))
+                    }
+                },
+                    modifier = Modifier.hazeEffect(hazeState) {
+                        style = hazeStyle
+                        blurRadius = 25.dp
+                        noiseFactor = 0f
+                    }
+                )
+            }
+        },
+        popupHost = {
+            searchStatus.SearchPager(
+                onSearchStatusChange = { searchStatus = it },
+            ) {
+                if (searchStatus.searchText.isNotBlank()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        if (isLoading) {
+                            item {
+                                Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                                }
+                            }
+                        } else if (filteredLogs.isEmpty()) {
+                            item {
+                                Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                                }
+                            }
+                        } else {
+                            itemsIndexed(filteredLogs) { _, entry ->
+                                val realIndex = allLogs.indexOf(entry)
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                                ) {
+                                    LogItem(
+                                        entry = entry,
+                                        isChecked = checkedStates[realIndex] == true,
+                                        onCheckedChange = { checked ->
+                                            if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
+                                        },
+                                        onClick = {
+                                            currentDetailLog = entry
+                                            showDetailDialog = true
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-            )
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scrollEndHaptic()
-                    .hazeSource(state = hazeState)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = PaddingValues(
-                    top = padding.calculateTopPadding(),
-                    bottom = padding.calculateBottomPadding() + if (hasSelection) 80.dp else 16.dp
-                )
-            ) {
-                item {
-                    SearchBar(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                        inputField = {
-                            InputField(
-                                query = searchQuery,
-                                onQueryChange = { searchQuery = it },
-                                onSearch = { },
-                                expanded = searchExpanded,
-                                onExpandedChange = { searchExpanded = it },
-                                label = stringResource(id = R.string.search)
-                            )
-                        },
-                        expanded = searchExpanded,
-                        onExpandedChange = { searchExpanded = it },
-                    ) {}
-                }
-
-                if (isLoading) {
-                    item {
-                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+            searchStatus.SearchBox {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scrollEndHaptic()
+                        .hazeSource(state = hazeState)
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    contentPadding = PaddingValues(
+                        top = padding.calculateTopPadding(),
+                        bottom = padding.calculateBottomPadding() + if (hasSelection) 80.dp else 16.dp
+                    )
+                ) {
+                    if (isLoading) {
+                        item {
+                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                            }
                         }
-                    }
-                } else if (filteredLogs.isEmpty()) {
-                    item {
-                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                    } else if (filteredLogs.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                            }
                         }
-                    }
-                } else {
-                    itemsIndexed(filteredLogs) { _, entry ->
-                        val realIndex = allLogs.indexOf(entry)
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
-                        ) {
-                            LogItem(
-                                entry = entry,
-                                isChecked = checkedStates[realIndex] == true,
-                                onCheckedChange = { checked ->
-                                    if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
-                                },
-                                onClick = {
-                                    currentDetailLog = entry
-                                    showDetailDialog = true
-                                }
-                            )
+                    } else {
+                        itemsIndexed(filteredLogs) { _, entry ->
+                            val realIndex = allLogs.indexOf(entry)
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                            ) {
+                                LogItem(
+                                    entry = entry,
+                                    isChecked = checkedStates[realIndex] == true,
+                                    onCheckedChange = { checked ->
+                                        if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
+                                    },
+                                    onClick = {
+                                        currentDetailLog = entry
+                                        showDetailDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }

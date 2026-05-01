@@ -83,7 +83,6 @@ fun SetupPage(onNavigateToMain: () -> Unit) {
                 actions = {
                     Text(
                         text = "${pagerState.currentPage + 1} / 4",
-                        modifier = Modifier.padding(end = 12.dp),
                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         fontSize = 14.sp
                     )

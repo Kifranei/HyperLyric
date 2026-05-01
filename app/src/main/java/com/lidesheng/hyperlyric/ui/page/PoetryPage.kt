@@ -5,6 +5,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,12 +22,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lidesheng.hyperlyric.Quotes
+import com.lidesheng.hyperlyric.ui.component.SearchBarFake
+import com.lidesheng.hyperlyric.ui.component.SearchBox
+import com.lidesheng.hyperlyric.ui.component.SearchPager
+import com.lidesheng.hyperlyric.ui.component.SearchStatus
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -37,10 +48,8 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
@@ -53,14 +62,13 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 @Composable
 fun PoetryPage() {
     val navigator = LocalNavigator.current
-    var searchQuery by remember { mutableStateOf("") }
-    var searchExpanded by remember { mutableStateOf(false) }
+    var searchStatus by remember { mutableStateOf(SearchStatus(label = "搜索")) }
 
-    val filteredQuotes = remember(searchQuery) {
-        if (searchQuery.isBlank()) {
+    val filteredQuotes = remember(searchStatus.searchText) {
+        if (searchStatus.searchText.isBlank()) {
             Quotes.list
         } else {
-            Quotes.list.filter { it.contains(searchQuery, ignoreCase = true) }
+            Quotes.list.filter { it.contains(searchStatus.searchText, ignoreCase = true) }
         }
     }
 
@@ -70,6 +78,7 @@ fun PoetryPage() {
     val showFab by remember {
         derivedStateOf { listState.firstVisibleItemIndex > 2 }
     }
+    val density = LocalDensity.current
 
     val hazeState = remember { HazeState() }
     val hazeStyle = HazeStyle(
@@ -79,27 +88,54 @@ fun PoetryPage() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = "HyperLyric",
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navigator.pop() }
-                    ) {
-                        Icon(imageVector = MiuixIcons.Back, contentDescription = "返回")
+            searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = "HyperLyric",
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navigator.pop() }
+                        ) {
+                            Icon(imageVector = MiuixIcons.Back, contentDescription = "返回")
+                        }
+                    },
+                    bottomContent = {
+                        Box(
+                            modifier = Modifier
+                                .alpha(if (searchStatus.isCollapsed()) 1f else 0f)
+                                .onGloballyPositioned { coordinates ->
+                                    with(density) {
+                                        val newOffsetY = coordinates.positionInWindow().y.toDp()
+                                        if (searchStatus.offsetY != newOffsetY) {
+                                            searchStatus = searchStatus.copy(offsetY = newOffsetY)
+                                        }
+                                    }
+                                }
+                                .then(
+                                    if (searchStatus.isCollapsed()) {
+                                        Modifier.pointerInput(Unit) {
+                                            detectTapGestures {
+                                                searchStatus = searchStatus.copy(current = SearchStatus.Status.EXPANDING)
+                                            }
+                                        }
+                                    } else Modifier
+                                )
+                        ) {
+                            SearchBarFake("搜索")
+                        }
+                    },
+                    modifier = Modifier.hazeEffect(hazeState) {
+                        style = hazeStyle
+                        blurRadius = 25.dp
+                        noiseFactor = 0f
                     }
-                },
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
-                }
-            )
+                )
+            }
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = showFab,
+                visible = showFab && searchStatus.shouldCollapsed(),
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
@@ -118,54 +154,66 @@ fun PoetryPage() {
                     )
                 }
             }
+        },
+        popupHost = {
+            searchStatus.SearchPager(
+                onSearchStatusChange = { searchStatus = it },
+            ) {
+                if (searchStatus.searchText.isNotBlank()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .overScrollVertical(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(filteredQuotes) { quote ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = quote,
+                                    fontSize = 14.sp,
+                                    lineHeight = 20.sp,
+                                    color = MiuixTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .scrollEndHaptic()
-                .hazeSource(state = hazeState)
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = PaddingValues(
-                top = padding.calculateTopPadding(),
-                bottom = padding.calculateBottomPadding() + 16.dp
-            )
-        ) {
-            item {
-                SearchBar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    inputField = {
-                        InputField(
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            onSearch = { searchExpanded = false },
-                            expanded = searchExpanded,
-                            onExpandedChange = { searchExpanded = it },
-                            label = "搜索"
+        searchStatus.SearchBox {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .scrollEndHaptic()
+                    .hazeSource(state = hazeState)
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = PaddingValues(
+                    top = padding.calculateTopPadding(),
+                    bottom = padding.calculateBottomPadding() + 16.dp
+                )
+            ) {
+                items(filteredQuotes) { quote ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = quote,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            color = MiuixTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(16.dp)
                         )
-                    },
-                    expanded = searchExpanded,
-                    onExpandedChange = { searchExpanded = it }
-                ) {}
-            }
-
-            items(filteredQuotes) { quote ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = quote,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        color = MiuixTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    }
                 }
             }
         }
