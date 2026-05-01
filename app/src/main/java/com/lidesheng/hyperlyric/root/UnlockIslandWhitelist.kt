@@ -1,7 +1,6 @@
 package com.lidesheng.hyperlyric.root
 
 import com.lidesheng.hyperlyric.root.utils.xLog
-import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
