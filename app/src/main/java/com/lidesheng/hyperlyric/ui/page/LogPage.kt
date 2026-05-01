@@ -72,6 +72,8 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
@@ -266,6 +268,7 @@ fun LogPage() {
     var searchStatus by remember { mutableStateOf(SearchStatus(label = searchLabel)) }
     var selectedLevel by remember { mutableStateOf("ALL") }
     val density = LocalDensity.current
+    val pullToRefreshState = rememberPullToRefreshState()
     var showMorePopup by remember { mutableStateOf(false) }
     var showFilterPopup by remember { mutableStateOf(false) }
     var showDetailDialog by remember { mutableStateOf(false) }
@@ -401,18 +404,8 @@ fun LogPage() {
                             val dismissPopup = LocalDismissState.current
                             ListPopupColumn {
                                 DropdownImpl(
-                                    text = stringResource(id = R.string.refresh),
-                                    optionSize = 3,
-                                    isSelected = false,
-                                    onSelectedIndexChange = {
-                                        dismissPopup?.invoke()
-                                        reloadLogs()
-                                    },
-                                    index = 0
-                                )
-                                DropdownImpl(
                                     text = stringResource(id = R.string.export_all),
-                                    optionSize = 3,
+                                    optionSize = 2,
                                     isSelected = false,
                                     onSelectedIndexChange = {
                                         dismissPopup?.invoke()
@@ -420,11 +413,11 @@ fun LogPage() {
                                         checkedStates.clear()
                                         exportLauncher.launch("hyperlyric_debug_$dateTime.txt")
                                     },
-                                    index = 1
+                                    index = 0
                                 )
                                 DropdownImpl(
                                     text = stringResource(id = R.string.clear_all),
-                                    optionSize = 3,
+                                    optionSize = 2,
                                     isSelected = false,
                                     onSelectedIndexChange = {
                                         dismissPopup?.invoke()
@@ -440,7 +433,7 @@ fun LogPage() {
                                             Toast.makeText(context, logsClearedMsg, Toast.LENGTH_SHORT).show()
                                         }
                                     },
-                                    index = 2
+                                    index = 1
                                 )
                             }
                         }
@@ -529,48 +522,65 @@ fun LogPage() {
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             searchStatus.SearchBox {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .scrollEndHaptic()
-                        .hazeSource(state = hazeState)
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    contentPadding = PaddingValues(
-                        top = padding.calculateTopPadding(),
-                        bottom = padding.calculateBottomPadding() + if (hasSelection) 80.dp else 16.dp
-                    )
+                PullToRefresh(
+                    isRefreshing = isLoading,
+                    onRefresh = { reloadLogs() },
+                    pullToRefreshState = pullToRefreshState,
+                    contentPadding = PaddingValues(top = padding.calculateTopPadding()),
+                    topAppBarScrollBehavior = scrollBehavior,
+                    refreshTexts = listOf(
+                        stringResource(id = R.string.refresh_pull_down),
+                        stringResource(id = R.string.refresh_release),
+                        stringResource(id = R.string.refreshing),
+                        stringResource(id = R.string.refresh_success)
+                    ),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    if (isLoading) {
-                        item {
-                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
-                            }
-                        }
-                    } else if (filteredLogs.isEmpty()) {
-                        item {
-                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary)
-                            }
-                        }
-                    } else {
-                        itemsIndexed(filteredLogs) { _, entry ->
-                            val realIndex = allLogs.indexOf(entry)
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                            ) {
-                                LogItem(
-                                    entry = entry,
-                                    isChecked = checkedStates[realIndex] == true,
-                                    onCheckedChange = { checked ->
-                                        if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
-                                    },
-                                    onClick = {
-                                        currentDetailLog = entry
-                                        showDetailDialog = true
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .scrollEndHaptic()
+                                .hazeSource(state = hazeState)
+                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            contentPadding = PaddingValues(
+                                top = padding.calculateTopPadding(),
+                                bottom = padding.calculateBottomPadding() + if (hasSelection) 80.dp else 16.dp
+                            )
+                        ) {
+                            if (isLoading) {
+                                item {
+                                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text(stringResource(id = R.string.loading_logs), color = MiuixTheme.colorScheme.onSurfaceSecondary)
                                     }
-                                )
+                                }
+                            } else if (filteredLogs.isEmpty()) {
+                                item {
+                                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary)
+                                    }
+                                }
+                            } else {
+                                itemsIndexed(filteredLogs) { _, entry ->
+                                    val realIndex = allLogs.indexOf(entry)
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                                    ) {
+                                        LogItem(
+                                            entry = entry,
+                                            isChecked = checkedStates[realIndex] == true,
+                                            onCheckedChange = { checked ->
+                                                if (checked) checkedStates[realIndex] = true else checkedStates.remove(realIndex)
+                                            },
+                                            onClick = {
+                                                currentDetailLog = entry
+                                                showDetailDialog = true
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
