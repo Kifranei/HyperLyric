@@ -58,14 +58,6 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
-
-
-
-        <provider
-            android:name="io.github.libxposed.service.XposedProvider"
-            android:authorities="com.lidesheng.hyperlyric.XposedService"
-            android:exported="true"
-            tools:ignore="ExportedContentProvider" />
     </application>
 
 </manifest>
