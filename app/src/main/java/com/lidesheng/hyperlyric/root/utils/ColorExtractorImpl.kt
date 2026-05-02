@@ -15,8 +15,8 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
- * 涓昏壊涓诲绾ч鑹叉彁鍙栧櫒锛圱heme-Adaptive Edition锛夈€?
- * 浼樺寲鐐癸細鏀寔寮规€ч鑹叉暟閲忚繑鍥烇紝鑷姩鐢熸垚閫傞厤娣?娴呰儗鏅殑涓ゅ鏂规銆?
+ * 主色主导级颜色提取器（Theme-Adaptive Edition）。
+ * 优化点：支持弹性颜色数量返回，自动生成适配深/浅背景的两套方案。
  */
 object ColorExtractorImpl {
 
@@ -29,9 +29,9 @@ object ColorExtractorImpl {
     private const val DIST_THRESHOLD = 20.0
 
     /**
-     * 鎻愬彇鍏峰鑳屾櫙閫傞厤鑳藉姏鐨勯鑹插浠躲€?
-     * @param bitmap 杈撳叆鍥剧墖
-     * @param maxColors 鎻愬彇棰滆壊鐨勬渶澶ф暟閲?
+     * 提取具备背景适配能力的颜色套件。
+     * @param bitmap 输入图片
+     * @param maxColors 提取颜色的最大数量
      */
     fun extractThemePalette(bitmap: Bitmap, maxColors: Int = DEFAULT_MAX_COLORS): ThemePalette {
         val raw = extract(bitmap, maxColors)
@@ -44,7 +44,7 @@ object ColorExtractorImpl {
     }
 
     /**
-     * 鏍稿績鎻愬彇閫昏緫锛堣繑鍥炲師濮嬩唬琛ㄨ壊锛?
+     * 核心提取逻辑（返回原始代表色）
      */
     fun extract(bitmap: Bitmap, maxColors: Int = DEFAULT_MAX_COLORS): List<Int> {
         if (bitmap.isRecycled) return emptyList()
@@ -86,9 +86,9 @@ object ColorExtractorImpl {
     }
 
     /**
-     * 閽堝鑳屾櫙杩涜浜害鑷€傚簲璋冩暣
-     * @param color 鍘熷棰滆壊
-     * @param isDarkBg 鐩爣鑳屾櫙鏄惁涓烘繁鑹?
+     * 针对背景进行亮度自适应调整
+     * @param color 原始颜色
+     * @param isDarkBg 目标背景是否为深色
      */
     private fun adaptForBackground(color: Int, isDarkBg: Boolean): Int {
         val lab = DoubleArray(3)
@@ -96,10 +96,10 @@ object ColorExtractorImpl {
         val currentL = lab[0]
 
         val targetL = if (isDarkBg) {
-            // 娣辫壊鑳屾櫙锛氫寒搴﹀簲鍦?70-85 涔嬮棿
+            // 深色背景：亮度应在 70-85 之间
             if (currentL < 70.0) 70.0 else if (currentL > 85.0) 85.0 else currentL
         } else {
-            // 娴呰壊鑳屾櫙锛氫寒搴﹀簲鍦?30-45 涔嬮棿
+            // 浅色背景：亮度应在 30-45 之间
             if (currentL > 45.0) 45.0 else if (currentL < 30.0) 30.0 else currentL
         }
 
@@ -185,11 +185,11 @@ object ColorExtractorImpl {
     }
 
     /**
-     * 涓婚璋冭壊鏉跨粨鏋滈泦
+     * 主题调色板结果集
      */
     data class ThemePalette(
-        val rawColors: List<Int>,          // 鍘熷鎻愬彇棰滆壊
-        val onWhiteBackground: List<Int>,  // 閫傚悎鏄剧ず鍦ㄧ櫧鑹茶儗鏅笂鐨勯鑹诧紙楂樺姣斿害鏆楄壊锛?
-        val onBlackBackground: List<Int>   // 閫傚悎鏄剧ず鍦ㄩ粦鑹茶儗鏅笂鐨勯鑹诧紙楂樺姣斿害浜壊锛?
+        val rawColors: List<Int>,          // 原始提取颜色
+        val onWhiteBackground: List<Int>,  // 适合显示在白色背景上的颜色（高对比度暗色）
+        val onBlackBackground: List<Int>   // 适合显示在黑色背景上的颜色（高对比度亮色）
     )
 }
