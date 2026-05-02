@@ -317,6 +317,13 @@ object HookIslandLyric {
             val msH = View.MeasureSpec.makeMeasureSpec(container.height, if (container.height > 0) View.MeasureSpec.EXACTLY else View.MeasureSpec.UNSPECIFIED)
             wrapperView.measure(msW, msH)
             wrapperView.layout(0, 0, wrapperView.measuredWidth, wrapperView.measuredHeight)
+
+            // 如果开启了跑马灯，请求开始滚动（同步歌词滚动设置）
+            richView.post {
+                if (prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)) {
+                    richView.requestStartMarquee()
+                }
+            }
         }
     }
 
