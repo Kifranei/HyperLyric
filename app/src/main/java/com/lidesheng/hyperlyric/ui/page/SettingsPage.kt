@@ -66,6 +66,7 @@ private fun buildBackupJson(context: Context): String {
     val prefs = context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE)
     val config = JSONObject()
     prefs.all.forEach { (key, value) ->
+        if (key == RootConstants.KEY_HOOK_AI_TRANS_API_KEY) return@forEach
         when (value) {
             is Boolean -> config.put(key, value)
             is Int -> config.put(key, value)
@@ -102,7 +103,8 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                 val key = keys.next()
                 val value = config.get(key)
 
-                if (key == "key_send_normal_notification" || key == "key_send_focus_notification" || key == "key_persistent_foreground") {
+                if (key == "key_send_normal_notification" || key == "key_send_focus_notification" || key == "key_persistent_foreground"
+                    || key == RootConstants.KEY_HOOK_AI_TRANS_API_KEY) {
                     continue
                 }
 
@@ -130,7 +132,7 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                             ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT -> value.coerceIn(1, 1000)
                             // Root
                             RootConstants.KEY_HOOK_LYRIC_MODE -> value.coerceIn(0, 1)
-                            RootConstants.KEY_HOOK_TEXT_SIZE -> value.coerceIn(8, 27)
+                            RootConstants.KEY_HOOK_TEXT_SIZE -> value.coerceIn(8, 16)
                             RootConstants.KEY_HOOK_FONT_WEIGHT -> value.coerceIn(100, 900)
                             RootConstants.KEY_HOOK_MAX_LEFT_WIDTH -> value.coerceIn(40, 280)
                             RootConstants.KEY_HOOK_FADING_EDGE_LENGTH -> value.coerceIn(0, 100)
@@ -159,6 +161,10 @@ private fun restoreFromJson(context: Context, json: String): Boolean {
                         val floatValue = (value as Number).toFloat()
                         val boundedFloat = when (key) {
                             RootConstants.KEY_HOOK_TEXT_SIZE_RATIO -> floatValue.coerceIn(0.1f, 1.0f)
+                            RootConstants.KEY_HOOK_WORD_MOTION_CJK_LIFT,
+                            RootConstants.KEY_HOOK_WORD_MOTION_LATIN_LIFT -> floatValue.coerceIn(0.0f, 0.2f)
+                            RootConstants.KEY_HOOK_WORD_MOTION_CJK_WAVE,
+                            RootConstants.KEY_HOOK_WORD_MOTION_LATIN_WAVE -> floatValue.coerceIn(0.0f, 10.0f)
                             else -> floatValue
                         }
                         putFloat(key, boundedFloat)

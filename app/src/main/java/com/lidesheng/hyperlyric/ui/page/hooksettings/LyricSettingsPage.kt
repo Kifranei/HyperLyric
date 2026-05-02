@@ -98,10 +98,10 @@ fun LyricSettingsPage() {
     var aiTransEnabled by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, RootConstants.DEFAULT_HOOK_AI_TRANS_ENABLE)) }
     var autoIgnoreChinese by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_AUTO_IGNORE_CHINESE, RootConstants.DEFAULT_HOOK_AI_TRANS_AUTO_IGNORE_CHINESE)) }
     var apiKey by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_API_KEY, "") ?: "") }
-    var model by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_MODEL, "") ?: "") }
-    var baseUrl by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_BASE_URL, "") ?: "") }
-    var targetLang by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_TARGET_LANG, "") ?: "") }
-    var prompt by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROMPT, "") ?: "") }
+    var model by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_MODEL, RootConstants.DEFAULT_HOOK_AI_TRANS_MODEL) ?: RootConstants.DEFAULT_HOOK_AI_TRANS_MODEL) }
+    var baseUrl by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_BASE_URL, RootConstants.DEFAULT_HOOK_AI_TRANS_BASE_URL) ?: RootConstants.DEFAULT_HOOK_AI_TRANS_BASE_URL) }
+    var targetLang by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_TARGET_LANG, RootConstants.DEFAULT_HOOK_AI_TRANS_TARGET_LANG) ?: RootConstants.DEFAULT_HOOK_AI_TRANS_TARGET_LANG) }
+    var prompt by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROMPT, RootConstants.DEFAULT_HOOK_AI_TRANS_PROMPT) ?: RootConstants.DEFAULT_HOOK_AI_TRANS_PROMPT) }
 
     var wordMotionEnabled by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_WORD_MOTION_ENABLED, RootConstants.DEFAULT_HOOK_WORD_MOTION_ENABLED)) }
     var wordMotionCjkLift by remember { mutableFloatStateOf(prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_CJK_LIFT, RootConstants.DEFAULT_HOOK_WORD_MOTION_CJK_LIFT)) }
@@ -213,9 +213,9 @@ fun LyricSettingsPage() {
         TextInputDialog(show = showPromptDialog, title = stringResource(R.string.title_custom_prompt), initialValue = prompt, onDismiss = { showPromptDialog = false }, onConfirm = { prompt = it; saveConfig(RootConstants.KEY_HOOK_AI_TRANS_PROMPT, it) })
 
         FloatInputDialog(show = showWordMotionCjkLiftDialog, title = stringResource(id = R.string.title_word_motion_cjk_lift), label = stringResource(id = R.string.label_word_motion_lift_range), initialValue = wordMotionCjkLift, min = 0f, max = 0.2f, onDismiss = { showWordMotionCjkLiftDialog = false }, onConfirm = { value -> wordMotionCjkLift = value; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_CJK_LIFT, value) })
-        FloatInputDialog(show = showWordMotionCjkWaveDialog, title = stringResource(id = R.string.title_word_motion_cjk_wave), label = stringResource(id = R.string.label_word_motion_wave_range), initialValue = wordMotionCjkWave, min = 0f, max = 8f, onDismiss = { showWordMotionCjkWaveDialog = false }, onConfirm = { value -> wordMotionCjkWave = value; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_CJK_WAVE, value) })
+        FloatInputDialog(show = showWordMotionCjkWaveDialog, title = stringResource(id = R.string.title_word_motion_cjk_wave), label = stringResource(id = R.string.label_word_motion_wave_range), initialValue = wordMotionCjkWave, min = 0f, max = 10f, onDismiss = { showWordMotionCjkWaveDialog = false }, onConfirm = { value -> wordMotionCjkWave = value; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_CJK_WAVE, value) })
         FloatInputDialog(show = showWordMotionLatinLiftDialog, title = stringResource(id = R.string.title_word_motion_latin_lift), label = stringResource(id = R.string.label_word_motion_lift_range), initialValue = wordMotionLatinLift, min = 0f, max = 0.2f, onDismiss = { showWordMotionLatinLiftDialog = false }, onConfirm = { value -> wordMotionLatinLift = value; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_LIFT, value) })
-        FloatInputDialog(show = showWordMotionLatinWaveDialog, title = stringResource(id = R.string.title_word_motion_latin_wave), label = stringResource(id = R.string.label_word_motion_wave_range), initialValue = wordMotionLatinWave, min = 0f, max = 8f, onDismiss = { showWordMotionLatinWaveDialog = false }, onConfirm = { value -> wordMotionLatinWave = value; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_WAVE, value) })
+        FloatInputDialog(show = showWordMotionLatinWaveDialog, title = stringResource(id = R.string.title_word_motion_latin_wave), label = stringResource(id = R.string.label_word_motion_wave_range), initialValue = wordMotionLatinWave, min = 0f, max = 10f, onDismiss = { showWordMotionLatinWaveDialog = false }, onConfirm = { value -> wordMotionLatinWave = value; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_WAVE, value) })
 
         NumberInputDialog(show = showTextSizeDialog, title = stringResource(id = R.string.title_size), label = stringResource(id = R.string.label_size_range), initialValue = textSize, min = 8, max = 16, onDismiss = { showTextSizeDialog = false }, onConfirm = { value -> textSize = value; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE, value) })
         NumberInputDialog(show = showFontWeightDialog, title = stringResource(id = R.string.title_font_weight), label = stringResource(id = R.string.label_font_weight_range), initialValue = fontWeight, min = 100, max = 900, onDismiss = { showFontWeightDialog = false }, onConfirm = { value -> fontWeight = value; saveConfig(RootConstants.KEY_HOOK_FONT_WEIGHT, value) })
@@ -490,7 +490,7 @@ fun LyricSettingsPage() {
                                                         title = stringResource(id = R.string.label_ai_trans_api_key),
                                                         endActions = {
                                                             Text(
-                                                                if (apiKey.isNotEmpty()) "***************" else "",
+                                                                if (apiKey.isNotEmpty()) "***************" else "未配置",
                                                                 fontSize = MiuixTheme.textStyles.body2.fontSize,
                                                                 color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                             )
