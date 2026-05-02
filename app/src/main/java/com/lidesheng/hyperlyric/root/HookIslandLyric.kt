@@ -2,9 +2,7 @@ package com.lidesheng.hyperlyric.root
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import android.graphics.Color
 import com.lidesheng.hyperlyric.root.utils.xLog
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +10,7 @@ import android.widget.FrameLayout
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.CoverColorHelper
 import com.lidesheng.hyperlyric.root.utils.DynamicFinder
-import com.lidesheng.hyperlyric.root.utils.FontHelper
+import com.lidesheng.hyperlyric.root.utils.LyricStyleHelper
 import com.lidesheng.hyperlyric.root.utils.MediaMetadataHelper
 import com.lidesheng.hyperlyric.root.utils.TranslationHelper
 import com.lidesheng.hyperlyric.root.utils.xLogError
@@ -20,13 +18,7 @@ import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
 import io.github.proify.lyricon.lyric.model.RichLyricLine
-import io.github.proify.lyricon.lyric.view.Highlight
-import io.github.proify.lyricon.lyric.view.LyricViewStyle
-import io.github.proify.lyricon.lyric.view.Marquee
 import io.github.proify.lyricon.lyric.view.RichLyricLineView
-import io.github.proify.lyricon.lyric.view.TextLook
-import io.github.proify.lyricon.lyric.view.TitleSlot
-import io.github.proify.lyricon.lyric.view.WordMotion
 import io.github.proify.lyricon.lyric.view.yoyo.YoYoPresets
 import io.github.proify.lyricon.lyric.view.yoyo.animateUpdate
 
@@ -141,7 +133,7 @@ object HookIslandLyric {
             val behavior = prefs.getInt(RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE, RootConstants.DEFAULT_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE)
 
             if (!LyriconDataBridge.isPlaying && behavior == 0) {
-                clearInjectedViews(viewGroup)
+                IslandViewHelper.clearInjectedViews(viewGroup)
                 return result
             }
 
@@ -176,15 +168,7 @@ object HookIslandLyric {
     }
 
     private fun triggerSystemRelayout(islandView: ViewGroup) {
-        val viewClass = islandView.javaClass
-        try {
-            viewClass.getMethod("updateBigIslandViewWidth").invoke(islandView)
-            return
-        } catch (_: Exception) {}
-
-        try {
-            viewClass.getMethod("calculateBigIslandWidth").invoke(islandView)
-        } catch (_: Exception) {}
+        IslandViewHelper.triggerSystemRelayout(islandView)
     }
 
     private fun applySettings(rootView: ViewGroup) {
@@ -193,90 +177,26 @@ object HookIslandLyric {
         val showRhythm = prefs.getBoolean(RootConstants.KEY_HOOK_ISLAND_RIGHT_ICON, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_ICON)
         
 
-        toggleContainer(rootView, "island_container_module_image_text_1", "island_container_module_icon", showAlbum)
-        toggleContainer(rootView, "island_container_module_image_text_2", "island_container_module_icon", showRhythm)
+        IslandViewHelper.toggleContainer(rootView, "island_container_module_image_text_1", "island_container_module_icon", showAlbum)
+        IslandViewHelper.toggleContainer(rootView, "island_container_module_image_text_2", "island_container_module_icon", showRhythm)
         
-        toggleContainer(rootView, "island_container_module_image_text_1", "island_container_module_text", true)
-        toggleContainer(rootView, "island_container_module_image_text_2", "island_container_module_text", true)
+        IslandViewHelper.toggleContainer(rootView, "island_container_module_image_text_1", "island_container_module_text", true)
+        IslandViewHelper.toggleContainer(rootView, "island_container_module_image_text_2", "island_container_module_text", true)
 
         if (!showAlbum) {
-            clearTextContainerMargin(rootView, "island_container_module_image_text_1", clearStart = true, clearEnd = false)
+            IslandViewHelper.clearTextContainerMargin(rootView, "island_container_module_image_text_1", clearStart = true, clearEnd = false)
         }
         if (!showRhythm) {
-            clearTextContainerMargin(rootView, "island_container_module_image_text_2", clearStart = false, clearEnd = true)
+            IslandViewHelper.clearTextContainerMargin(rootView, "island_container_module_image_text_2", clearStart = false, clearEnd = true)
         }
-    }
-
-
-    @SuppressLint("DiscouragedApi")
-    private fun toggleContainer(root: ViewGroup, parentName: String, containerName: String, show: Boolean) {
-        try {
-            val res = root.resources
-            val pkgNames = arrayOf("miui.systemui.plugin", "com.android.systemui")
-            
-            var parent: ViewGroup? = null
-            for (pkg in pkgNames) {
-                val id = res.getIdentifier(parentName, "id", pkg)
-                if (id != 0) {
-                    parent = root.findViewById(id)
-                    if (parent != null) break
-                }
-            }
-            
-            if (parent != null) {
-                for (pkg in pkgNames) {
-                    val id = res.getIdentifier(containerName, "id", pkg)
-                    if (id != 0) {
-                        parent.findViewById<View>(id)?.visibility = if (show) View.VISIBLE else View.GONE
-                    }
-                }
-            }
-        } catch (_: Exception) {}
-    }
-
-    @SuppressLint("DiscouragedApi")
-    private fun clearTextContainerMargin(root: ViewGroup, parentName: String, clearStart: Boolean, clearEnd: Boolean) {
-        try {
-            val res = root.resources
-            val pkgNames = arrayOf("miui.systemui.plugin", "com.android.systemui")
-            
-            var parent: ViewGroup? = null
-            for (pkg in pkgNames) {
-                val id = res.getIdentifier(parentName, "id", pkg)
-                if (id != 0) {
-                    parent = root.findViewById(id)
-                    if (parent != null) break
-                }
-            }
-            
-            if (parent != null) {
-                for (pkg in pkgNames) {
-                    val id = res.getIdentifier("island_container_module_text", "id", pkg)
-                    if (id != 0) {
-                        val textContainer = parent.findViewById<View>(id)
-                        if (textContainer != null) {
-                            val lp = textContainer.layoutParams as? ViewGroup.MarginLayoutParams
-                            if (lp != null) {
-                                if (clearStart) lp.marginStart = 0
-                                if (clearEnd) lp.marginEnd = 0
-                                textContainer.layoutParams = lp
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (_: Exception) {}
     }
 
     @SuppressLint("DiscouragedApi")
     private fun injectToSlot(rootView: ViewGroup, parentName: String, tag: String, mode: Int, prefs: SharedPreferences, pkgName: String) {
         val res = rootView.resources
-        val slotId = res.getIdentifier(parentName, "id", "miui.systemui.plugin")
-        if (slotId == 0) return
-        val parent = rootView.findViewById<ViewGroup>(slotId) ?: return
-        
-        val textSlotId = res.getIdentifier("island_container_module_text", "id", "miui.systemui.plugin")
-        val container = if (textSlotId != 0) parent.findViewById(textSlotId) ?: parent else parent
+        val density = res.displayMetrics.density
+        val parent = IslandViewHelper.findViewByName(rootView, parentName) as? ViewGroup ?: return
+        val container = IslandViewHelper.findViewByName(parent, "island_container_module_text") as? ViewGroup ?: parent
 
         var targetView = container.findViewWithTag<View>(tag)
         
@@ -286,18 +206,13 @@ object HookIslandLyric {
         }
 
         val lyriconSongName = LyriconDataBridge.currentSongName
-        var metadataSongName = ""
-        var finalArtistName = ""
-        var finalAlbumName = ""
-        var albumBitmap: android.graphics.Bitmap? = null
-
         val targetPkg = LyriconDataBridge.activePackageName ?: pkgName
         val mediaInfo = MediaMetadataHelper.getMediaInfo(rootView.context, targetPkg)
         
-        metadataSongName = mediaInfo.title
-        finalArtistName = mediaInfo.artist
-        finalAlbumName = mediaInfo.album
-        albumBitmap = mediaInfo.albumArt
+        val metadataSongName = mediaInfo.title
+        val finalArtistName = mediaInfo.artist
+        val finalAlbumName = mediaInfo.album
+        val albumBitmap = mediaInfo.albumArt
 
         val singleModeText = when(mode) {
             1 -> metadataSongName
@@ -307,8 +222,6 @@ object HookIslandLyric {
             5 -> if (finalArtistName.isEmpty()) lyriconSongName ?: "" else "${lyriconSongName ?: ""} - $finalArtistName"
             else -> ""
         }
-
-        val density = res.displayMetrics.density
         val isLeft = parentName.contains("1")
         val maxWidthDp = if (isLeft) prefs.getInt(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH)
                          else prefs.getInt(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH)
@@ -410,100 +323,11 @@ object HookIslandLyric {
     // removed configureTextView
 
     private fun configureRichLyricView(view: RichLyricLineView, prefs: SharedPreferences, res: android.content.res.Resources, mode: Int, albumBitmap: android.graphics.Bitmap? = null) {
-        val fontSize = prefs.getInt(RootConstants.KEY_HOOK_TEXT_SIZE, RootConstants.DEFAULT_HOOK_TEXT_SIZE)
-        val tf = FontHelper.loadTypeface(prefs)
-
-        val textSizeRatio = prefs.getFloat(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, RootConstants.DEFAULT_HOOK_TEXT_SIZE_RATIO)
-        val primarySizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat(), res.displayMetrics)
-
-        val isMetadataDualLine = (mode == 6 || mode == 7)
-        val isTranslationOnly = TranslationHelper.isTranslationOnly(prefs)
-        val isTranslationDisabled = TranslationHelper.isTranslationDisabled(prefs)
-        val isTranslationVisible = LyriconDataBridge.isDisplayTranslation && !isTranslationDisabled && !isTranslationOnly
-        
-        val showSecondary = isMetadataDualLine || isTranslationVisible
-
         // Sync display flags to the view's internal rendering engine
         view.displayTranslation = LyriconDataBridge.isDisplayTranslation
         view.displayRoma = true // Currently always allow romaji if available
 
-        val isMarqueeEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)
-        val infinite = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_INFINITE, RootConstants.DEFAULT_HOOK_MARQUEE_INFINITE)
-
-        // Determine text colors: use cover colors if enabled, otherwise white
-        val useCoverColor = prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR)
-        val useCoverGradient = prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT)
-
-        // 三个颜色槽位：
-        // primaryColors = TextLook.color → 无逐字效果的歌词、标题
-        // bgColors = Highlight.background → 未唱到的逐字歌词
-        // hlColors = Highlight.foreground → 已唱到的逐字歌词
-        val primaryColors: IntArray
-        val bgColors: IntArray
-        val hlColors: IntArray
-        if (useCoverColor) {
-            if (albumBitmap != null) {
-                val songKey = LyriconDataBridge.currentSongName
-                val (_, darkColors) = CoverColorHelper.extractColors(albumBitmap, useCoverGradient, songKey)
-                val translucentDarkColors = darkColors.map { Color.argb(191, Color.red(it), Color.green(it), Color.blue(it)) }.toIntArray()
-                primaryColors = darkColors   // 无逐字/标题 → 封面颜色
-                bgColors = translucentDarkColors // 未唱到 → 封面颜色(75%透明度)
-                hlColors = darkColors        // 已唱到 → 封面颜色
-            } else {
-                val cached = CoverColorHelper.getCachedColors()
-                if (cached != null) {
-                    val darkColors = cached.second
-                    val translucentDarkColors = darkColors.map { Color.argb(191, Color.red(it), Color.green(it), Color.blue(it)) }.toIntArray()
-                    primaryColors = darkColors
-                    bgColors = translucentDarkColors
-                    hlColors = darkColors
-                } else {
-                    primaryColors = intArrayOf(Color.WHITE)
-                    bgColors = intArrayOf(Color.argb(128, 255, 255, 255))
-                    hlColors = intArrayOf(Color.WHITE)
-                }
-            }
-        } else {
-            primaryColors = intArrayOf(Color.WHITE)
-            bgColors = intArrayOf(Color.argb(128, 255, 255, 255))
-            hlColors = intArrayOf(Color.WHITE)
-        }
-
-        val style = LyricViewStyle(
-            primary = TextLook(
-                color = primaryColors,
-                size = primarySizePx,
-                typeface = tf,
-                relativeProgress = prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, RootConstants.DEFAULT_HOOK_SYLLABLE_RELATIVE),
-                relativeHighlight = prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, RootConstants.DEFAULT_HOOK_SYLLABLE_HIGHLIGHT),
-            ),
-            secondary = TextLook(
-                color = if (showSecondary) primaryColors else intArrayOf(Color.TRANSPARENT),
-                size = if (showSecondary) primarySizePx * textSizeRatio else 0f,
-                typeface = tf,
-            ),
-            highlight = Highlight(
-                background = bgColors,
-                foreground = hlColors,
-            ),
-            marquee = Marquee(
-                speed = if (isMarqueeEnabled) prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_SPEED, RootConstants.DEFAULT_HOOK_MARQUEE_SPEED).toFloat() else 0f,
-                initialDelay = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_DELAY),
-                loopDelay = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_LOOP_DELAY),
-                repeatCount = if (!isMarqueeEnabled) 0 else if (infinite) -1 else 1,
-                stopAtEnd = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_STOP_END, RootConstants.DEFAULT_HOOK_MARQUEE_STOP_END),
-            ),
-            gradient = prefs.getBoolean(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, RootConstants.DEFAULT_HOOK_GRADIENT_PROGRESS),
-            fadingEdge = prefs.getInt(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, RootConstants.DEFAULT_HOOK_FADING_EDGE_LENGTH),
-            wordMotion = WordMotion(
-                enabled = prefs.getBoolean(RootConstants.KEY_HOOK_WORD_MOTION_ENABLED, RootConstants.DEFAULT_HOOK_WORD_MOTION_ENABLED),
-                cjkLiftFactor = prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_CJK_LIFT, RootConstants.DEFAULT_HOOK_WORD_MOTION_CJK_LIFT),
-                cjkWaveFactor = prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_CJK_WAVE, RootConstants.DEFAULT_HOOK_WORD_MOTION_CJK_WAVE),
-                latinLiftFactor = prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_LIFT, RootConstants.DEFAULT_HOOK_WORD_MOTION_LATIN_LIFT),
-                latinWaveFactor = prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_WAVE, RootConstants.DEFAULT_HOOK_WORD_MOTION_LATIN_WAVE),
-            ),
-            placeholder = TitleSlot.NONE,
-        )
+        val style = LyricStyleHelper.buildStyle(prefs, res, mode, albumBitmap)
         view.setStyle(style)
     }
 
@@ -523,10 +347,7 @@ object HookIslandLyric {
                 if (pkgName == activePkg) {
                     cv.post {
                         val prefs = (module as HookEntry).prefs
-                        cv.findViewWithTag<View>("HYPERLYRIC_LEFT_VIEW_WRAPPER")?.let { (it.parent as? ViewGroup)?.removeView(it) }
-                        cv.findViewWithTag<View>("HYPERLYRIC_RIGHT_VIEW_WRAPPER")?.let { (it.parent as? ViewGroup)?.removeView(it) }
-                        cv.findViewWithTag<View>("HYPERLYRIC_LEFT_VIEW")?.let { (it.parent as? ViewGroup)?.removeView(it) }
-                        cv.findViewWithTag<View>("HYPERLYRIC_RIGHT_VIEW")?.let { (it.parent as? ViewGroup)?.removeView(it) }
+                        IslandViewHelper.clearInjectedViews(cv)
                         CoverColorHelper.clearCache()
                         applySettings(cv)
                         val leftMode = prefs.getInt(RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT, RootConstants.DEFAULT_HOOK_ISLAND_CONTENT_LEFT)
@@ -652,7 +473,7 @@ object HookIslandLyric {
                         val cv = entry.key as? ViewGroup
                         if (cv != null && cv.isAttachedToWindow) {
                             cv.post {
-                                clearInjectedViews(cv)
+                                IslandViewHelper.clearInjectedViews(cv)
                                 triggerSystemRelayout(cv)
                             }
                         } else {
@@ -662,40 +483,6 @@ object HookIslandLyric {
                 }
                 1 -> {
                     // 保持现状，不做处理
-                }
-            }
-        }
-    }
-
-    private fun clearInjectedViews(rootView: ViewGroup) {
-        rootView.findViewWithTag<View>("HYPERLYRIC_LEFT_VIEW")?.visibility = View.GONE
-        rootView.findViewWithTag<View>("HYPERLYRIC_LEFT_VIEW_WRAPPER")?.visibility = View.GONE
-        rootView.findViewWithTag<View>("HYPERLYRIC_RIGHT_VIEW")?.visibility = View.GONE
-        rootView.findViewWithTag<View>("HYPERLYRIC_RIGHT_VIEW_WRAPPER")?.visibility = View.GONE
-        
-        // 恢复系统原有组件的可见性
-        toggleContainer(rootView, "island_container_module_image_text_1", "island_container_module_icon", true)
-        toggleContainer(rootView, "island_container_module_image_text_2", "island_container_module_icon", true)
-        
-        showOriginalTexts(rootView, "island_container_module_image_text_1")
-        showOriginalTexts(rootView, "island_container_module_image_text_2")
-    }
-
-    private fun showOriginalTexts(rootView: ViewGroup, parentName: String) {
-        val res = rootView.resources
-        val slotId = res.getIdentifier(parentName, "id", "miui.systemui.plugin")
-        if (slotId == 0) return
-        val parent = rootView.findViewById<ViewGroup>(slotId) ?: return
-        
-        val textSlotId = res.getIdentifier("island_container_module_text", "id", "miui.systemui.plugin")
-        val container = if (textSlotId != 0) parent.findViewById(textSlotId) ?: parent else parent
-
-        if (container is ViewGroup) {
-            for (i in 0 until container.childCount) {
-                val child = container.getChildAt(i)
-                val tag = child.tag as? String ?: ""
-                if (!tag.startsWith("HYPERLYRIC")) {
-                    child.visibility = View.VISIBLE
                 }
             }
         }

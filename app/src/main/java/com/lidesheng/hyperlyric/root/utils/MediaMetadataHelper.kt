@@ -3,7 +3,6 @@ package com.lidesheng.hyperlyric.root.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadata
-import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 
 /**
@@ -53,7 +52,7 @@ object MediaMetadataHelper {
             getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
                 ?: getBitmap(MediaMetadata.METADATA_KEY_ART)
                 ?: getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
