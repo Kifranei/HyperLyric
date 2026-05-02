@@ -56,8 +56,8 @@ object LyriconDataBridge {
         isTextMode = false
         currentSong = song
         currentSongName = song?.name
-        currentLyricLine = null
         currentLyric = null
+
 
         if (song != null) {
             val processor = SongPreprocessor(TitleSlot.NAME_ARTIST)
@@ -145,7 +145,11 @@ object LyriconDataBridge {
         isTextMode = true
         currentLyric = text
         currentLyricLine = if (!text.isNullOrBlank()) {
-            RichLyricLine(text = text)
+            val lines = text.lines()
+            RichLyricLine(
+                text = lines.first(),
+                translation = lines.getOrNull(1)
+            )
         } else {
             null
         }
@@ -157,6 +161,7 @@ object LyriconDataBridge {
         currentLyric = null
         currentLyricLine = null
         isTextMode = false
+        isDisplayTranslation = true
         timingNavigator = TimingNavigator(emptyArray())
     }
 }

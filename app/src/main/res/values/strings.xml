@@ -212,7 +212,8 @@
     <string name="title_translation">翻译</string>
     <string name="label_custom_font_path">填写字体文件的完整路径</string>
     <string name="title_disable_translation">禁用所有翻译</string>
-    <string name="title_translation_only">使用翻译代替歌词</string>
+    <string name="title_translation_only">仅显示翻译</string>
+    <string name="title_swap_translation">原词翻译对调位置</string>
     <string name="title_extract_cover_color">提取封面颜色</string>
     <string name="title_extract_cover_gradient">提取封面渐变色</string>
     <string name="title_word_motion">字词上浮动画</string>
@@ -232,7 +233,7 @@
     <string name="label_ai_trans_base_url">API 地址</string>
     <string name="label_ai_trans_target_lang">目标语言</string>
     <string name="label_ai_trans_prompt">自定义翻译风格提示词</string>
-    <string name="summary_ai_trans_prompt_hint">留空使用默认提示词。自定义提示词仅影响翻译风格，不会覆盖核心协议。</string>
+    <string name="summary_ai_trans_prompt_hint">留空使用默认提示词</string>
 
     <!-- ———————————————————————— LyricProviderPage ———————————————————————— -->
     <string name="refresh_pull_down">下拉刷新</string>

@@ -107,7 +107,8 @@
     <string name="dialog_delete_whitelist_title">Are you sure you want to remove this app from the list?</string>
     <string name="option_notification_live">Live Update Notification</string>
     <string name="option_notification_focus">Xiaomi Notification Spotlight</string>
-    <string name="title_notification_type">Notification Type</string>
+    <string name="title_translation_only">Translation only</string>
+    <string name="title_swap_translation">Swap lyric and translation</string>
     <string name="title_island_settings">Dynamic Island Settings</string>
     <string name="title_island_left_icon">Left Icon</string>
     <string name="title_disable_lyric_split">Disable Lyric Splitting</string>

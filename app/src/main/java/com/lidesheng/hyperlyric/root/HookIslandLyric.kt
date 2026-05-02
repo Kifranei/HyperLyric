@@ -387,8 +387,13 @@ object HookIslandLyric {
                     RichLyricLine(text = lyriconSongName, words = emptyList(), secondary = sec, secondaryWords = emptyList())
                 }
                 8 -> {
-                    val rawLine = LyriconDataBridge.currentLyricLine ?: RichLyricLine(text = lyriconSongName, words = emptyList())
-                    if (TranslationHelper.isTranslationOnly(prefs)) TranslationHelper.applyTranslationOnly(rawLine) else rawLine
+                    var rawLine = LyriconDataBridge.currentLyricLine ?: RichLyricLine(text = lyriconSongName, words = emptyList())
+                    if (TranslationHelper.isTranslationOnly(prefs)) {
+                        rawLine = TranslationHelper.applyTranslationOnly(rawLine)
+                    } else if (TranslationHelper.isSwapTranslation(prefs)) {
+                        rawLine = TranslationHelper.swapTranslation(rawLine)
+                    }
+                    rawLine
                 }
                 else -> null
             }
@@ -419,9 +424,15 @@ object HookIslandLyric {
         val primarySizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat(), res.displayMetrics)
 
         val isMetadataDualLine = (mode == 6 || mode == 7)
+        val isTranslationOnly = TranslationHelper.isTranslationOnly(prefs)
         val isTranslationDisabled = TranslationHelper.isTranslationDisabled(prefs)
-        val isTranslationVisible = LyriconDataBridge.isDisplayTranslation && !isTranslationDisabled
+        val isTranslationVisible = LyriconDataBridge.isDisplayTranslation && !isTranslationDisabled && !isTranslationOnly
+        
         val showSecondary = isMetadataDualLine || isTranslationVisible
+
+        // Sync display flags to the view's internal rendering engine
+        view.displayTranslation = LyriconDataBridge.isDisplayTranslation
+        view.displayRoma = true // Currently always allow romaji if available
 
         val isMarqueeEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)
         val infinite = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_INFINITE, RootConstants.DEFAULT_HOOK_MARQUEE_INFINITE)
@@ -566,13 +577,24 @@ object HookIslandLyric {
         if (mode != 8) return
         val view = cv.findViewWithTag<RichLyricLineView>(tag) ?: return
         val rawLine = LyriconDataBridge.currentLyricLine
-        val targetLine = if (TranslationHelper.isTranslationOnly(prefs) && rawLine != null) TranslationHelper.applyTranslationOnly(rawLine) else rawLine
+        val targetLine = if (rawLine != null) {
+            if (TranslationHelper.isTranslationOnly(prefs)) {
+                TranslationHelper.applyTranslationOnly(rawLine)
+            } else if (TranslationHelper.isSwapTranslation(prefs)) {
+                TranslationHelper.swapTranslation(rawLine)
+            } else {
+                rawLine
+            }
+        } else {
+            null
+        }
 
         cv.post {
             val isAnimEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ANIM_ENABLE, RootConstants.DEFAULT_HOOK_ANIM_ENABLE)
             val animId = prefs.getString(RootConstants.KEY_HOOK_ANIM_ID, RootConstants.DEFAULT_HOOK_ANIM_ID)
 
             val applyLine: RichLyricLineView.() -> Unit = {
+                displayTranslation = LyriconDataBridge.isDisplayTranslation
                 line = targetLine
                 post {
                     if (prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)) {

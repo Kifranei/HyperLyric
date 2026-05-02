@@ -90,6 +90,7 @@ fun LyricSettingsPage() {
     var textSizeRatio by remember { mutableFloatStateOf(prefs.getFloat(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, RootConstants.DEFAULT_HOOK_TEXT_SIZE_RATIO)) }
     var disableTranslation by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, RootConstants.DEFAULT_HOOK_DISABLE_TRANSLATION)) }
     var translationOnly by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_TRANSLATION_ONLY, RootConstants.DEFAULT_HOOK_TRANSLATION_ONLY)) }
+    var swapTranslation by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SWAP_TRANSLATION, RootConstants.DEFAULT_HOOK_SWAP_TRANSLATION)) }
     var extractCoverColor by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR)) }
     var extractCoverGradient by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT)) }
     var customFontPath by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_CUSTOM_FONT_PATH, null) ?: "") }
@@ -155,6 +156,7 @@ fun LyricSettingsPage() {
             RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT,
             RootConstants.KEY_HOOK_DISABLE_TRANSLATION,
             RootConstants.KEY_HOOK_TRANSLATION_ONLY,
+            RootConstants.KEY_HOOK_SWAP_TRANSLATION,
             RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR,
             RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT,
             RootConstants.KEY_HOOK_CUSTOM_FONT_PATH,
@@ -431,7 +433,30 @@ fun LyricSettingsPage() {
                                             checked = disableTranslation,
                                             onCheckedChange = { disableTranslation = it; saveConfig(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, it) }
                                         )
-                                        SwitchPreference(title = stringResource(id = R.string.title_translation_only), checked = translationOnly, onCheckedChange = { translationOnly = it; saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, it) })
+                                        SwitchPreference(
+                                            title = stringResource(id = R.string.title_translation_only),
+                                            checked = translationOnly,
+                                            onCheckedChange = {
+                                                translationOnly = it
+                                                saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, it)
+                                                if (it && swapTranslation) {
+                                                    swapTranslation = false
+                                                    saveConfig(RootConstants.KEY_HOOK_SWAP_TRANSLATION, false)
+                                                }
+                                            }
+                                        )
+                                        SwitchPreference(
+                                            title = stringResource(id = R.string.title_swap_translation),
+                                            checked = swapTranslation,
+                                            onCheckedChange = {
+                                                swapTranslation = it
+                                                saveConfig(RootConstants.KEY_HOOK_SWAP_TRANSLATION, it)
+                                                if (it && translationOnly) {
+                                                    translationOnly = false
+                                                    saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, false)
+                                                }
+                                            }
+                                        )
                                     }
                                     HorizontalDivider(
                                         modifier = Modifier.padding(horizontal = 16.dp)
