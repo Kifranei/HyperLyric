@@ -55,6 +55,7 @@ object Constants {
     const val KEY_HOOK_SWAP_TRANSLATION = "key_hook_swap_translation"
 
     // ================= COLOR KEYS =================
+    const val KEY_HOOK_RAINBOW_LYRIC = "key_hook_rainbow_lyric"
     const val KEY_HOOK_EXTRACT_COVER_TEXT_COLOR = "key_hook_extract_cover_text_color"
     const val KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT = "key_hook_extract_cover_text_gradient"
 
@@ -123,6 +124,7 @@ object Constants {
     const val DEFAULT_HOOK_DISABLE_TRANSLATION = false
     const val DEFAULT_HOOK_TRANSLATION_ONLY = false
     const val DEFAULT_HOOK_SWAP_TRANSLATION = false
+    const val DEFAULT_HOOK_RAINBOW_LYRIC = false
     const val DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR = false
     const val DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT = false
     const val DEFAULT_HOOK_WORD_MOTION_ENABLED = false

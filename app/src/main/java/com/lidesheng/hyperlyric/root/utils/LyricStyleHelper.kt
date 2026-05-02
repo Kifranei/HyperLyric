@@ -19,6 +19,19 @@ import io.github.proify.lyricon.lyric.view.WordMotion
  * 负责根据用户配置和歌曲信息（如封面）生成 RichLyricLineView 所需的样式对象
  */
 object LyricStyleHelper {
+    private val rainbowColors = intArrayOf(
+        Color.rgb(255, 59, 48),
+        Color.rgb(255, 149, 0),
+        Color.rgb(255, 204, 0),
+        Color.rgb(52, 199, 89),
+        Color.rgb(0, 199, 190),
+        Color.rgb(0, 122, 255),
+        Color.rgb(88, 86, 214),
+        Color.rgb(175, 82, 222),
+        Color.rgb(255, 45, 85),
+    )
+
+    private val rainbowBackgroundColors = rainbowColors.withAlpha(128)
 
     /**
      * 构建歌词样式对象
@@ -46,6 +59,7 @@ object LyricStyleHelper {
         val infinite = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_INFINITE, RootConstants.DEFAULT_HOOK_MARQUEE_INFINITE)
 
         // Determine text colors: use cover colors if enabled, otherwise white
+        val useRainbowLyric = prefs.getBoolean(RootConstants.KEY_HOOK_RAINBOW_LYRIC, RootConstants.DEFAULT_HOOK_RAINBOW_LYRIC)
         val useCoverColor = prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR)
         val useCoverGradient = prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT)
 
@@ -53,7 +67,11 @@ object LyricStyleHelper {
         val bgColors: IntArray
         val hlColors: IntArray
 
-        if (useCoverColor) {
+        if (useRainbowLyric) {
+            primaryColors = rainbowColors
+            bgColors = rainbowBackgroundColors
+            hlColors = rainbowColors
+        } else if (useCoverColor) {
             if (albumBitmap != null) {
                 val songKey = LyriconDataBridge.currentSongName
                 val (_, darkColors) = CoverColorHelper.extractColors(albumBitmap, useCoverGradient, songKey)
@@ -117,4 +135,7 @@ object LyricStyleHelper {
             placeholder = TitleSlot.NONE,
         )
     }
+
+    private fun IntArray.withAlpha(alpha: Int): IntArray =
+        map { Color.argb(alpha, Color.red(it), Color.green(it), Color.blue(it)) }.toIntArray()
 }

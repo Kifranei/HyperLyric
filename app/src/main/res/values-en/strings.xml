@@ -214,6 +214,8 @@
     <string name="title_disable_translation">Disable All Translations</string>
     <string name="title_translation_only">Translation Only</string>
     <string name="title_swap_translation">Swap Lyric and Translation</string>
+    <string name="title_rainbow_lyric">Rainbow Lyrics</string>
+    <string name="summary_rainbow_lyric">Use a rainbow gradient for lyrics. This takes priority over cover colors.</string>
     <string name="title_extract_cover_color">Extract Cover Color</string>
     <string name="title_extract_cover_gradient">Extract Cover Gradient</string>
     <string name="title_word_motion">Word Lift Animation</string>

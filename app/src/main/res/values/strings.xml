@@ -214,6 +214,8 @@
     <string name="title_disable_translation">禁用所有翻译</string>
     <string name="title_translation_only">仅显示翻译</string>
     <string name="title_swap_translation">原词翻译对调位置</string>
+    <string name="title_rainbow_lyric">彩虹歌词</string>
+    <string name="summary_rainbow_lyric">开启后歌词使用彩虹渐变色，并优先于封面取色。</string>
     <string name="title_extract_cover_color">提取封面颜色</string>
     <string name="title_extract_cover_gradient">提取封面渐变色</string>
     <string name="title_word_motion">字词上浮动画</string>

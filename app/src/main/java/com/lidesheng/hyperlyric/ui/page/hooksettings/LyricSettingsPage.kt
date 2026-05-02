@@ -91,6 +91,7 @@ fun LyricSettingsPage() {
     var disableTranslation by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, RootConstants.DEFAULT_HOOK_DISABLE_TRANSLATION)) }
     var translationOnly by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_TRANSLATION_ONLY, RootConstants.DEFAULT_HOOK_TRANSLATION_ONLY)) }
     var swapTranslation by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SWAP_TRANSLATION, RootConstants.DEFAULT_HOOK_SWAP_TRANSLATION)) }
+    var rainbowLyric by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_RAINBOW_LYRIC, RootConstants.DEFAULT_HOOK_RAINBOW_LYRIC)) }
     var extractCoverColor by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR)) }
     var extractCoverGradient by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT)) }
     var customFontPath by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_CUSTOM_FONT_PATH, null) ?: "") }
@@ -157,6 +158,7 @@ fun LyricSettingsPage() {
             RootConstants.KEY_HOOK_DISABLE_TRANSLATION,
             RootConstants.KEY_HOOK_TRANSLATION_ONLY,
             RootConstants.KEY_HOOK_SWAP_TRANSLATION,
+            RootConstants.KEY_HOOK_RAINBOW_LYRIC,
             RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR,
             RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT,
             RootConstants.KEY_HOOK_CUSTOM_FONT_PATH,
@@ -284,6 +286,12 @@ fun LyricSettingsPage() {
                                         )
                                         HorizontalDivider(
                                             modifier = Modifier.padding(horizontal = 16.dp)
+                                        )
+                                        SwitchPreference(
+                                            title = stringResource(id = R.string.title_rainbow_lyric),
+                                            summary = stringResource(id = R.string.summary_rainbow_lyric),
+                                            checked = rainbowLyric,
+                                            onCheckedChange = { rainbowLyric = it; saveConfig(RootConstants.KEY_HOOK_RAINBOW_LYRIC, it) }
                                         )
                                         SwitchPreference(title = stringResource(id = R.string.title_extract_cover_color), checked = extractCoverColor, onCheckedChange = { extractCoverColor = it; saveConfig(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, it) })
                                         AnimatedVisibility(visible = extractCoverColor) {
