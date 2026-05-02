@@ -139,6 +139,7 @@ fun SuperIslandSettingsPage() {
             TopAppBar(
                 color = Color.Transparent,
                 title = stringResource(id = R.string.title_super_island),
+                subtitle = stringResource(id = R.string.subtitle_super_island),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }

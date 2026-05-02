@@ -91,6 +91,7 @@
     <string name="title_lyric_mode">歌词模式</string>
     <string name="title_custom_config">自定义配置</string>
     <string name="title_super_island">超级岛</string>
+    <string name="subtitle_super_island">暂停或切换音乐后生效</string>
     <string name="title_lyrics">歌词</string>
     <string name="title_lyric_anim">歌词切换动画</string>
     <string name="title_lyric_provider">歌词提供者</string>
@@ -291,14 +292,12 @@
     <string name="level_warn">Warn</string>
     <string name="level_error">Error</string>
     <string name="level_crash">Crash</string>
-    <string name="export_all">导出全部</string>
-    <string name="clear_all">清空全部</string>
+    <string name="export_all">导出日志</string>
     <string name="no_logs_found">未找到相关日志</string>
     <string name="no_root_permission">应用未获取root权限，无法获取lsposed日志</string>
     <string name="title_log_detail">日志详情</string>
     <string name="export_success">导出成功</string>
     <string name="format_export_failed">导出失败: %1$s</string>
-    <string name="logs_cleared">已彻底清空底层日志</string>
     <string name="tag_lsposed">LSPosed</string>
     <string name="tag_logger">Logger</string>
     <string name="lsposed_not_found">未找到 LSPosed 日志目录，请确认 LSPosed 已正确安装</string>

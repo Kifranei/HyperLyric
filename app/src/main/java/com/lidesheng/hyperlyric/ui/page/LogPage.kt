@@ -10,7 +10,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,26 +59,26 @@ import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownImpl
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.PullToRefresh
-import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
+import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
-import top.yukonga.miuix.kmp.theme.LocalDismissState
-import top.yukonga.miuix.kmp.window.WindowListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.icon.extended.Filter
 import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.theme.LocalDismissState
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
+import top.yukonga.miuix.kmp.window.WindowListPopup
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDateTime
@@ -102,7 +100,6 @@ data class LogEntry(
             "W" -> "WARN"
             "I" -> "INFO"
             "D" -> "DEBUG"
-            "V" -> "VERBOSE"
             else -> level
         }
 
@@ -113,7 +110,6 @@ data class LogEntry(
             "W" -> Color(0x40FFC107)
             "I" -> Color(0x404CAF50)
             "D" -> Color(0x402196F3)
-            "V" -> Color(0x409E9E9E)
             else -> Color(0x40909090)
         }
 
@@ -124,7 +120,6 @@ data class LogEntry(
             "W" -> Color(0xFFFF8F00)
             "I" -> Color(0xFF388E3C)
             "D" -> Color(0xFF1976D2)
-            "V" -> Color(0xFF616161)
             else -> Color(0xFF757575)
         }
 }
@@ -187,6 +182,8 @@ private suspend fun readXposedLogs(): List<LogEntry> = withContext(Dispatchers.I
                         blockStr.contains(" D/", ignoreCase = true) || blockStr.contains("[D]", ignoreCase = true) || blockStr.contains("debug", ignoreCase = true) -> "D"
                         else -> parsedLevel
                     }
+
+                    if (level == "V") return
 
                     val tagStart = firstLine.indexOf("[HyperLyric]")
                     val headerMsg = if (tagStart != -1) {
@@ -272,13 +269,11 @@ fun LogPage() {
     val density = LocalDensity.current
     val pullToRefreshState = rememberPullToRefreshState()
     var showMorePopup by remember { mutableStateOf(false) }
-    var showFilterPopup by remember { mutableStateOf(false) }
 
     val exportHeader = stringResource(id = R.string.export_header)
     val exportTimeFormat = stringResource(id = R.string.format_export_time)
     val exportSuccessMsg = stringResource(id = R.string.export_success)
     val exportFailedMsg = stringResource(id = R.string.format_export_failed)
-    val logsClearedMsg = stringResource(id = R.string.logs_cleared)
     val copiedMsg = stringResource(id = R.string.copied)
 
     val reloadLogs = {
@@ -343,88 +338,58 @@ fun LogPage() {
                         }
                     },
                     actions = {
-                    Box {
-                        IconButton(onClick = { showFilterPopup = true }, holdDownState = showFilterPopup) {
-                            Icon(imageVector = MiuixIcons.Filter, contentDescription = stringResource(id = R.string.filter))
-                        }
-                        WindowListPopup(
-                            show = showFilterPopup,
-                            alignment = PopupPositionProvider.Align.TopEnd,
-                            popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
-                            onDismissRequest = { showFilterPopup = false }
-                        ) {
-                            val dismissPopup = LocalDismissState.current
-                            ListPopupColumn {
-                                val levels = listOf("ALL", "D", "I", "W", "E", "C")
-                                val levelNames = listOf(
-                                    stringResource(id = R.string.all),
-                                    stringResource(id = R.string.level_debug),
-                                    stringResource(id = R.string.level_info),
-                                    stringResource(id = R.string.level_warn),
-                                    stringResource(id = R.string.level_error),
-                                    stringResource(id = R.string.level_crash)
-                                )
-                                levels.forEachIndexed { index, level ->
+                        Box {
+                            IconButton(onClick = { showMorePopup = true }, holdDownState = showMorePopup) {
+                                Icon(imageVector = MiuixIcons.More, contentDescription = stringResource(id = R.string.more))
+                            }
+                            WindowListPopup(
+                                show = showMorePopup,
+                                alignment = PopupPositionProvider.Align.TopEnd,
+                                popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
+                                onDismissRequest = { showMorePopup = false }
+                            ) {
+                                val dismissPopup = LocalDismissState.current
+                                ListPopupColumn {
+                                    val levels = listOf("ALL", "D", "I", "W", "E", "C")
+                                    val levelNames = listOf(
+                                        stringResource(id = R.string.all),
+                                        stringResource(id = R.string.level_debug),
+                                        stringResource(id = R.string.level_info),
+                                        stringResource(id = R.string.level_warn),
+                                        stringResource(id = R.string.level_error),
+                                        stringResource(id = R.string.level_crash)
+                                    )
+                                    val totalOptions = levels.size + 1
+                                    levels.forEachIndexed { index, level ->
+                                        DropdownImpl(
+                                            text = levelNames[index],
+                                            optionSize = totalOptions,
+                                            isSelected = selectedLevel == level,
+                                            onSelectedIndexChange = {
+                                                dismissPopup?.invoke()
+                                                selectedLevel = level
+                                            },
+                                            index = index
+                                        )
+                                    }
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
                                     DropdownImpl(
-                                        text = levelNames[index],
-                                        optionSize = levels.size,
-                                        isSelected = selectedLevel == level,
+                                        text = stringResource(id = R.string.export_all),
+                                        optionSize = totalOptions,
+                                        isSelected = false,
                                         onSelectedIndexChange = {
                                             dismissPopup?.invoke()
-                                            selectedLevel = level
+                                            val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
+                                            exportLauncher.launch("hyperlyric_debug_$dateTime.txt")
                                         },
-                                        index = index
+                                        index = levels.size
                                     )
                                 }
                             }
                         }
-                    }
-                    Box {
-                        IconButton(onClick = { showMorePopup = true }, holdDownState = showMorePopup) {
-                            Icon(imageVector = MiuixIcons.More, contentDescription = stringResource(id = R.string.more))
-                        }
-                        WindowListPopup(
-                            show = showMorePopup,
-                            alignment = PopupPositionProvider.Align.TopEnd,
-                            popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
-                            onDismissRequest = { showMorePopup = false }
-                        ) {
-                            val dismissPopup = LocalDismissState.current
-                            ListPopupColumn {
-                                DropdownImpl(
-                                    text = stringResource(id = R.string.export_all),
-                                    optionSize = 2,
-                                    isSelected = false,
-                                    onSelectedIndexChange = {
-                                        dismissPopup?.invoke()
-                                        val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
-                                        exportLauncher.launch("hyperlyric_debug_$dateTime.txt")
-                                    },
-                                    index = 0
-                                )
-                                DropdownImpl(
-                                    text = stringResource(id = R.string.clear_all),
-                                    optionSize = 2,
-                                    isSelected = false,
-                                    onSelectedIndexChange = {
-                                        dismissPopup?.invoke()
-                                        coroutineScope.launch {
-                                            withContext(Dispatchers.IO) {
-                                                try {
-                                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "rm -f /data/adb/lspd/log.old/modules_*.log /data/adb/lspd/log/modules_*.log")).waitFor()
-                                                } catch (_: Exception) {}
-                                            }
-                                            allLogs.clear()
-                                            filteredLogs.clear()
-                                            Toast.makeText(context, logsClearedMsg, Toast.LENGTH_SHORT).show()
-                                        }
-                                    },
-                                    index = 1
-                                )
-                            }
-                        }
-                    }
-                },
+                    },
                 bottomContent = {
                     Box(
                         modifier = Modifier
