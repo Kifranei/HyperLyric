@@ -29,7 +29,6 @@ object Constants {
     const val KEY_HOOK_TEXT_SIZE = "key_hook_text_size"
     const val KEY_HOOK_TEXT_SIZE_RATIO = "key_hook_text_size_ratio"
     const val KEY_HOOK_FONT_WEIGHT = "key_hook_font_weight"
-    const val KEY_HOOK_FONT_BOLD = "key_hook_font_bold"
     const val KEY_HOOK_FONT_ITALIC = "key_hook_font_italic"
     const val KEY_HOOK_FADING_EDGE_LENGTH = "key_hook_fading_edge_length"
     const val KEY_HOOK_GRADIENT_PROGRESS = "key_hook_gradient_progress"
@@ -103,7 +102,6 @@ object Constants {
     const val DEFAULT_HOOK_TEXT_SIZE = 12
     const val DEFAULT_HOOK_TEXT_SIZE_RATIO = 0.7f
     const val DEFAULT_HOOK_FONT_WEIGHT = 600
-    const val DEFAULT_HOOK_FONT_BOLD = false
     const val DEFAULT_HOOK_FONT_ITALIC = false
     const val DEFAULT_HOOK_FADING_EDGE_LENGTH = 15
     const val DEFAULT_HOOK_GRADIENT_PROGRESS = true

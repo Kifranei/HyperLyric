@@ -58,6 +58,7 @@
     <string name="toast_restore_invalid">Invalid file format</string>
     <string name="toast_restore_failed">Restore failed</string>
     <string name="title_settings_page">App Settings</string>
+    <string name="label_custom_font_path">Enter full path of the font file</string>
     <string name="back">Back</string>
     <string name="title_personalization">Personalization</string>
     <string name="theme_system">Follow System</string>

@@ -11,18 +11,36 @@ object FontHelper {
         val fontItalic = prefs.getBoolean(Constants.KEY_HOOK_FONT_ITALIC, Constants.DEFAULT_HOOK_FONT_ITALIC)
 
         val customFontPath = prefs.getString(Constants.KEY_HOOK_CUSTOM_FONT_PATH, null)
+        var baseTf: Typeface? = null
+
         if (!customFontPath.isNullOrBlank()) {
             try {
                 val file = File(customFontPath)
-                if (file.exists()) {
-                    val baseTf = Typeface.createFromFile(file)
-                    return Typeface.create(baseTf, fontWeight, fontItalic)
+                if (file.exists() && file.canRead()) {
+                    baseTf = Typeface.createFromFile(file)
+                    xLog("Successfully loaded custom font from: $customFontPath")
+                } else {
+                    xLog("Custom font file not found or not readable: $customFontPath (exists: ${file.exists()}, canRead: ${file.canRead()})")
                 }
-            } catch (_: Exception) {
-                // fall through to default
+            } catch (e: Exception) {
+                xLog("Failed to create Typeface from file: $customFontPath, error: ${e.message}")
             }
         }
 
-        return Typeface.create(Typeface.DEFAULT, fontWeight, fontItalic)
+        val finalBaseTf = baseTf ?: Typeface.DEFAULT
+
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            // API 28+ supports weight and italic separately
+            Typeface.create(finalBaseTf, fontWeight.coerceIn(1, 1000), fontItalic)
+        } else {
+            // Fallback for older APIs
+            val style = when {
+                fontWeight >= 600 && fontItalic -> Typeface.BOLD_ITALIC
+                fontWeight >= 600 -> Typeface.BOLD
+                fontItalic -> Typeface.ITALIC
+                else -> Typeface.NORMAL
+            }
+            Typeface.create(finalBaseTf, style)
+        }
     }
 }

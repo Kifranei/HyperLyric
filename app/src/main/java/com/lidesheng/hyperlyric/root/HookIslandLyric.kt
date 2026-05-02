@@ -440,25 +440,28 @@ object HookIslandLyric {
         if (useCoverColor) {
             if (albumBitmap != null) {
                 val songKey = LyriconDataBridge.currentSongName
-                val (lightColors, darkColors) = CoverColorHelper.extractColors(albumBitmap, useCoverGradient, songKey)
-                primaryColors = darkColors   // 无逐字/标题 → 封面亮色
-                bgColors = lightColors       // 未唱到 → 封面暗色
-                hlColors = darkColors        // 已唱到 → 封面亮色
+                val (_, darkColors) = CoverColorHelper.extractColors(albumBitmap, useCoverGradient, songKey)
+                val translucentDarkColors = darkColors.map { Color.argb(191, Color.red(it), Color.green(it), Color.blue(it)) }.toIntArray()
+                primaryColors = darkColors   // 无逐字/标题 → 封面颜色
+                bgColors = translucentDarkColors // 未唱到 → 封面颜色(75%透明度)
+                hlColors = darkColors        // 已唱到 → 封面颜色
             } else {
                 val cached = CoverColorHelper.getCachedColors()
                 if (cached != null) {
-                    primaryColors = cached.second  // 无逐字/标题 → 缓存亮色
-                    bgColors = cached.first        // 未唱到 → 缓存暗色
-                    hlColors = cached.second       // 已唱到 → 缓存亮色
+                    val darkColors = cached.second
+                    val translucentDarkColors = darkColors.map { Color.argb(191, Color.red(it), Color.green(it), Color.blue(it)) }.toIntArray()
+                    primaryColors = darkColors
+                    bgColors = translucentDarkColors
+                    hlColors = darkColors
                 } else {
                     primaryColors = intArrayOf(Color.WHITE)
-                    bgColors = intArrayOf(Color.GRAY)
+                    bgColors = intArrayOf(Color.argb(128, 255, 255, 255))
                     hlColors = intArrayOf(Color.WHITE)
                 }
             }
         } else {
             primaryColors = intArrayOf(Color.WHITE)
-            bgColors = intArrayOf(Color.GRAY)
+            bgColors = intArrayOf(Color.argb(128, 255, 255, 255))
             hlColors = intArrayOf(Color.WHITE)
         }
 

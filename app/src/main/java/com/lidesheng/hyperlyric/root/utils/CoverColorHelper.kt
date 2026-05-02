@@ -1,8 +1,6 @@
 package com.lidesheng.hyperlyric.root.utils
 
 import android.graphics.Bitmap
-import io.github.proify.lyricon.common.util.CoverThemeColorExtractor
-import io.github.proify.lyricon.common.util.CoverThemeGradientExtractor
 
 object CoverColorHelper {
 
@@ -16,18 +14,14 @@ object CoverColorHelper {
             return Pair(cachedLightColors!!, cachedDarkColors!!)
         }
 
-        val result = if (useGradient) {
-            val gradient = CoverThemeGradientExtractor.extract(bitmap)
-            Pair(gradient.lightModeColors, gradient.darkModeColors)
-        } else {
-            val color = CoverThemeColorExtractor.extract(bitmap)
-            Pair(intArrayOf(color.lightModeColor), intArrayOf(color.darkModeColor))
-        }
+        val result = ColorExtractorImpl.extractThemePalette(bitmap, if (useGradient) 4 else 1)
+        val lightColors = result.onWhiteBackground.toIntArray()
+        val darkColors = result.onBlackBackground.toIntArray()
 
         cachedKey = key
-        cachedLightColors = result.first
-        cachedDarkColors = result.second
-        return result
+        cachedLightColors = lightColors
+        cachedDarkColors = darkColors
+        return Pair(lightColors, darkColors)
     }
 
     fun getCachedColors(): Pair<IntArray, IntArray>? {

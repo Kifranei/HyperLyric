@@ -76,7 +76,6 @@ fun LyricSettingsPage() {
     
     var textSize by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_TEXT_SIZE, RootConstants.DEFAULT_HOOK_TEXT_SIZE)) }
     var fontWeight by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_FONT_WEIGHT, RootConstants.DEFAULT_HOOK_FONT_WEIGHT)) }
-    var fontBold by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_FONT_BOLD, RootConstants.DEFAULT_HOOK_FONT_BOLD)) }
     var fontItalic by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_FONT_ITALIC, RootConstants.DEFAULT_HOOK_FONT_ITALIC)) }
     var fadingEdge by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, RootConstants.DEFAULT_HOOK_FADING_EDGE_LENGTH)) }
     var gradientStyle by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, RootConstants.DEFAULT_HOOK_GRADIENT_PROGRESS)) }
@@ -116,7 +115,7 @@ fun LyricSettingsPage() {
     var showMarqueeDelayDialog by remember { mutableStateOf(false) }
     var showMarqueeLoopDialog by remember { mutableStateOf(false) }
     var showTextSizeRatioDialog by remember { mutableStateOf(false) }
-    var showFontPickerDialog by remember { mutableStateOf(false) }
+    var showFontPathDialog by remember { mutableStateOf(false) }
 
     var showPromptDialog by remember { mutableStateOf(false) }
     var showApiKeyDialog by remember { mutableStateOf(false) }
@@ -142,7 +141,6 @@ fun LyricSettingsPage() {
         val refreshKeys = setOf(
             RootConstants.KEY_HOOK_TEXT_SIZE,
             RootConstants.KEY_HOOK_FONT_WEIGHT,
-            RootConstants.KEY_HOOK_FONT_BOLD,
             RootConstants.KEY_HOOK_FONT_ITALIC,
             RootConstants.KEY_HOOK_FADING_EDGE_LENGTH,
             RootConstants.KEY_HOOK_TEXT_SIZE_RATIO,
@@ -225,46 +223,17 @@ fun LyricSettingsPage() {
         NumberInputDialog(show = showMarqueeLoopDialog, title = stringResource(id = R.string.title_marquee_loop), label = stringResource(id = R.string.label_marquee_loop_range), initialValue = marqueeLoop, min = 0, max = 5000, onDismiss = { showMarqueeLoopDialog = false }, onConfirm = { value -> marqueeLoop = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_LOOP_DELAY, value) })
         NumberInputDialog(show = showTextSizeRatioDialog, title = stringResource(id = R.string.title_text_size_ratio), label = stringResource(id = R.string.label_text_size_ratio_range), initialValue = (textSizeRatio * 100).toInt(), min = 10, max = 100, onDismiss = { showTextSizeRatioDialog = false }, onConfirm = { value -> textSizeRatio = value.toFloat() / 100f; saveConfig(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, textSizeRatio) })
 
-        if (showFontPickerDialog) {
-            val fontsDir = context.getExternalFilesDir("fonts")
-            fontsDir?.mkdirs()
-            val fontFiles = fontsDir?.listFiles { file -> file.extension.lowercase() in listOf("ttf", "otf") }?.sortedBy { it.name } ?: emptyList()
-            WindowDialog(title = stringResource(id = R.string.title_custom_font), show = true, onDismissRequest = { showFontPickerDialog = false }) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    // Default option
-                    TextButton(
-                        text = stringResource(id = R.string.summary_default_font),
-                        onClick = {
-                            customFontPath = ""
-                            saveConfig(RootConstants.KEY_HOOK_CUSTOM_FONT_PATH, "")
-                            showFontPickerDialog = false
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    for (file in fontFiles) {
-                        TextButton(
-                            text = file.nameWithoutExtension,
-                            onClick = {
-                                customFontPath = file.absolutePath
-                                saveConfig(RootConstants.KEY_HOOK_CUSTOM_FONT_PATH, file.absolutePath)
-                                showFontPickerDialog = false
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    if (fontFiles.isEmpty()) {
-                        Text(
-                            text = stringResource(id = R.string.summary_no_font_files, fontsDir?.absolutePath ?: ""),
-                            modifier = Modifier.padding(16.dp),
-                            fontSize = MiuixTheme.textStyles.body2.fontSize,
-                            color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                        )
-                    }
-                    Spacer(Modifier.width(20.dp))
-                    TextButton(text = stringResource(id = R.string.cancel), onClick = { showFontPickerDialog = false })
-                }
+        TextInputDialog(
+            show = showFontPathDialog,
+            title = stringResource(id = R.string.title_custom_font),
+            label = stringResource(id = R.string.label_custom_font_path),
+            initialValue = customFontPath,
+            onDismiss = { showFontPathDialog = false },
+            onConfirm = { path ->
+                customFontPath = path
+                saveConfig(RootConstants.KEY_HOOK_CUSTOM_FONT_PATH, path)
             }
-        }
+        )
 
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(), userScrollEnabled = true) { page ->
             when (page) {
@@ -318,15 +287,9 @@ fun LyricSettingsPage() {
                                         AnimatedVisibility(visible = extractCoverColor) {
                                             SwitchPreference(title = stringResource(id = R.string.title_extract_cover_gradient), checked = extractCoverGradient, onCheckedChange = { extractCoverGradient = it; saveConfig(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, it) })
                                         }
-                                    }
-                                }
-                            }
-                        }
-                        item {
-                            Column {
-                                SmallTitle(text = "字体", insideMargin = PaddingValues(10.dp, 4.dp))
-                                Card {
-                                    Column {
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = 16.dp)
+                                        )
                                         ArrowPreference(
                                             title = stringResource(id = R.string.title_custom_font),
                                             endActions = {
@@ -336,7 +299,7 @@ fun LyricSettingsPage() {
                                                     color = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                 )
                                             },
-                                            onClick = { showFontPickerDialog = true }
+                                            onClick = { showFontPathDialog = true }
                                         )
                                         ArrowPreference(
                                             title = stringResource(id = R.string.title_font_weight),
@@ -349,12 +312,16 @@ fun LyricSettingsPage() {
                                             },
                                             onClick = { showFontWeightDialog = true }
                                         )
-                                        SwitchPreference(title = stringResource(id = R.string.title_bold), checked = fontBold, onCheckedChange = { fontBold = it; saveConfig(RootConstants.KEY_HOOK_FONT_BOLD, it) })
-                                        SwitchPreference(title = stringResource(id = R.string.title_italic), checked = fontItalic, onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) })
+                                        SwitchPreference(
+                                            title = stringResource(id = R.string.title_italic),
+                                            checked = fontItalic,
+                                            onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) }
+                                        )
                                     }
                                 }
                             }
                         }
+
                         item {
                             Column {
                                 SmallTitle(text = stringResource(id = R.string.title_lyric_marquee), insideMargin = PaddingValues(10.dp, 4.dp))
@@ -459,7 +426,11 @@ fun LyricSettingsPage() {
                                 SmallTitle(text = stringResource(id = R.string.title_translation), insideMargin = PaddingValues(10.dp, 4.dp))
                                 Card {
                                     Column {
-                                        SwitchPreference(title = stringResource(id = R.string.title_disable_translation), checked = disableTranslation, onCheckedChange = { disableTranslation = it; saveConfig(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, it) })
+                                        SwitchPreference(
+                                            title = stringResource(id = R.string.title_disable_translation),
+                                            checked = disableTranslation,
+                                            onCheckedChange = { disableTranslation = it; saveConfig(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, it) }
+                                        )
                                         SwitchPreference(title = stringResource(id = R.string.title_translation_only), checked = translationOnly, onCheckedChange = { translationOnly = it; saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, it) })
                                     }
                                     HorizontalDivider(
@@ -467,7 +438,7 @@ fun LyricSettingsPage() {
                                     )
                                     Column {
                                         SwitchPreference(
-                                            title = stringResource(id = R.string.title_ai_trans_enable),
+                                            title = stringResource(id = R.string.title_ai_translation),
                                             checked = aiTransEnabled,
                                             onCheckedChange = { aiTransEnabled = it; saveConfig(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, it) }
                                         )
@@ -554,13 +525,13 @@ fun NumberInputDialog(show: Boolean, title: String, label: String, initialValue:
 }
 
 @Composable
-fun TextInputDialog(show: Boolean, title: String, initialValue: String, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+fun TextInputDialog(show: Boolean, title: String, initialValue: String, label: String = title, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     if (!show) return
     var inputValue by remember { mutableStateOf(initialValue) }
 
     WindowDialog(title = title, show = true, onDismissRequest = onDismiss) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            TextField(value = inputValue, onValueChange = { inputValue = it }, label = title, keyboardOptions = keyboardOptions, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 15)
+            TextField(value = inputValue, onValueChange = { inputValue = it }, label = label, keyboardOptions = keyboardOptions, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 15)
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
                 Spacer(Modifier.width(20.dp))
