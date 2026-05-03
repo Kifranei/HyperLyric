@@ -48,11 +48,9 @@ import com.lidesheng.hyperlyric.ui.component.SearchBox
 import com.lidesheng.hyperlyric.ui.component.SearchPager
 import com.lidesheng.hyperlyric.ui.component.SearchStatus
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -254,11 +252,11 @@ fun LogPage() {
     val navigator = LocalNavigator.current
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
     val allLogs = remember { mutableStateListOf<LogEntry>() }
     val filteredLogs = remember { mutableStateListOf<LogEntry>() }
     var isLoading by remember { mutableStateOf(true) }
@@ -324,102 +322,99 @@ fun LogPage() {
 
     Scaffold(
         topBar = {
-            searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
-                TopAppBar(
-                    color = Color.Transparent,
-                    title = stringResource(id = R.string.title_module_logs),
-                    scrollBehavior = scrollBehavior,
-                    navigationIcon = {
-                        IconButton(
-                            onClick = { navigator.pop() }
-                        ) {
-                            Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back))
-                        }
-                    },
-                    actions = {
-                        Box {
-                            IconButton(onClick = { showMorePopup = true }, holdDownState = showMorePopup) {
-                                Icon(imageVector = MiuixIcons.More, contentDescription = stringResource(id = R.string.more))
-                            }
-                            WindowListPopup(
-                                show = showMorePopup,
-                                alignment = PopupPositionProvider.Align.TopEnd,
-                                popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
-                                onDismissRequest = { showMorePopup = false }
+            BlurredBox(backdrop = backdrop) {
+                searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
+                    TopAppBar(
+                        color = Color.Transparent,
+                        title = stringResource(id = R.string.title_module_logs),
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            IconButton(
+                                onClick = { navigator.pop() }
                             ) {
-                                val dismissPopup = LocalDismissState.current
-                                ListPopupColumn {
-                                    val levels = listOf("ALL", "D", "I", "W", "E", "C")
-                                    val levelNames = listOf(
-                                        stringResource(id = R.string.all),
-                                        stringResource(id = R.string.level_debug),
-                                        stringResource(id = R.string.level_info),
-                                        stringResource(id = R.string.level_warn),
-                                        stringResource(id = R.string.level_error),
-                                        stringResource(id = R.string.level_crash)
-                                    )
-                                    val totalOptions = levels.size + 1
-                                    levels.forEachIndexed { index, level ->
+                                Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back))
+                            }
+                        },
+                        actions = {
+                            Box {
+                                IconButton(onClick = { showMorePopup = true }, holdDownState = showMorePopup) {
+                                    Icon(imageVector = MiuixIcons.More, contentDescription = stringResource(id = R.string.more))
+                                }
+                                WindowListPopup(
+                                    show = showMorePopup,
+                                    alignment = PopupPositionProvider.Align.TopEnd,
+                                    popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
+                                    onDismissRequest = { showMorePopup = false }
+                                ) {
+                                    val dismissPopup = LocalDismissState.current
+                                    ListPopupColumn {
+                                        val levels = listOf("ALL", "D", "I", "W", "E", "C")
+                                        val levelNames = listOf(
+                                            stringResource(id = R.string.all),
+                                            stringResource(id = R.string.level_debug),
+                                            stringResource(id = R.string.level_info),
+                                            stringResource(id = R.string.level_warn),
+                                            stringResource(id = R.string.level_error),
+                                            stringResource(id = R.string.level_crash)
+                                        )
+                                        val totalOptions = levels.size + 1
+                                        levels.forEachIndexed { index, level ->
+                                            DropdownImpl(
+                                                text = levelNames[index],
+                                                optionSize = totalOptions,
+                                                isSelected = selectedLevel == level,
+                                                onSelectedIndexChange = {
+                                                    dismissPopup?.invoke()
+                                                    selectedLevel = level
+                                                },
+                                                index = index
+                                            )
+                                        }
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = 16.dp)
+                                        )
                                         DropdownImpl(
-                                            text = levelNames[index],
+                                            text = stringResource(id = R.string.export_all),
                                             optionSize = totalOptions,
-                                            isSelected = selectedLevel == level,
+                                            isSelected = false,
                                             onSelectedIndexChange = {
                                                 dismissPopup?.invoke()
-                                                selectedLevel = level
+                                                val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
+                                                exportLauncher.launch("hyperlyric_debug_$dateTime.txt")
                                             },
-                                            index = index
+                                            index = levels.size
                                         )
                                     }
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 16.dp)
-                                    )
-                                    DropdownImpl(
-                                        text = stringResource(id = R.string.export_all),
-                                        optionSize = totalOptions,
-                                        isSelected = false,
-                                        onSelectedIndexChange = {
-                                            dismissPopup?.invoke()
-                                            val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
-                                            exportLauncher.launch("hyperlyric_debug_$dateTime.txt")
-                                        },
-                                        index = levels.size
-                                    )
                                 }
                             }
-                        }
-                    },
-                bottomContent = {
-                    Box(
-                        modifier = Modifier
-                            .alpha(if (searchStatus.isCollapsed()) 1f else 0f)
-                            .onGloballyPositioned { coordinates ->
-                                with(density) {
-                                    val newOffsetY = coordinates.positionInWindow().y.toDp()
-                                    if (searchStatus.offsetY != newOffsetY) {
-                                        searchStatus = searchStatus.copy(offsetY = newOffsetY)
-                                    }
-                                }
-                            }
-                            .then(
-                                if (searchStatus.isCollapsed()) {
-                                    Modifier.pointerInput(Unit) {
-                                        detectTapGestures {
-                                            searchStatus = searchStatus.copy(current = SearchStatus.Status.EXPANDING)
+                        },
+                        bottomContent = {
+                            Box(
+                                modifier = Modifier
+                                    .alpha(if (searchStatus.isCollapsed()) 1f else 0f)
+                                    .onGloballyPositioned { coordinates ->
+                                        with(density) {
+                                            val newOffsetY = coordinates.positionInWindow().y.toDp()
+                                            if (searchStatus.offsetY != newOffsetY) {
+                                                searchStatus = searchStatus.copy(offsetY = newOffsetY)
+                                            }
                                         }
                                     }
-                                } else Modifier
-                            )
-                    ) {
-                        SearchBarFake(stringResource(id = R.string.search))
-                    }
-                },
-                    modifier = Modifier.hazeEffect(hazeState) {
-                        style = hazeStyle
-                        blurRadius = 25.dp
-                        noiseFactor = 0f
-                    }
-                )
+                                    .then(
+                                        if (searchStatus.isCollapsed()) {
+                                            Modifier.pointerInput(Unit) {
+                                                detectTapGestures {
+                                                    searchStatus = searchStatus.copy(current = SearchStatus.Status.EXPANDING)
+                                                }
+                                            }
+                                        } else Modifier
+                                    )
+                            ) {
+                                SearchBarFake(stringResource(id = R.string.search))
+                            }
+                        }
+                    )
+                }
             }
         },
         popupHost = {
@@ -453,7 +448,7 @@ fun LogPage() {
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().layerBackdrop(backdrop)) {
             searchStatus.SearchBox {
                 PullToRefresh(
                     isRefreshing = isLoading,
@@ -474,7 +469,6 @@ fun LogPage() {
                             modifier = Modifier
                                 .fillMaxSize()
                                 .scrollEndHaptic()
-                                .hazeSource(state = hazeState)
                                 .nestedScroll(scrollBehavior.nestedScrollConnection),
                             contentPadding = PaddingValues(
                                 top = padding.calculateTopPadding(),

@@ -20,11 +20,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -52,40 +50,37 @@ fun LicensesPage() {
     val navigator = LocalNavigator.current
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     val licenses = remember { LicenseProvider.getLicenses() }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(R.string.title_licenses),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navigator.pop() }
-                    ) {
-                        Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(R.string.title_licenses),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navigator.pop() }
+                        ) {
+                            Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
+                        }
                     }
-                },
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .scrollEndHaptic()
-                .hazeSource(state = hazeState)
+                .layerBackdrop(backdrop)
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(

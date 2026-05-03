@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,11 +17,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
@@ -46,11 +43,11 @@ fun HelpPage() {
     val navigator = LocalNavigator.current
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     val tabs = listOf(stringResource(R.string.title_super_island), stringResource(R.string.title_dynamic_island_lyrics))
     val pagerState = rememberPagerState { tabs.size }
@@ -58,40 +55,36 @@ fun HelpPage() {
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
+            BlurredBox(backdrop = backdrop) {
+                Column {
+                    TopAppBar(
+                        color = Color.Transparent,
+                        title = stringResource(R.string.title_help),
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            IconButton(onClick = { navigator.pop() }) {
+                                Icon(
+                                    imageVector = MiuixIcons.Back,
+                                    contentDescription = stringResource(R.string.back)
+                                )
+                            }
+                        }
+                    )
+                    TabRow(
+                        tabs = tabs,
+                        selectedTabIndex = pagerState.currentPage,
+                        onTabSelected = { index ->
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                            .padding(bottom = 8.dp),
+                        colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
+                    )
                 }
-            ) {
-                TopAppBar(
-                    color = Color.Transparent,
-                    title = stringResource(R.string.title_help),
-                    scrollBehavior = scrollBehavior,
-                    navigationIcon = {
-                        IconButton(onClick = { navigator.pop() }) {
-                            Icon(
-                                imageVector = MiuixIcons.Back,
-                                contentDescription = stringResource(R.string.back)
-                            )
-                        }
-                    }
-                )
-                TabRow(
-                    tabs = tabs,
-                    selectedTabIndex = pagerState.currentPage,
-                    onTabSelected = { index ->
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                        .padding(bottom = 8.dp),
-                    colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
-                )
             }
         }
     ) { padding ->
@@ -102,7 +95,7 @@ fun HelpPage() {
                         modifier = Modifier
                             .fillMaxSize()
                             .scrollEndHaptic()
-                            .hazeSource(state = hazeState)
+                            .layerBackdrop(backdrop)
                             .overScrollVertical()
                             .nestedScroll(scrollBehavior.nestedScrollConnection),
                         contentPadding = PaddingValues(
@@ -147,7 +140,7 @@ fun HelpPage() {
                         modifier = Modifier
                             .fillMaxSize()
                             .scrollEndHaptic()
-                            .hazeSource(state = hazeState)
+                            .layerBackdrop(backdrop)
                             .overScrollVertical()
                             .nestedScroll(scrollBehavior.nestedScrollConnection),
                         contentPadding = PaddingValues(

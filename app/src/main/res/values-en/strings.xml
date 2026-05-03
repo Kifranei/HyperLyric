@@ -99,6 +99,7 @@
 
     <!-- ———————————————————————— DynamicIslandNotificationPage ———————————————————————— -->
     <string name="dialog_cache_limit_title">Online Lyric Cache Limit</string>
+    <string name="label_cache_limit_range">0 - 10000</string>
     <string name="dialog_add_whitelist_title">Enter Application Package Name</string>
     <string name="dialog_add_whitelist_hint">e.g. com.spotify.music</string>
     <string name="save">Save</string>

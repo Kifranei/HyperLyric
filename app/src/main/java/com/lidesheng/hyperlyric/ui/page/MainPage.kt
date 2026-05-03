@@ -10,21 +10,19 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import com.lidesheng.hyperlyric.ui.component.SimpleDialog
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -62,11 +60,9 @@ import com.lidesheng.hyperlyric.root.utils.ShellUtils
 import com.lidesheng.hyperlyric.service.LiveLyricService
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -84,7 +80,6 @@ import top.yukonga.miuix.kmp.basic.NavigationItem
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -99,7 +94,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
-import top.yukonga.miuix.kmp.window.WindowDialog
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -128,11 +122,11 @@ fun MainPage() {
 
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
     
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
     
     val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     var floatingNavBarEnabled by remember { mutableStateOf(prefs.getBoolean(UIConstants.KEY_FLOATING_NAV_BAR, UIConstants.DEFAULT_FLOATING_NAV_BAR)) }
@@ -170,101 +164,75 @@ fun MainPage() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = if (pagerState.currentPage == 0) "HyperLyric" else stringResource(R.string.about),
-                scrollBehavior = scrollBehavior,
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
-                }
-            )
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = if (pagerState.currentPage == 0) "HyperLyric" else stringResource(R.string.about),
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         bottomBar = {
             if (floatingNavBarEnabled) {
-                FloatingNavigationBar(
-                    mode = FloatingNavigationBarDisplayMode.IconOnly,
-                    showDivider = true,
-                    color = Color.Transparent,
-                    modifier = Modifier
-                        .hazeEffect(hazeState) {
-                            style = hazeStyle
-                            blurRadius = 5.dp
-                            noiseFactor = 0f
+                BlurredBox(backdrop = backdrop) {
+                    FloatingNavigationBar(
+                        mode = FloatingNavigationBarDisplayMode.IconOnly,
+                        showDivider = true,
+                        color = Color.Transparent
+                    ) {
+                        navItems.forEachIndexed { index, item ->
+                            FloatingNavigationBarItem(
+                                selected = pagerState.currentPage == index,
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                },
+                                icon = item.icon,
+                                label = item.label
+                            )
                         }
-                ) {
-                    navItems.forEachIndexed { index, item ->
-                        FloatingNavigationBarItem(
-                            selected = pagerState.currentPage == index,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            },
-                            icon = item.icon,
-                            label = item.label
-                        )
                     }
                 }
             } else {
-                NavigationBar(
-                    mode = NavigationBarDisplayMode.IconWithSelectedLabel,
-                    color = Color.Transparent,
-                    modifier = Modifier.hazeEffect(hazeState) {
-                        style = hazeStyle
-                        blurRadius = 25.dp
-                        noiseFactor = 0f
-                    }
-                ) {
-                    navItems.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            selected = pagerState.currentPage == index,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            },
-                            icon = item.icon,
-                            label = item.label
-                        )
+                BlurredBox(backdrop = backdrop) {
+                    NavigationBar(
+                        mode = NavigationBarDisplayMode.IconWithSelectedLabel,
+                        color = Color.Transparent
+                    ) {
+                        navItems.forEachIndexed { index, item ->
+                            NavigationBarItem(
+                                selected = pagerState.currentPage == index,
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                },
+                                icon = item.icon,
+                                label = item.label
+                            )
+                        }
                     }
                 }
             }
         }
     ) { padding ->
-        WindowDialog(
+        SimpleDialog(
+            show = showRestartDialog,
             title = stringResource(R.string.dialog_restart_title),
             summary = stringResource(R.string.dialog_restart_summary),
-            show = showRestartDialog,
-            onDismissRequest = { showRestartDialog = false }
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = { showRestartDialog = false },
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(20.dp))
-                TextButton(
-                    text = stringResource(R.string.confirm),
-                    colors = ButtonDefaults.textButtonColorsPrimary(),
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        showRestartDialog = false
-                        scope.launch {
-                            val success = ShellUtils.restartSystemUI()
-                            if (!success) {
-                                Toast.makeText(context, msgNoRoot, Toast.LENGTH_SHORT).show()
-                            }
-                        }
+            onDismiss = { showRestartDialog = false },
+            onConfirm = {
+                showRestartDialog = false
+                scope.launch {
+                    val success = ShellUtils.restartSystemUI()
+                    if (!success) {
+                        Toast.makeText(context, msgNoRoot, Toast.LENGTH_SHORT).show()
                     }
-                )
+                }
             }
-        }
+        )
+
 
         HorizontalPager(
             state = pagerState,
@@ -276,7 +244,7 @@ fun MainPage() {
                     modifier = Modifier
                         .fillMaxSize()
                         .scrollEndHaptic()
-                        .hazeSource(state = hazeState)
+                        .layerBackdrop(backdrop)
                         .overScrollVertical()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     contentPadding = PaddingValues(
@@ -431,7 +399,7 @@ fun MainPage() {
                     modifier = Modifier
                         .fillMaxSize()
                         .scrollEndHaptic()
-                        .hazeSource(state = hazeState)
+                        .layerBackdrop(backdrop)
                         .overScrollVertical()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     contentPadding = PaddingValues(

@@ -28,11 +28,9 @@ import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import org.json.JSONObject
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -194,11 +192,11 @@ fun SettingsPage() {
     val msgRestoreInvalid = stringResource(R.string.toast_restore_invalid)
     val msgRestoreFailed = stringResource(R.string.toast_restore_failed)
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json"),
@@ -243,33 +241,30 @@ fun SettingsPage() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(R.string.title_settings_page),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navigator.pop() }
-                    ) {
-                        Icon(
-                            imageVector = MiuixIcons.Back,
-                            contentDescription = stringResource(R.string.back)
-                        )
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(R.string.title_settings_page),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navigator.pop() }
+                        ) {
+                            Icon(
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
                     }
-                },
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .scrollEndHaptic()
-                .hazeSource(state = hazeState)
+                .layerBackdrop(backdrop)
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(

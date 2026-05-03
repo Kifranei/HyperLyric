@@ -40,11 +40,9 @@ import com.lidesheng.hyperlyric.ui.component.SearchBox
 import com.lidesheng.hyperlyric.ui.component.SearchPager
 import com.lidesheng.hyperlyric.ui.component.SearchStatus
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
@@ -83,57 +81,54 @@ fun PoetryPage() {
     }
     val density = LocalDensity.current
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     Scaffold(
         topBar = {
-            searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
-                TopAppBar(
-                    color = Color.Transparent,
-                    title = "HyperLyric",
-                    scrollBehavior = scrollBehavior,
-                    navigationIcon = {
-                        IconButton(
-                            onClick = { navigator.pop() }
-                        ) {
-                            Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
-                        }
-                    },
-                    bottomContent = {
-                        Box(
-                            modifier = Modifier
-                                .alpha(if (searchStatus.isCollapsed()) 1f else 0f)
-                                .onGloballyPositioned { coordinates ->
-                                    with(density) {
-                                        val newOffsetY = coordinates.positionInWindow().y.toDp()
-                                        if (searchStatus.offsetY != newOffsetY) {
-                                            searchStatus = searchStatus.copy(offsetY = newOffsetY)
-                                        }
-                                    }
-                                }
-                                .then(
-                                    if (searchStatus.isCollapsed()) {
-                                        Modifier.pointerInput(Unit) {
-                                            detectTapGestures {
-                                                searchStatus = searchStatus.copy(current = SearchStatus.Status.EXPANDING)
+            BlurredBox(backdrop = backdrop) {
+                searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
+                    TopAppBar(
+                        color = Color.Transparent,
+                        title = "HyperLyric",
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            IconButton(
+                                onClick = { navigator.pop() }
+                            ) {
+                                Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
+                            }
+                        },
+                        bottomContent = {
+                            Box(
+                                modifier = Modifier
+                                    .alpha(if (searchStatus.isCollapsed()) 1f else 0f)
+                                    .onGloballyPositioned { coordinates ->
+                                        with(density) {
+                                            val newOffsetY = coordinates.positionInWindow().y.toDp()
+                                            if (searchStatus.offsetY != newOffsetY) {
+                                                searchStatus = searchStatus.copy(offsetY = newOffsetY)
                                             }
                                         }
-                                    } else Modifier
-                                )
-                        ) {
-                            SearchBarFake(stringResource(R.string.search))
+                                    }
+                                    .then(
+                                        if (searchStatus.isCollapsed()) {
+                                            Modifier.pointerInput(Unit) {
+                                                detectTapGestures {
+                                                    searchStatus = searchStatus.copy(current = SearchStatus.Status.EXPANDING)
+                                                }
+                                            }
+                                        } else Modifier
+                                    )
+                            ) {
+                                SearchBarFake(stringResource(R.string.search))
+                            }
                         }
-                    },
-                    modifier = Modifier.hazeEffect(hazeState) {
-                        style = hazeStyle
-                        blurRadius = 25.dp
-                        noiseFactor = 0f
-                    }
-                )
+                    )
+                }
             }
         },
         floatingActionButton = {
@@ -195,7 +190,7 @@ fun PoetryPage() {
                 modifier = Modifier
                     .fillMaxSize()
                     .scrollEndHaptic()
-                    .hazeSource(state = hazeState)
+                    .layerBackdrop(backdrop)
                     .overScrollVertical()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(

@@ -10,7 +10,6 @@ activityCompose = "1.12.4"
 composeBom = "2026.02.00"
 miuix = "0.9.0"
 palette = "1.0.0"
-haze = "1.7.2"
 kotlin = "2.3.0"
 androidx-navigation3 = "1.1.0"
 retrofit = "2.11.0"
@@ -51,7 +50,6 @@ miuix-preference-android = { group = "top.yukonga.miuix.kmp", name = "miuix-pref
 miuix-blur-android = { group = "top.yukonga.miuix.kmp", name = "miuix-blur-android", version.ref = "miuix" }
 miuix-icons-android = { group = "top.yukonga.miuix.kmp", name = "miuix-icons-android", version.ref = "miuix" }
 miuix-navigation3-ui-android = { group = "top.yukonga.miuix.kmp", name = "miuix-navigation3-ui-android", version.ref = "miuix" }
-haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 
 # --- Navigation3 ---
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "androidx-navigation3" }

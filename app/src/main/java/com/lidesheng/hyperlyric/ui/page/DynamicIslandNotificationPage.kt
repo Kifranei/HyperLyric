@@ -8,16 +8,16 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Arrangement
+import com.lidesheng.hyperlyric.ui.component.NumberInputDialog
+import com.lidesheng.hyperlyric.ui.component.SimpleDialog
+import com.lidesheng.hyperlyric.ui.component.TextInputDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -43,14 +43,11 @@ import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.lyric.DynamicLyricData
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -60,9 +57,6 @@ import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -75,7 +69,6 @@ import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import top.yukonga.miuix.kmp.window.WindowDialog
 import com.lidesheng.hyperlyric.lyric.commonMusicApps
 
 @SuppressLint("BatteryLife")
@@ -86,11 +79,11 @@ fun DynamicIslandNotificationPage() {
     val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     val onlineLyricCacheLimit = prefs.getInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, ServiceConstants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT)
     var onlineLyricEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, ServiceConstants.DEFAULT_ONLINE_LYRIC_ENABLED)) }
@@ -98,7 +91,7 @@ fun DynamicIslandNotificationPage() {
     var limitWidthEnabled by remember { mutableStateOf(prefs.getBoolean(ServiceConstants.KEY_NOTIFICATION_ISLAND_LIMIT_WIDTH, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_LIMIT_WIDTH)) }
     var maxWidth by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_ISLAND_MAX_WIDTH, ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_MAX_WIDTH)) }
     var showCacheLimitDialog by remember { mutableStateOf(false) }
-    var tempCacheLimit by remember { mutableStateOf(onlineLyricCacheLimitState.toString()) }
+
 
     val tabs = listOf(stringResource(R.string.title_custom_config), stringResource(R.string.title_lyric_whitelist))
     val pagerState = rememberPagerState { tabs.size }
@@ -123,85 +116,96 @@ fun DynamicIslandNotificationPage() {
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
+            BlurredBox(backdrop = backdrop) {
+                Column {
+                    TopAppBar(
+                        color = Color.Transparent,
+                        title = stringResource(R.string.title_dynamic_island_lyrics),
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            IconButton(onClick = { navigator.pop() }) {
+                                Icon(
+                                    imageVector = MiuixIcons.Back,
+                                    contentDescription = stringResource(R.string.back)
+                                )
+                            }
+                        }
+                    )
+                    TabRow(
+                        tabs = tabs,
+                        selectedTabIndex = pagerState.currentPage,
+                        onTabSelected = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                            .padding(bottom = 8.dp),
+                        colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
+                    )
                 }
-            ) {
-                TopAppBar(
-                    color = Color.Transparent,
-                    title = stringResource(R.string.title_dynamic_island_lyrics),
-                    scrollBehavior = scrollBehavior,
-                    navigationIcon = {
-                        IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back)) }
-                    }
-                )
-                TabRow(
-                    tabs = tabs,
-                    selectedTabIndex = pagerState.currentPage,
-                    onTabSelected = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 8.dp),
-                    colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
-                )
             }
         }
     ) { padding ->
 
-        if (showCacheLimitDialog) {
-            WindowDialog(title = stringResource(R.string.dialog_cache_limit_title), show = true, onDismissRequest = { showCacheLimitDialog = false }) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    TextField(value = tempCacheLimit, onValueChange = { tempCacheLimit = it.filter { char -> char.isDigit() } }, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
-                    Row(horizontalArrangement = Arrangement.End) {
-                        TextButton(text = stringResource(R.string.cancel), onClick = { showCacheLimitDialog = false }, modifier = Modifier.weight(1f))
-                        Spacer(modifier = Modifier.width(20.dp))
-                        TextButton(text = stringResource(R.string.confirm), colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
-                            val newLimit = tempCacheLimit.toIntOrNull() ?: ServiceConstants.DEFAULT_ONLINE_LYRIC_CACHE_LIMIT
-                            onlineLyricCacheLimitState = newLimit
-                            prefs.edit { putInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, newLimit) }
-                            showCacheLimitDialog = false
-                        })
-                    }
-                }
-            }
-        }
 
-        if (showAddWhitelistDialog) {
-            WindowDialog(title = stringResource(R.string.dialog_add_whitelist_title), show = true, onDismissRequest = { showAddWhitelistDialog = false }) {
-                Column {
-                    TextField(value = tempWhitelistInput, onValueChange = { tempWhitelistInput = it }, label = stringResource(R.string.dialog_add_whitelist_hint), modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(text = stringResource(R.string.cancel), onClick = { showAddWhitelistDialog = false }, modifier = Modifier.weight(1f))
-                        Spacer(modifier = Modifier.width(20.dp))
-                        TextButton(text = stringResource(R.string.save), colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
-                            if (tempWhitelistInput.isNotBlank()) {
-                                val success = DynamicLyricData.addPackageToWhitelist(context, tempWhitelistInput)
-                                if (success) { showAddWhitelistDialog = false } else { Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show() }
-                            } else { Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show() }
-                        })
-                    }
-                }
+        NumberInputDialog(
+            show = showCacheLimitDialog,
+            title = stringResource(R.string.dialog_cache_limit_title),
+            label = stringResource(R.string.label_cache_limit_range),
+            initialValue = onlineLyricCacheLimitState,
+            min = 0,
+            max = 10000,
+            onDismiss = { showCacheLimitDialog = false },
+            onConfirm = {
+                onlineLyricCacheLimitState = it
+                prefs.edit { putInt(ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT, it) }
+                showCacheLimitDialog = false
             }
-        }
+        )
 
-        if (showDeleteWhitelistDialog) {
-            WindowDialog(title = stringResource(R.string.dialog_delete_whitelist_title), show = true, onDismissRequest = { showDeleteWhitelistDialog = false }) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(text = stringResource(R.string.cancel), onClick = { showDeleteWhitelistDialog = false }, modifier = Modifier.weight(1f))
-                    Spacer(modifier = Modifier.width(20.dp))
-                    TextButton(text = stringResource(R.string.confirm), colors = ButtonDefaults.textButtonColorsPrimary(), modifier = Modifier.weight(1f), onClick = {
-                        DynamicLyricData.removePackageFromWhitelist(context, packageToDelete)
-                        showDeleteWhitelistDialog = false
-                    })
+        TextInputDialog(
+            show = showAddWhitelistDialog,
+            title = stringResource(R.string.dialog_add_whitelist_title),
+            initialValue = tempWhitelistInput,
+            label = stringResource(R.string.dialog_add_whitelist_hint),
+            confirmText = stringResource(R.string.save),
+            onDismiss = { showAddWhitelistDialog = false },
+            onConfirm = { input ->
+                if (input.isNotBlank()) {
+                    val success = DynamicLyricData.addPackageToWhitelist(context, input)
+                    if (success) {
+                        showAddWhitelistDialog = false
+                    } else {
+                        Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show()
                 }
             }
-        }
+        )
+
+        SimpleDialog(
+            show = showDeleteWhitelistDialog,
+            title = stringResource(R.string.dialog_delete_whitelist_title),
+            onDismiss = { showDeleteWhitelistDialog = false },
+            onConfirm = {
+                DynamicLyricData.removePackageFromWhitelist(context, packageToDelete)
+                showDeleteWhitelistDialog = false
+            }
+        )
+
 
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(), userScrollEnabled = true) { page ->
             when (page) {
                 0 -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection), contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .scrollEndHaptic()
+                            .layerBackdrop(backdrop)
+                            .overScrollVertical()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())
+                    ) {
                         item {
                             Column {
                                 var notificationType by remember { mutableIntStateOf(prefs.getInt(ServiceConstants.KEY_NOTIFICATION_TYPE, ServiceConstants.DEFAULT_NOTIFICATION_TYPE)) }
@@ -268,7 +272,7 @@ fun DynamicIslandNotificationPage() {
                                             BasicComponent  (
                                                 title = stringResource(R.string.title_limit_width_desc),
                                                 summary = stringResource(R.string.summary_limit_width),
-                                                endActions  = { Text("$maxWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
+                                                endActions  = { top.yukonga.miuix.kmp.basic.Text("$maxWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
                                                 bottomAction = {
                                                     Slider(
                                                         value = maxWidth.toFloat(),
@@ -350,7 +354,7 @@ fun DynamicIslandNotificationPage() {
                                         if (BuildConfig.ONLINE_FEATURES_ENABLED) {
                                             SwitchPreference(title = stringResource(R.string.title_online_lyric), summary = stringResource(R.string.summary_online_lyric), checked = onlineLyricEnabled, onCheckedChange = { checked -> onlineLyricEnabled = checked; prefs.edit { putBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, checked) } })
                                             if (onlineLyricEnabled) {
-                                                ArrowPreference(title = stringResource(R.string.dialog_cache_limit_title), summary = fmtSongsCount.format(onlineLyricCacheLimitState), onClick = { tempCacheLimit = onlineLyricCacheLimitState.toString(); showCacheLimitDialog = true })
+                                                ArrowPreference(title = stringResource(R.string.dialog_cache_limit_title), summary = fmtSongsCount.format(onlineLyricCacheLimitState), onClick = { showCacheLimitDialog = true })
                                             }
                                         }
                                     }
@@ -360,7 +364,15 @@ fun DynamicIslandNotificationPage() {
                     }
                 }
                 1 -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection), contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .scrollEndHaptic()
+                            .layerBackdrop(backdrop)
+                            .overScrollVertical()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())
+                    ) {
                         item {
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 ArrowPreference(title = stringResource(R.string.title_add_whitelist), onClick = { tempWhitelistInput = ""; showAddWhitelistDialog = true }, holdDownState = showAddWhitelistDialog)

@@ -101,7 +101,6 @@ dependencies {
     implementation(libs.miuix.icons.android)
     implementation(libs.miuix.navigation3.ui.android)
     implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.haze)
 
 
     // --- 调试工具 ---

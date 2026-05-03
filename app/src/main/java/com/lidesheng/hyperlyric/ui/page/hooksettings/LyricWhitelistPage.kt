@@ -1,15 +1,12 @@
 package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
+import com.lidesheng.hyperlyric.ui.component.SimpleDialog
+import com.lidesheng.hyperlyric.ui.component.TextInputDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,13 +25,10 @@ import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.lyric.DynamicLyricData
 import com.lidesheng.hyperlyric.lyric.commonMusicApps
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.FabPosition
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
@@ -42,8 +36,6 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -53,22 +45,21 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import top.yukonga.miuix.kmp.window.WindowDialog
 
 @Composable
 fun LyricWhitelistPage() {
+    val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
     val context = LocalContext.current
     val navigator = LocalNavigator.current
-    val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
     val msgAppExists = stringResource(id = R.string.toast_app_exists)
     val msgPkgEmpty = stringResource(id = R.string.toast_pkg_empty)
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     LaunchedEffect(Unit) { DynamicLyricData.initWhitelist(context) }
 
@@ -81,21 +72,55 @@ fun LyricWhitelistPage() {
     var tempWhitelistInput by remember { mutableStateOf("") }
     var packageToDelete by remember { mutableStateOf("") }
 
+    TextInputDialog(
+        show = showAddWhitelistDialog,
+        title = stringResource(id = R.string.dialog_add_whitelist_title),
+        initialValue = tempWhitelistInput,
+        label = stringResource(id = R.string.dialog_add_whitelist_hint),
+        confirmText = stringResource(id = R.string.save),
+        onDismiss = { showAddWhitelistDialog = false },
+        onConfirm = { input ->
+            if (input.isNotBlank()) {
+                val success = DynamicLyricData.addPackageToHookList(context, input)
+                if (success) {
+                    showAddWhitelistDialog = false
+                } else {
+                    Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    SimpleDialog(
+        show = showDeleteWhitelistDialog,
+        title = stringResource(id = R.string.dialog_delete_whitelist_title),
+        onDismiss = { showDeleteWhitelistDialog = false },
+        onConfirm = {
+            DynamicLyricData.removePackageFromHookPage(context, packageToDelete)
+            showDeleteWhitelistDialog = false
+        }
+    )
+
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(id = R.string.title_lyric_whitelist),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
-                },
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
-                }
-            )
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(id = R.string.title_lyric_whitelist),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(onClick = { navigator.pop() }) {
+                            Icon(
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
+                    }
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -111,63 +136,13 @@ fun LyricWhitelistPage() {
         floatingActionButtonPosition = FabPosition.End
     ) { padding ->
 
-        if (showAddWhitelistDialog) {
-            WindowDialog(title = stringResource(id = R.string.dialog_add_whitelist_title), show = true, onDismissRequest = { showAddWhitelistDialog = false }) {
-                Column {
-                    TextField(
-                        value = tempWhitelistInput,
-                        onValueChange = { tempWhitelistInput = it },
-                        label = stringResource(id = R.string.dialog_add_whitelist_hint),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                    )
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(text = stringResource(id = R.string.cancel), onClick = { showAddWhitelistDialog = false }, modifier = Modifier.weight(1f))
-                        Spacer(modifier = Modifier.width(20.dp))
-                        TextButton(
-                            text = stringResource(id = R.string.save),
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                if (tempWhitelistInput.isNotBlank()) {
-                                    val success = DynamicLyricData.addPackageToHookList(context, tempWhitelistInput)
-                                    if (success) {
-                                        showAddWhitelistDialog = false
-                                    } else {
-                                        Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        }
 
-        if (showDeleteWhitelistDialog) {
-            WindowDialog(title = stringResource(id = R.string.dialog_delete_whitelist_title), show = true, onDismissRequest = { showDeleteWhitelistDialog = false }) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(text = stringResource(id = R.string.cancel), onClick = { showDeleteWhitelistDialog = false }, modifier = Modifier.weight(1f))
-                    Spacer(modifier = Modifier.width(20.dp))
-                    TextButton(
-                        text = stringResource(id = R.string.confirm),
-                        colors = ButtonDefaults.textButtonColorsPrimary(),
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            DynamicLyricData.removePackageFromHookPage(context, packageToDelete)
-                            showDeleteWhitelistDialog = false
-                        }
-                    )
-                }
-            }
-        }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .scrollEndHaptic()
-                .hazeSource(state = hazeState)
+                .layerBackdrop(backdrop)
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(

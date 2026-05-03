@@ -23,11 +23,9 @@ import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -51,11 +49,11 @@ fun HookSettingsPage() {
     val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     var lyricMode by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_LYRIC_MODE, RootConstants.DEFAULT_HOOK_LYRIC_MODE)) }
     val lyricModeOptions = listOf(
@@ -65,31 +63,28 @@ fun HookSettingsPage() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(R.string.title_super_island_lyrics),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { 
-                        Icon(
-                            imageVector = MiuixIcons.Back, 
-                            contentDescription = stringResource(R.string.back)
-                        ) 
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(R.string.title_super_island_lyrics),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(onClick = { navigator.pop() }) {
+                            Icon(
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
                     }
-                },
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .scrollEndHaptic()
-                .hazeSource(state = hazeState)
+                .layerBackdrop(backdrop)
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(

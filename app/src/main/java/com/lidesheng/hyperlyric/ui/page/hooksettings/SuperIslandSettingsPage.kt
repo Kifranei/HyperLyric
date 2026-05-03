@@ -2,17 +2,13 @@ package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
+import com.lidesheng.hyperlyric.ui.component.NumberInputDialog
+import com.lidesheng.hyperlyric.ui.component.PaddingInputDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -23,19 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -44,8 +36,6 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -56,7 +46,6 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import top.yukonga.miuix.kmp.window.WindowDialog
 import androidx.compose.ui.res.stringResource
 import com.lidesheng.hyperlyric.R
 
@@ -131,21 +120,25 @@ fun SuperIslandSettingsPage() {
 
 
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(backgroundColor = MiuixTheme.colorScheme.surface, tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f)))
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(id = R.string.title_super_island),
-                subtitle = stringResource(id = R.string.subtitle_super_island),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
-                },
-                modifier = Modifier.hazeEffect(hazeState) { style = hazeStyle; blurRadius = 25.dp; noiseFactor = 0f }
-            )
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(id = R.string.title_super_island),
+                    subtitle = stringResource(id = R.string.subtitle_super_island),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
+                    }
+                )
+            }
         }
     ) { padding ->
         NumberInputDialog(show = showLeftContentWidthDialog, title = stringResource(id = R.string.title_left_content_width), label = stringResource(id = R.string.label_content_width_range), initialValue = leftContentWidth, min = 0, max = 100, onDismiss = { showLeftContentWidthDialog = false }, onConfirm = { value -> leftContentWidth = value; saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, value) })
@@ -181,7 +174,12 @@ fun SuperIslandSettingsPage() {
         )
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .scrollEndHaptic()
+                .layerBackdrop(backdrop)
+                .overScrollVertical()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())
         ) {
             item {
@@ -287,58 +285,4 @@ fun SuperIslandSettingsPage() {
     }
 }
 
-@Composable
-fun PaddingInputDialog(
-    show: Boolean,
-    title: String,
-    initialLeft: Int,
-    initialRight: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (Int, Int) -> Unit
-) {
-    if (!show) return
-    var leftValue by remember { mutableStateOf(initialLeft.toString()) }
-    var rightValue by remember { mutableStateOf(initialRight.toString()) }
 
-    WindowDialog(title = title, show = true, onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            val filter = { text: String ->
-                if (text == "-" || text.isEmpty()) true
-                else text.toIntOrNull() != null
-            }
-            TextField(
-                value = leftValue,
-                onValueChange = { if (filter(it)) leftValue = it },
-                label = stringResource(id = R.string.label_left_padding),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            TextField(
-                value = rightValue,
-                onValueChange = { if (filter(it)) rightValue = it },
-                label = stringResource(id = R.string.label_right_padding),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
-                Spacer(Modifier.width(20.dp))
-                TextButton(
-                    text = stringResource(id = R.string.confirm),
-                    onClick = {
-                        val l = leftValue.toIntOrNull() ?: 0
-                        val r = rightValue.toIntOrNull() ?: 0
-                        onConfirm(l.coerceIn(-50, 100), r.coerceIn(-50, 100))
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.textButtonColorsPrimary()
-                )
-            }
-        }
-    }
-}

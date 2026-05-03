@@ -29,11 +29,10 @@ import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.utils.LyricModule
 import com.lidesheng.hyperlyric.ui.utils.LyricProviderManager
 import com.lidesheng.hyperlyric.ui.utils.ProviderUiState
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -64,8 +63,11 @@ fun LyricProviderPage() {
     val navigator = LocalNavigator.current
     val providerReleaseHome = stringResource(R.string.provider_release_home)
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(backgroundColor = MiuixTheme.colorScheme.surface, tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f)))
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
     
     val coroutineScope = rememberCoroutineScope()
     val providerUiStateFlow = remember { MutableStateFlow(ProviderUiState()) }
@@ -76,34 +78,46 @@ fun LyricProviderPage() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                color = Color.Transparent,
-                title = stringResource(id = R.string.title_lyric_provider),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, providerReleaseHome.toUri())
-                                context.startActivity(intent)
-                            } catch (_: Exception) { }
+            BlurredBox(backdrop = backdrop) {
+                TopAppBar(
+                    color = Color.Transparent,
+                    title = stringResource(id = R.string.title_lyric_provider),
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        IconButton(onClick = { navigator.pop() }) {
+                            Icon(
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
                         }
-                    ) {
-                        Icon(painter = painterResource(id = R.drawable.ic_github), contentDescription = stringResource(id = R.string.github), tint = MiuixTheme.colorScheme.onBackground, modifier = Modifier.size(26.dp))
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, providerReleaseHome.toUri())
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_github),
+                                contentDescription = stringResource(id = R.string.github),
+                                tint = MiuixTheme.colorScheme.onBackground,
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
                     }
-                },
-                modifier = Modifier.hazeEffect(hazeState) { style = hazeStyle; blurRadius = 25.dp; noiseFactor = 0f }
-            )
+                )
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
             LyricProviderTab(
                 uiState = providerUiState.value,
                 padding = padding,
-                hazeState = hazeState,
+                backdrop = backdrop,
                 scrollBehavior = scrollBehavior,
                 pullToRefreshState = pullToRefreshState,
                 onRefresh = { coroutineScope.launch { LyricProviderManager.loadProviders(context, providerUiStateFlow) } }
@@ -113,7 +127,7 @@ fun LyricProviderPage() {
 }
 
 @Composable
-private fun LyricProviderTab(uiState: ProviderUiState, padding: PaddingValues, hazeState: HazeState, scrollBehavior: ScrollBehavior, pullToRefreshState: PullToRefreshState, onRefresh: () -> Unit) {
+private fun LyricProviderTab(uiState: ProviderUiState, padding: PaddingValues, backdrop: LayerBackdrop, scrollBehavior: ScrollBehavior, pullToRefreshState: PullToRefreshState, onRefresh: () -> Unit) {
     val othersCategoryName = stringResource(id = R.string.category_others)
     val groupedModules = remember(uiState.modules) { LyricProviderManager.categorizeModules(uiState.modules, othersCategoryName) }
 
@@ -131,7 +145,7 @@ private fun LyricProviderTab(uiState: ProviderUiState, padding: PaddingValues, h
         modifier = Modifier.fillMaxSize()
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical(), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())) {
+            LazyColumn(modifier = Modifier.fillMaxSize().scrollEndHaptic().layerBackdrop(backdrop).overScrollVertical(), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding())) {
                 if (!uiState.isLoading && uiState.modules.isEmpty()) {
                     item {
                         Card(modifier = Modifier.fillMaxWidth()) {

@@ -3,15 +3,11 @@ package com.lidesheng.hyperlyric.ui.page.hooksettings
 import android.content.Context
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -37,13 +33,13 @@ import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.lidesheng.hyperlyric.ui.utils.BlurredBox
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import com.lidesheng.hyperlyric.ui.component.FloatInputDialog
+import com.lidesheng.hyperlyric.ui.component.NumberInputDialog
+import com.lidesheng.hyperlyric.ui.component.TextInputDialog
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -54,8 +50,6 @@ import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
@@ -66,7 +60,7 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import top.yukonga.miuix.kmp.window.WindowDialog
+
 
 @Composable
 fun LyricSettingsPage() {
@@ -185,8 +179,11 @@ fun LyricSettingsPage() {
     }
 
     val scrollBehavior = MiuixScrollBehavior(rememberTopAppBarState())
-    val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(backgroundColor = MiuixTheme.colorScheme.surface, tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f)))
+    val surfaceColor = MiuixTheme.colorScheme.surface
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     val tabs = listOf(stringResource(R.string.tab_basic), stringResource(R.string.tab_advanced))
     val pagerState = rememberPagerState { tabs.size }
@@ -194,28 +191,32 @@ fun LyricSettingsPage() {
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 25.dp
-                    noiseFactor = 0f
+            BlurredBox(backdrop = backdrop) {
+                Column {
+                    TopAppBar(
+                        color = Color.Transparent,
+                        title = stringResource(id = R.string.title_lyrics),
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            IconButton(onClick = { navigator.pop() }) {
+                                Icon(
+                                    imageVector = MiuixIcons.Back,
+                                    contentDescription = stringResource(id = R.string.back)
+                                )
+                            }
+                        }
+                    )
+                    TabRow(
+                        tabs = tabs,
+                        selectedTabIndex = pagerState.currentPage,
+                        onTabSelected = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                            .padding(bottom = 8.dp),
+                        colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
+                    )
                 }
-            ) {
-                TopAppBar(
-                    color = Color.Transparent,
-                    title = stringResource(id = R.string.title_lyrics),
-                    scrollBehavior = scrollBehavior,
-                    navigationIcon = {
-                        IconButton(onClick = { navigator.pop() }) { Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(id = R.string.back)) }
-                    }
-                )
-                TabRow(
-                    tabs = tabs,
-                    selectedTabIndex = pagerState.currentPage,
-                    onTabSelected = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 8.dp),
-                    colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
-                )
             }
         }
     ) { padding ->
@@ -293,7 +294,12 @@ fun LyricSettingsPage() {
             when (page) {
                 0 -> {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .scrollEndHaptic()
+                            .layerBackdrop(backdrop)
+                            .overScrollVertical()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
                         contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding() + 16.dp)
                     ) {
                         item {
@@ -436,7 +442,12 @@ fun LyricSettingsPage() {
                 }
                 1 -> {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().scrollEndHaptic().hazeSource(state = hazeState).overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .scrollEndHaptic()
+                            .layerBackdrop(backdrop)
+                            .overScrollVertical()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
                         contentPadding = PaddingValues(top = padding.calculateTopPadding(), start = 12.dp, end = 12.dp, bottom = padding.calculateBottomPadding() + 16.dp)
                     ) {
                         item {
@@ -621,70 +632,4 @@ fun LyricSettingsPage() {
     }
 }
 
-@Composable
-fun NumberInputDialog(show: Boolean, title: String, label: String, initialValue: Int, min: Int, max: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
-    if (!show) return
-    var inputValue by remember { mutableStateOf(initialValue.toString()) }
 
-    WindowDialog(title = title, show = true, onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            TextField(value = inputValue, onValueChange = { newValue -> if (newValue.all { it.isDigit() }) inputValue = newValue }, label = label, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 1)
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
-                Spacer(Modifier.width(20.dp))
-                TextButton(text = stringResource(id = R.string.confirm), onClick = { inputValue.toIntOrNull()?.let { onConfirm(it.coerceIn(min, max)); onDismiss() } }, modifier = Modifier.weight(1f), colors = ButtonDefaults.textButtonColorsPrimary())
-            }
-        }
-    }
-}
-
-@Composable
-fun TextInputDialog(show: Boolean, title: String, initialValue: String, label: String = title, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    if (!show) return
-    var inputValue by remember { mutableStateOf(initialValue) }
-
-    WindowDialog(title = title, show = true, onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            TextField(value = inputValue, onValueChange = { inputValue = it }, label = label, keyboardOptions = keyboardOptions, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 15)
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
-                Spacer(Modifier.width(20.dp))
-                TextButton(text = stringResource(id = R.string.confirm), onClick = { onConfirm(inputValue); onDismiss() }, modifier = Modifier.weight(1f), colors = ButtonDefaults.textButtonColorsPrimary())
-            }
-        }
-    }
-}
-
-@Composable
-fun FloatInputDialog(show: Boolean, title: String, label: String, initialValue: Float, min: Float, max: Float, onDismiss: () -> Unit, onConfirm: (Float) -> Unit) {
-    if (!show) return
-    var inputValue by remember { mutableStateOf(initialValue.toString()) }
-
-    WindowDialog(title = title, show = true, onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            TextField(
-                value = inputValue,
-                onValueChange = { newValue -> if (newValue.all { it.isDigit() || it == '.' }) inputValue = newValue },
-                label = label,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                maxLines = 1
-            )
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(text = stringResource(id = R.string.cancel), onClick = onDismiss, modifier = Modifier.weight(1f))
-                Spacer(Modifier.width(20.dp))
-                TextButton(
-                    text = stringResource(id = R.string.confirm),
-                    onClick = {
-                        inputValue.toFloatOrNull()?.let {
-                            onConfirm(it.coerceIn(min, max))
-                            onDismiss()
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.textButtonColorsPrimary()
-                )
-            }
-        }
-    }
-}
