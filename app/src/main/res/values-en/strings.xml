@@ -207,6 +207,8 @@
     <string name="title_syllable_relative">Relative Progress Lyrics</string>
     <string name="summary_syllable_relative">When lyrics lack word-level data, display the entire line as a word</string>
     <string name="title_syllable_highlight">Show Highlight for Relative Progress Lyrics</string>
+    <string name="title_sustain_glow">Sustain Glow</string>
+    <string name="summary_sustain_glow">Add a soft glow on long held lyric syllables.</string>
     <string name="format_percent">%1$d%%</string>
     <string name="format_ms">%1$dms</string>
     <string name="title_translation">Translation</string>

@@ -207,6 +207,8 @@
     <string name="title_syllable_relative">相对进度歌词</string>
     <string name="summary_syllable_relative">当歌词缺少单词数据时，将整行作为单词显示</string>
     <string name="title_syllable_highlight">显示相对进度歌词高亮进度</string>
+    <string name="title_sustain_glow">拉长音发光</string>
+    <string name="summary_sustain_glow">为长时间保持的歌词音节添加柔和发光。</string>
     <string name="format_percent">%1$d%%</string>
     <string name="format_ms">%1$dms</string>
     <string name="title_translation">翻译</string>

@@ -20,6 +20,14 @@ import io.github.proify.lyricon.lyric.view.line.model.WordModel
 import kotlin.math.abs
 import kotlin.math.max
 
+internal data class SustainEffectState(
+    val startX: Float,
+    val endX: Float,
+    val glowRadiusPx: Float,
+    val glowAlpha: Int,
+    val intensity: Float
+)
+
 internal class TextDrawer {
     private var bgColors = intArrayOf(Color.GRAY)
     private var hlColors = intArrayOf(Color.WHITE)
@@ -28,6 +36,7 @@ internal class TextDrawer {
     var cjkWaveFactor = DEFAULT_CJK_WAVE_FACTOR
     var latinLiftFactor = DEFAULT_LATIN_LIFT_FACTOR
     var latinWaveFactor = DEFAULT_LATIN_WAVE_FACTOR
+    var sustainGlowEnabled = false
 
     val isRainbowBg get() = bgColors.size > 1
     val isRainbowHl get() = hlColors.size > 1
@@ -40,6 +49,7 @@ internal class TextDrawer {
     private var lastTotalWidth = -1f
     private var lastHighlightWidth = -1f
     private var lastColorsHash = 0
+    private val sustainPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     fun setColors(background: IntArray, highlight: IntArray) {
         if (background.isNotEmpty()) bgColors = background
@@ -65,6 +75,7 @@ internal class TextDrawer {
         scrollX: Float,
         isOverflow: Boolean,
         highlightWidth: Float,
+        sustainEffects: List<SustainEffectState>,
         useGradient: Boolean,
         scrollOnly: Boolean,
         charMotionEnabled: Boolean,
@@ -114,9 +125,14 @@ internal class TextDrawer {
             }
 
             if (highlightWidth > 0f) {
+                val sustainRanges = sustainEffects
+                    .mapNotNull {
+                        val start = it.startX.coerceAtLeast(0f)
+                        val end = it.endX.coerceAtMost(model.width)
+                        if (end > start) start to end else null
+                    }
+                    .sortedBy { it.first }
                 canvas.withSave {
-                    canvas.clipRect(0f, 0f, highlightWidth, viewHeight.toFloat())
-
                     //val atEnd = highlightWidth >= model.width
                     val atEnd = false
                     if (useGradient && !atEnd) {
@@ -150,11 +166,142 @@ internal class TextDrawer {
                             hlPaint
                         )
                     } else {
-                        canvas.drawText(model.wordText, 0f, y, hlPaint)
+                        drawTextWithOptionalExclusion(
+                            canvas = canvas,
+                            text = model.wordText,
+                            baselineY = y,
+                            paint = hlPaint,
+                            clipLeft = 0f,
+                            clipRight = highlightWidth,
+                            exclusions = sustainRanges,
+                            viewHeight = viewHeight
+                        )
                     }
+                }
+                sustainEffects.forEach { effect ->
+                    drawSustainEffect(canvas, model, y, viewHeight, effect, hlPaint)
                 }
             }
         }
+    }
+
+    private fun drawTextWithOptionalExclusion(
+        canvas: Canvas,
+        baselineY: Float,
+        text: String,
+        paint: TextPaint,
+        clipLeft: Float,
+        clipRight: Float,
+        exclusions: List<Pair<Float, Float>>,
+        viewHeight: Int,
+    ) {
+        val safeLeft = clipLeft.coerceAtLeast(0f)
+        val safeRight = clipRight.coerceAtLeast(safeLeft)
+        if (safeRight <= safeLeft) return
+
+        val clippedExclusions = exclusions
+            .mapNotNull { (start, end) ->
+                if (end <= start || end <= safeLeft || start >= safeRight) null
+                else start.coerceIn(safeLeft, safeRight) to end.coerceIn(safeLeft, safeRight)
+            }
+            .sortedBy { it.first }
+
+        if (clippedExclusions.isEmpty()) {
+            canvas.withSave {
+                clipRect(safeLeft, 0f, safeRight, viewHeight.toFloat())
+                drawText(text, 0f, baselineY, paint)
+            }
+            return
+        }
+
+        var cursor = safeLeft
+        clippedExclusions.forEach { (start, end) ->
+            if (start > cursor) {
+                canvas.withSave {
+                    clipRect(cursor, 0f, start, viewHeight.toFloat())
+                    drawText(text, 0f, baselineY, paint)
+                }
+            }
+            cursor = max(cursor, end)
+        }
+        if (cursor < safeRight) {
+            canvas.withSave {
+                clipRect(cursor, 0f, safeRight, viewHeight.toFloat())
+                drawText(text, 0f, baselineY, paint)
+            }
+        }
+    }
+
+    private fun drawSustainEffect(
+        canvas: Canvas,
+        model: LyricModel,
+        baselineY: Float,
+        viewHeight: Int,
+        effect: SustainEffectState,
+        highlightPaint: TextPaint
+    ) {
+        val clipStart = effect.startX.coerceAtLeast(0f)
+        val clipEnd = effect.endX.coerceAtMost(model.width)
+        if (clipEnd <= clipStart) return
+        val baseColor = (hlColors.firstOrNull() ?: highlightPaint.color) and 0x00FFFFFF
+        val glowRgb = lighten(baseColor, 0.22f)
+        val rainbowShader = if (isRainbowHl) getOrCreateRainbowShader(model.width, hlColors) else null
+        val density = highlightPaint.density.takeIf { it > 0f } ?: 1f
+        val outerStroke = (effect.glowRadiusPx * 0.3f).coerceAtLeast(density * 0.38f)
+        val innerStroke = (effect.glowRadiusPx * 0.18f).coerceAtLeast(density * 0.28f)
+        val outerAlpha = (effect.glowAlpha * 0.28f * effect.intensity).toInt().coerceIn(0, 255)
+        val innerAlpha = (effect.glowAlpha * 0.46f).toInt().coerceIn(0, 255)
+        val coreColor = (0xFF shl 24) or baseColor
+
+        sustainPaint.set(highlightPaint)
+        sustainPaint.shader = null
+        canvas.withSave {
+            clipRect(clipStart, 0f, clipEnd, viewHeight.toFloat())
+            sustainPaint.style = Paint.Style.STROKE
+            sustainPaint.strokeWidth = outerStroke
+            if (rainbowShader != null) {
+                sustainPaint.shader = rainbowShader
+                sustainPaint.alpha = outerAlpha
+                sustainPaint.color = Color.WHITE
+            } else {
+                sustainPaint.shader = null
+                sustainPaint.alpha = 255
+                sustainPaint.color = (outerAlpha shl 24) or glowRgb
+            }
+            drawText(model.wordText, 0f, baselineY, sustainPaint)
+
+            sustainPaint.strokeWidth = innerStroke
+            if (rainbowShader != null) {
+                sustainPaint.shader = rainbowShader
+                sustainPaint.alpha = innerAlpha
+                sustainPaint.color = Color.WHITE
+            } else {
+                sustainPaint.shader = null
+                sustainPaint.alpha = 255
+                sustainPaint.color = (innerAlpha shl 24) or glowRgb
+            }
+            drawText(model.wordText, 0f, baselineY, sustainPaint)
+
+            sustainPaint.style = Paint.Style.FILL
+            sustainPaint.strokeWidth = 0f
+            if (rainbowShader != null) {
+                sustainPaint.shader = rainbowShader
+                sustainPaint.alpha = 255
+                sustainPaint.color = Color.WHITE
+            } else {
+                sustainPaint.shader = null
+                sustainPaint.alpha = 255
+                sustainPaint.color = coreColor
+            }
+            drawText(model.wordText, 0f, baselineY, sustainPaint)
+        }
+    }
+
+    private fun lighten(color: Int, ratio: Float): Int {
+        val r = (Color.red(color) + (255 - Color.red(color)) * ratio).toInt().coerceIn(0, 255)
+        val g = (Color.green(color) + (255 - Color.green(color)) * ratio).toInt().coerceIn(0, 255)
+        val b = (Color.blue(color) + (255 - Color.blue(color)) * ratio).toInt().coerceIn(0, 255)
+        return (r shl 16) or (g shl 8) or b
     }
 
     private fun drawAnimatedUnits(

@@ -73,6 +73,14 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             invalidate()
         }
 
+    var sustainGlowEnabled: Boolean
+        get() = syncRenderer.sustainGlowEnabled
+        set(value) {
+            if (syncRenderer.sustainGlowEnabled == value) return
+            syncRenderer.sustainGlowEnabled = value
+            invalidate()
+        }
+
     var wordMotion: WordMotion = WordMotion()
         set(value) {
             if (field == value) return

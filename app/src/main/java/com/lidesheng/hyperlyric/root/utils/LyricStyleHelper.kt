@@ -132,6 +132,7 @@ object LyricStyleHelper {
                 latinLiftFactor = prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_LIFT, RootConstants.DEFAULT_HOOK_WORD_MOTION_LATIN_LIFT),
                 latinWaveFactor = prefs.getFloat(RootConstants.KEY_HOOK_WORD_MOTION_LATIN_WAVE, RootConstants.DEFAULT_HOOK_WORD_MOTION_LATIN_WAVE),
             ),
+            sustainGlow = prefs.getBoolean(RootConstants.KEY_HOOK_SUSTAIN_GLOW, RootConstants.DEFAULT_HOOK_SUSTAIN_GLOW),
             placeholder = TitleSlot.NONE,
         )
     }

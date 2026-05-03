@@ -15,6 +15,7 @@ data class LyricViewStyle(
     val highlight: Highlight = Highlight(),
     val marquee: Marquee = Marquee(),
     val wordMotion: WordMotion = WordMotion(),
+    val sustainGlow: Boolean = false,
     val gradient: Boolean = true,
     val fadingEdge: Int = 10,
     val scaleMultiLine: Float = 1f,

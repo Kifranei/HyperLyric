@@ -87,6 +87,7 @@ fun LyricSettingsPage() {
     var marqueeStopEnd by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_STOP_END, RootConstants.DEFAULT_HOOK_MARQUEE_STOP_END)) }
     var syllableRelative by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, RootConstants.DEFAULT_HOOK_SYLLABLE_RELATIVE)) }
     var syllableHighlight by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, RootConstants.DEFAULT_HOOK_SYLLABLE_HIGHLIGHT)) }
+    var sustainGlow by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_SUSTAIN_GLOW, RootConstants.DEFAULT_HOOK_SUSTAIN_GLOW)) }
     var textSizeRatio by remember { mutableFloatStateOf(prefs.getFloat(RootConstants.KEY_HOOK_TEXT_SIZE_RATIO, RootConstants.DEFAULT_HOOK_TEXT_SIZE_RATIO)) }
     var disableTranslation by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, RootConstants.DEFAULT_HOOK_DISABLE_TRANSLATION)) }
     var translationOnly by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_TRANSLATION_ONLY, RootConstants.DEFAULT_HOOK_TRANSLATION_ONLY)) }
@@ -155,6 +156,7 @@ fun LyricSettingsPage() {
             RootConstants.KEY_HOOK_MARQUEE_STOP_END,
             RootConstants.KEY_HOOK_SYLLABLE_RELATIVE,
             RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT,
+            RootConstants.KEY_HOOK_SUSTAIN_GLOW,
             RootConstants.KEY_HOOK_DISABLE_TRANSLATION,
             RootConstants.KEY_HOOK_TRANSLATION_ONLY,
             RootConstants.KEY_HOOK_SWAP_TRANSLATION,
@@ -371,6 +373,12 @@ fun LyricSettingsPage() {
                                             onCheckedChange = { syllableRelative = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, it) }
                                         )
                                         SwitchPreference(title = stringResource(id = R.string.title_syllable_highlight), checked = syllableHighlight, onCheckedChange = { syllableHighlight = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, it) })
+                                        SwitchPreference(
+                                            title = stringResource(id = R.string.title_sustain_glow),
+                                            summary = stringResource(id = R.string.summary_sustain_glow),
+                                            checked = sustainGlow,
+                                            onCheckedChange = { sustainGlow = it; saveConfig(RootConstants.KEY_HOOK_SUSTAIN_GLOW, it) }
+                                        )
                                         HorizontalDivider(
                                             modifier = Modifier.padding(horizontal = 16.dp)
                                         )
