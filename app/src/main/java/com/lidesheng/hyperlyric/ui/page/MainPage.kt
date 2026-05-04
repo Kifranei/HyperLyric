@@ -80,6 +80,7 @@ import top.yukonga.miuix.kmp.basic.NavigationItem
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.blur.BlendColorEntry
 import top.yukonga.miuix.kmp.blur.BlurColors
+import top.yukonga.miuix.kmp.blur.highlight.Highlight
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -342,6 +343,10 @@ fun MainPage() {
             ) {
                 val floatingBarColor = if (outerBlurActive) Color.Transparent else MiuixTheme.colorScheme.surfaceContainer
                 val floatingBarShape = RoundedCornerShape(FloatingToolbarDefaults.CornerRadius)
+                val isDark = isSystemInDarkTheme()
+                val floatingHighlight = remember(isDark) {
+                    if (isDark) Highlight.GlassStrokeSmallDark else Highlight.GlassStrokeSmallLight
+                }
                 FloatingNavigationBar(
                     modifier = if (outerBlurActive) {
                         Modifier
@@ -354,11 +359,13 @@ fun MainPage() {
                                         BlendColorEntry(color = MiuixTheme.colorScheme.surfaceContainer.copy(0.6f)),
                                     ),
                                 ),
+                                highlight = floatingHighlight,
                             )
                     } else {
                         Modifier
                     },
                     color = floatingBarColor,
+                    shadowElevation = 3.dp,
                     mode = FloatingNavigationBarDisplayMode.IconOnly
                 ) {
                     navItems.forEachIndexed { index, item ->
@@ -378,7 +385,6 @@ fun MainPage() {
                 state = pagerState,
                 modifier = Modifier.imePadding(),
                 beyondViewportPageCount = 1,
-                overscrollEffect = null,
                 verticalAlignment = Alignment.Top,
             ) { page ->
                 if (page == 0) {
