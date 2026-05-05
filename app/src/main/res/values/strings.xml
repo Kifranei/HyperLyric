@@ -243,6 +243,8 @@
     <string name="label_ai_trans_target_lang">目标语言</string>
     <string name="label_ai_trans_prompt">自定义翻译风格提示词</string>
     <string name="summary_ai_trans_prompt_hint">留空使用默认提示词</string>
+    <string name="title_verbatim_lyric">逐字歌词</string>
+
 
     <!-- ———————————————————————— LyricProviderPage ———————————————————————— -->
     <string name="refresh_pull_down">下拉刷新</string>

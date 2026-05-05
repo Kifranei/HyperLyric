@@ -243,6 +243,7 @@
     <string name="label_ai_trans_target_lang">Target Language</string>
     <string name="label_ai_trans_prompt">Custom Translation Prompt</string>
     <string name="summary_ai_trans_prompt_hint">Leave empty for default prompt</string>
+    <string name="title_verbatim_lyric">Verbatim Lyrics</string>
 
     <!-- ———————————————————————— LyricProviderPage ———————————————————————— -->
     <string name="refresh_pull_down">Pull down to refresh</string>

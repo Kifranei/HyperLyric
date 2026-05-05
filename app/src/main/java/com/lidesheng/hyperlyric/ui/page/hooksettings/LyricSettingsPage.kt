@@ -307,7 +307,11 @@ fun LyricSettingsPage() {
                     Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
                         LazyColumn(
                             state = basicLazyListState,
-                            modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                            modifier = Modifier.pageScrollModifiers(
+                                enableScrollEndHaptic = true,
+                                showTopAppBar = true,
+                                topAppBarScrollBehavior = topAppBarScrollBehavior
+                            ),
                             contentPadding = contentPadding,
                         ) {
                             item {
@@ -458,12 +462,16 @@ fun LyricSettingsPage() {
                     Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
                         LazyColumn(
                             state = advancedLazyListState,
-                            modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                            modifier = Modifier.pageScrollModifiers(
+                                enableScrollEndHaptic = true,
+                                showTopAppBar = true,
+                                topAppBarScrollBehavior = topAppBarScrollBehavior
+                            ),
                             contentPadding = contentPadding,
                         ) {
                             item {
                                 Column {
-                                    SmallTitle(text = stringResource(id = R.string.lyric_mode_verbatim))
+                                    SmallTitle(text = stringResource(id = R.string.title_verbatim_lyric))
                                     Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
                                         Column {
                                             SwitchPreference(title = stringResource(id = R.string.title_gradient_progress), checked = gradientStyle, onCheckedChange = { gradientStyle = it; saveConfig(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, it) })

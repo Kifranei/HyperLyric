@@ -50,7 +50,7 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
-import top.yukonga.miuix.kmp.preference.SwitchPreference
+import com.lidesheng.hyperlyric.ui.component.SuperSwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -145,7 +145,15 @@ fun LyricWhitelistPage() {
                 modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
                 contentPadding = contentPadding,
             ) {
-                whitelistSections(whitelist, activeSet, context)
+                whitelistSections(
+                    whitelist = whitelist,
+                    activeSet = activeSet,
+                    context = context,
+                    onDeleteClick = { pkg ->
+                        packageToDelete = pkg
+                        showDeleteWhitelistDialog = true
+                    }
+                )
             }
             VerticalScrollBar(
                 adapter = rememberScrollBarAdapter(lazyListState),
@@ -156,19 +164,27 @@ fun LyricWhitelistPage() {
     }
 }
 
-private fun LazyListScope.whitelistSections(whitelist: List<String>, activeSet: Set<String>, context: android.content.Context) {
+private fun LazyListScope.whitelistSections(
+    whitelist: List<String>,
+    activeSet: Set<String>,
+    context: android.content.Context,
+    onDeleteClick: (String) -> Unit
+) {
     item(key = "whitelist_content") {
         if (whitelist.isNotEmpty()) {
             Card(modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
                 Column {
                     whitelist.forEach { packageName ->
                         val appName = commonMusicApps[packageName]
-                        SwitchPreference(
+                        SuperSwitchPreference(
                             title = appName ?: packageName,
                             summary = if (appName != null) packageName else null,
                             checked = activeSet.contains(packageName),
                             onCheckedChange = { isChecked ->
                                 DynamicLyricData.toggleHookStatus(context, packageName, isChecked)
+                            },
+                            onClick = {
+                                onDeleteClick(packageName)
                             }
                         )
                     }
