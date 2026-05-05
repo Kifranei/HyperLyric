@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalScrollBarApi::class)
-
 package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Context
@@ -199,31 +197,31 @@ fun LyricSettingsPage() {
     Scaffold(
         topBar = {
             BlurredBar(backdrop, blurActive) {
-                Column {
-                    TopAppBar(
-                        color = barColor,
-                        title = stringResource(id = R.string.title_lyrics),
-                        scrollBehavior = topAppBarScrollBehavior,
-                        navigationIcon = {
-                            IconButton(onClick = { navigator.pop() }) {
-                                Icon(
-                                    imageVector = MiuixIcons.Back,
-                                    contentDescription = stringResource(id = R.string.back)
-                                )
-                            }
+                TopAppBar(
+                    color = barColor,
+                    title = stringResource(id = R.string.title_lyrics),
+                    scrollBehavior = topAppBarScrollBehavior,
+                    navigationIcon = {
+                        IconButton(onClick = { navigator.pop() }) {
+                            Icon(
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
                         }
-                    )
-                    TabRow(
-                        tabs = tabs,
-                        selectedTabIndex = pagerState.currentPage,
-                        onTabSelected = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 8.dp),
-                        colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
-                    )
-                }
+                    },
+                    bottomContent = {
+                        TabRow(
+                            tabs = tabs,
+                            selectedTabIndex = pagerState.currentPage,
+                            onTabSelected = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .padding(bottom = 8.dp),
+                            colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
+                        )
+                    }
+                )
             }
         }
     ) { padding ->
@@ -297,14 +295,16 @@ fun LyricSettingsPage() {
             }
         )
 
-        val contentPadding = remember(padding) {
-            PaddingValues(top = padding.calculateTopPadding(), start = 0.dp, end = 0.dp, bottom = padding.calculateBottomPadding() + 16.dp)
+        val topPadding = padding.calculateTopPadding()
+        val bottomPadding = padding.calculateBottomPadding()
+        val contentPadding = remember(topPadding, bottomPadding) {
+            PaddingValues(top = topPadding, start = 0.dp, end = 0.dp, bottom = bottomPadding + 16.dp)
         }
 
-        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(), userScrollEnabled = true) { page ->
-            when (page) {
-                0 -> {
-                    Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
+        Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
+            HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(), userScrollEnabled = true, beyondViewportPageCount = 1) { page ->
+                when (page) {
+                    0 -> {
                         LazyColumn(
                             state = basicLazyListState,
                             modifier = Modifier.pageScrollModifiers(
@@ -451,24 +451,17 @@ fun LyricSettingsPage() {
                                 }
                             }
                         }
-                        VerticalScrollBar(
-                            adapter = rememberScrollBarAdapter(basicLazyListState),
-                            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            trackPadding = contentPadding,
-                        )
                     }
-                }
                 1 -> {
-                    Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
-                        LazyColumn(
-                            state = advancedLazyListState,
-                            modifier = Modifier.pageScrollModifiers(
-                                enableScrollEndHaptic = true,
-                                showTopAppBar = true,
-                                topAppBarScrollBehavior = topAppBarScrollBehavior
-                            ),
-                            contentPadding = contentPadding,
-                        ) {
+                    LazyColumn(
+                        state = advancedLazyListState,
+                        modifier = Modifier.pageScrollModifiers(
+                            enableScrollEndHaptic = true,
+                            showTopAppBar = true,
+                            topAppBarScrollBehavior = topAppBarScrollBehavior
+                        ),
+                        contentPadding = contentPadding,
+                    ) {
                             item {
                                 Column {
                                     SmallTitle(text = stringResource(id = R.string.title_verbatim_lyric))
@@ -645,14 +638,9 @@ fun LyricSettingsPage() {
                                 }
                             }
                         }
-                        VerticalScrollBar(
-                            adapter = rememberScrollBarAdapter(advancedLazyListState),
-                            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            trackPadding = contentPadding,
-                        )
                     }
-                }
             }
         }
     }
+}
 }

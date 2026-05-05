@@ -1,11 +1,10 @@
-@file:OptIn(ExperimentalScrollBarApi::class)
-
 package com.lidesheng.hyperlyric.ui.page
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,12 +36,9 @@ import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.VerticalScrollBar
-import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -63,47 +59,53 @@ fun HelpPage() {
     Scaffold(
         topBar = {
             BlurredBar(backdrop, blurActive) {
-                Column {
-                    TopAppBar(
-                        color = barColor,
-                        title = stringResource(R.string.title_help),
-                        scrollBehavior = topAppBarScrollBehavior,
-                        navigationIcon = {
-                            IconButton(onClick = { navigator.pop() }) {
-                                Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
-                            }
+                TopAppBar(
+                    color = barColor,
+                    title = stringResource(R.string.title_help),
+                    scrollBehavior = topAppBarScrollBehavior,
+                    navigationIcon = {
+                        IconButton(onClick = { navigator.pop() }) {
+                            Icon(imageVector = MiuixIcons.Back, contentDescription = stringResource(R.string.back))
                         }
-                    )
-                    TabRow(
-                        tabs = tabs,
-                        selectedTabIndex = pagerState.currentPage,
-                        onTabSelected = { index ->
-                            coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 8.dp),
-                        colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
-                    )
-                }
+                    },
+                    bottomContent = {
+                        TabRow(
+                            tabs = tabs,
+                            selectedTabIndex = pagerState.currentPage,
+                            onTabSelected = { index ->
+                                coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .padding(bottom = 8.dp),
+                            colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent)
+                        )
+                    }
+                )
             }
         }
     ) { innerPadding ->
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
-            HorizontalPager(state = pagerState, verticalAlignment = Alignment.Top) { page ->
+            HorizontalPager(state = pagerState, verticalAlignment = Alignment.Top, beyondViewportPageCount = 1) { page ->
                 val listState = if (page == 0) superIslandListState else dynamicIslandListState
-                val contentPadding = remember(innerPadding) {
+                val topPadding = innerPadding.calculateTopPadding()
+                val bottomPadding = innerPadding.calculateBottomPadding()
+                val contentPadding = remember(topPadding, bottomPadding) {
                     PaddingValues(
-                        top = innerPadding.calculateTopPadding(),
+                        top = topPadding,
                         start = 0.dp,
                         end = 0.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 16.dp
+                        bottom = bottomPadding + 16.dp
                     )
                 }
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                    modifier = Modifier.pageScrollModifiers(
+                        enableScrollEndHaptic = true,
+                        showTopAppBar = true,
+                        topAppBarScrollBehavior = topAppBarScrollBehavior
+                    ),
                     contentPadding = contentPadding,
                 ) {
                     when (page) {
@@ -111,11 +113,6 @@ fun HelpPage() {
                         1 -> dynamicIslandHelpSections()
                     }
                 }
-                VerticalScrollBar(
-                    adapter = rememberScrollBarAdapter(listState),
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    trackPadding = contentPadding,
-                )
             }
         }
     }

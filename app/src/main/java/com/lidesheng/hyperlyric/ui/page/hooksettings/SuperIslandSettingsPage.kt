@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalScrollBarApi::class)
-
 package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Context
@@ -43,12 +41,9 @@ import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.VerticalScrollBar
-import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -149,7 +144,6 @@ fun SuperIslandSettingsPage() {
                     ::saveConfig
                 )
             }
-            VerticalScrollBar(adapter = rememberScrollBarAdapter(lazyListState), modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(), trackPadding = contentPadding)
         }
     }
 }

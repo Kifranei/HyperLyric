@@ -55,12 +55,17 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.basic.VerticalScrollBar
+import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.fillMaxHeight
 
 @Composable
 fun PoetryPage() {
@@ -149,15 +154,24 @@ fun PoetryPage() {
                 }
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                    modifier = Modifier.pageScrollModifiers(
+                        enableScrollEndHaptic = true,
+                        showTopAppBar = true,
+                        topAppBarScrollBehavior = topAppBarScrollBehavior
+                    ),
                     contentPadding = contentPadding,
                 ) {
-                items(filteredQuotes) { quote ->
-                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
-                        Text(text = quote, fontSize = 14.sp, lineHeight = 20.sp, color = MiuixTheme.colorScheme.onSurface, modifier = Modifier.padding(16.dp))
+                    items(filteredQuotes) { quote ->
+                        Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+                            Text(text = quote, fontSize = 14.sp, lineHeight = 20.sp, color = MiuixTheme.colorScheme.onSurface, modifier = Modifier.padding(16.dp))
+                        }
                     }
                 }
-            }
+                VerticalScrollBar(
+                    adapter = rememberScrollBarAdapter(listState),
+                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                    trackPadding = contentPadding,
+                )
             }
         }
     }

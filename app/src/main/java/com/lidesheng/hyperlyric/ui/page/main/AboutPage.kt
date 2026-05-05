@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalScrollBarApi::class)
-
 package com.lidesheng.hyperlyric.ui.page.main
 
 import androidx.compose.foundation.layout.Box
@@ -18,10 +16,7 @@ import com.lidesheng.hyperlyric.R
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.VerticalScrollBar
-import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.lidesheng.hyperlyric.ui.utils.BlurredBar
 import com.lidesheng.hyperlyric.ui.utils.pageContentPadding
@@ -80,11 +75,6 @@ fun AboutPage(
                     onLicensesClick = onLicensesClick,
                 )
             }
-            VerticalScrollBar(
-                adapter = rememberScrollBarAdapter(lazyListState),
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                trackPadding = contentPadding,
-            )
         }
     }
 }

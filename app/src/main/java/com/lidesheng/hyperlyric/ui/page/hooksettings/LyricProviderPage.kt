@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalScrollBarApi::class)
-
 package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Intent
@@ -53,13 +51,10 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.VerticalScrollBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
-import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
@@ -121,15 +116,12 @@ fun LyricProviderPage() {
                 val contentPadding = remember(top, bottom) {
                     PaddingValues(top = top, start = 0.dp, end = 0.dp, bottom = bottom)
                 }
-                Box {
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier.pageScrollModifiers(true, false, topAppBarScrollBehavior),
-                        contentPadding = contentPadding,
-                    ) {
-                        providerSections(providerUiState.value, groupedModules)
-                    }
-                    VerticalScrollBar(adapter = rememberScrollBarAdapter(lazyListState), modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(), trackPadding = contentPadding)
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = Modifier.pageScrollModifiers(true, false, topAppBarScrollBehavior),
+                    contentPadding = contentPadding,
+                ) {
+                    providerSections(providerUiState.value, groupedModules)
                 }
             }
         }

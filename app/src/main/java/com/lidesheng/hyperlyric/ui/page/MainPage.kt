@@ -25,10 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
@@ -348,7 +350,7 @@ fun MainPage() {
                     if (isDark) Highlight.GlassStrokeSmallDark else Highlight.GlassStrokeSmallLight
                 }
                 FloatingNavigationBar(
-                    modifier = if (outerBlurActive) {
+                    modifier = (if (outerBlurActive) {
                         Modifier
                             .textureBlur(
                                 backdrop = outerBackdrop,
@@ -363,7 +365,7 @@ fun MainPage() {
                             )
                     } else {
                         Modifier
-                    },
+                    }).padding(horizontal = 12.dp),
                     color = floatingBarColor,
                     mode = FloatingNavigationBarDisplayMode.IconOnly
                 ) {
@@ -374,6 +376,9 @@ fun MainPage() {
                             icon = item.icon,
                             label = item.label
                         )
+                        if (index < navItems.size - 1) {
+                            Spacer(Modifier.width(12.dp))
+                        }
                     }
                 }
             }
