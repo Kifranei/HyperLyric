@@ -70,7 +70,6 @@ import com.lidesheng.hyperlyric.ui.page.main.rememberMainPagerState
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
-import top.yukonga.miuix.kmp.basic.FloatingNavigationBarDisplayMode
 import top.yukonga.miuix.kmp.basic.FloatingToolbarDefaults
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
 import top.yukonga.miuix.kmp.basic.Icon
@@ -323,9 +322,7 @@ fun MainPage() {
                         )
                         .background(outerBarColor)
                 ) {
-                    NavigationBar(
-                        mode = NavigationBarDisplayMode.IconWithSelectedLabel,
-                        color = outerBarColor
+                    NavigationBar(color = outerBarColor
                     ) {
                         navItems.forEachIndexed { index, item ->
                             NavigationBarItem(
@@ -367,7 +364,6 @@ fun MainPage() {
                         Modifier
                     }).padding(horizontal = 12.dp),
                     color = floatingBarColor,
-                    mode = FloatingNavigationBarDisplayMode.IconOnly
                 ) {
                     navItems.forEachIndexed { index, item ->
                         FloatingNavigationBarItem(
