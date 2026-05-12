@@ -224,15 +224,35 @@ fun MainPage() {
     } }
 
     val toggleRemoveFocusWhitelist = remember { { checked: Boolean ->
-        removeFocusWhitelist = checked
-        prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, checked) }
-        ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, checked)
+        if (checked) {
+            if (ConfigSync.xposedService != null) {
+                removeFocusWhitelist = true
+                prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, true) }
+                ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, true)
+            } else {
+                Toast.makeText(context, R.string.toast_xposed_module_not_active, Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            removeFocusWhitelist = false
+            prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, false) }
+            ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, false)
+        }
     } }
 
     val toggleRemoveIslandWhitelist = remember { { checked: Boolean ->
-        removeIslandWhitelist = checked
-        prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, checked) }
-        ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, checked)
+        if (checked) {
+            if (ConfigSync.xposedService != null) {
+                removeIslandWhitelist = true
+                prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, true) }
+                ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, true)
+            } else {
+                Toast.makeText(context, R.string.toast_xposed_module_not_active, Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            removeIslandWhitelist = false
+            prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, false) }
+            ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, false)
+        }
     } }
 
     val confirmPermissionSheet = remember { {
