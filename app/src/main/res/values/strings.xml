@@ -45,6 +45,7 @@
     <string name="info_os_version">系统版本</string>
     <string name="info_android_version">Android版本</string>
     <string name="title_help">使用帮助</string>
+    <string name="title_changelog">更新日志</string>
     <string name="title_developer">开发者</string>
     <string name="dev_name">李得胜</string>
     <string name="title_licenses">项目引用与参考</string>

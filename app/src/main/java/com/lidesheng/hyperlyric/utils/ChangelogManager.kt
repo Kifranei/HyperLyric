@@ -1,0 +1,29 @@
+package com.lidesheng.hyperlyric.utils
+
+data class ChangelogItem(
+    val version: String,
+    val title: String,
+    val summary: String
+)
+
+object ChangelogManager {
+    fun getChangelog(): List<ChangelogItem> {
+        return listOf(
+            ChangelogItem(
+                version = "5.7-1928",
+                title = "本次更新日志如下",
+                summary = "1. 新增“更新日志”页面\n" +
+                        "2. 主页“特殊功能”新增模块激活状态检测\n" +
+                        "3. 优化主页底栏、权限弹窗、模块日志等级的样式\n" +
+                        "4. 优化日志扫描内容\n" +
+                        "5. 优化应用架构\n" +
+                        "6. 应用内全部toast替换成snackbar"
+            ),
+            ChangelogItem(
+                version = "",
+                title = "",
+                summary = "v5.7之前的更新内容请前往酷安或github查看"
+            )
+        )
+    }
+}

@@ -32,6 +32,7 @@ fun AboutPage(
     aboutAndroidVersion: String,
     onHelpClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onChangelogClick: () -> Unit,
 ) {
     val backdrop = rememberBlurBackdrop()
     val blurActive = backdrop != null
@@ -73,6 +74,7 @@ fun AboutPage(
                     aboutAndroidVersion = aboutAndroidVersion,
                     onHelpClick = onHelpClick,
                     onLicensesClick = onLicensesClick,
+                    onChangelogClick = onChangelogClick,
                 )
             }
         }

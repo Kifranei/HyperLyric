@@ -463,6 +463,7 @@ fun MainPage() {
                         aboutAndroidVersion = aboutAndroidVersion,
                         onHelpClick = { navigator.navigate(Route.Help) },
                         onLicensesClick = { navigator.navigate(Route.Licenses) },
+                        onChangelogClick = { navigator.navigate(Route.Changelog) },
                     )
                 }
             }

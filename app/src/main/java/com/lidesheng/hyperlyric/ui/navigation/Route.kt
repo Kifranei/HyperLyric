@@ -17,4 +17,5 @@ sealed interface Route : NavKey {
     data object Poetry : Route
     data object LyricWhitelist : Route
     data object Help : Route
+    data object Changelog : Route
 }

@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +40,7 @@ fun LazyListScope.aboutPageSections(
     aboutAndroidVersion: String,
     onHelpClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onChangelogClick: () -> Unit,
 ) {
     item(key = "about_header") {
         val version = aboutAppVersion ?: stringResource(R.string.version_unknown)
@@ -92,10 +92,16 @@ fun LazyListScope.aboutPageSections(
 
     item(key = "help_content") {
         Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-            ArrowPreference(
-                title = stringResource(R.string.title_help),
-                onClick = onHelpClick,
-            )
+            Column {
+                ArrowPreference(
+                    title = stringResource(R.string.title_help),
+                    onClick = onHelpClick,
+                )
+                ArrowPreference(
+                    title = stringResource(R.string.title_changelog),
+                    onClick = onChangelogClick,
+                )
+            }
         }
     }
 

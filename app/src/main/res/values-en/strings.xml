@@ -45,6 +45,7 @@
     <string name="info_os_version">OS Version</string>
     <string name="info_android_version">Android Version</string>
     <string name="title_help">Help</string>
+    <string name="title_changelog">Changelog</string>
     <string name="title_developer">Developer</string>
     <string name="dev_name">lidesheng</string>
     <string name="title_licenses">Licenses</string>
