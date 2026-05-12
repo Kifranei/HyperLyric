@@ -39,7 +39,7 @@ fun LazyListScope.homePageSections(
 ) {
     item(key = "quote") {
         Card(
-            modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth(),
             onClick = onQuoteClick,
             onLongPress = onQuoteLongPress,
         ) {
@@ -119,7 +119,7 @@ fun LazyListScope.homePageSections(
     }
 
     item(key = "app_settings") {
-        Card(modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
+        Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
             ArrowPreference(
                 title = stringResource(R.string.title_app_settings),
                 summary = stringResource(R.string.summary_app_settings),
