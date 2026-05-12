@@ -328,6 +328,7 @@
     <string name="level_error">Error</string>
     <string name="level_crash">Crash</string>
     <string name="export_all">Export All</string>
+    <string name="module_logs_level">Logs Level</string>
     <string name="no_logs_found">No logs found</string>
     <string name="no_root_permission">App does not have root permission, cannot read LSPosed logs</string>
     <string name="title_log_detail">Log Detail</string>
