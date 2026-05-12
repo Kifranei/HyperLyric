@@ -35,6 +35,7 @@ internal class ScrollTextRenderer : LineRenderer {
     override val isPlaying get() = isRunning || isPendingDelay
     override val isFinished get() = finished
     override val isStarted get() = true
+    override var centerIfPossible = false
 
     val scrollProgress get() = currentUnitOffset
 
@@ -154,7 +155,11 @@ internal class ScrollTextRenderer : LineRenderer {
         viewHeight: Int
     ) {
         val vw = viewWidth.toFloat()
-        val offset = state.scrollOffset
+        val offset = if (centerIfPossible && model.width <= vw) {
+            (vw - model.width) / 2f
+        } else {
+            state.scrollOffset
+        }
 
         if (cachedViewHeight != viewHeight) {
             val fm = paint.fontMetrics

@@ -150,7 +150,8 @@ class RichLyricLineView(
             style.marquee,
             style.gradient,
             style.fadingEdge,
-            style.wordMotion
+            style.wordMotion,
+            style.centerIfPossible
         )
         applyLineStyle(
             secondary,
@@ -159,7 +160,8 @@ class RichLyricLineView(
             style.marquee,
             style.gradient,
             style.fadingEdge,
-            style.wordMotion
+            style.wordMotion,
+            style.centerIfPossible
         )
     }
 
@@ -230,10 +232,11 @@ class RichLyricLineView(
 
     private fun applyLineStyle(
         view: LyricLineView, text: TextLook, highlight: Highlight,
-        marquee: Marquee, gradient: Boolean, fadingEdge: Int, wordMotion: WordMotion
+        marquee: Marquee, gradient: Boolean, fadingEdge: Int, wordMotion: WordMotion,
+        centerIfPossible: Boolean
     ) {
         view.wordMotion = wordMotion
-        view.configureWith(text, highlight, marquee, gradient, fadingEdge)
+        view.configureWith(text, highlight, marquee, gradient, fadingEdge, centerIfPossible)
     }
 
     private fun updateLayoutTransitionX(config: String? = LayoutTransitionX.TRANSITION_CONFIG_SMOOTH) {

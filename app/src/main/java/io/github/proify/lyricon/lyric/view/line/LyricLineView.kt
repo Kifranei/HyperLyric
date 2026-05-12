@@ -66,6 +66,13 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             syncRenderer.isScrollOnly = value
         }
 
+    var centerIfPossible: Boolean = false
+        set(value) {
+            field = value
+            syncRenderer.centerIfPossible = value
+            scrollRenderer.centerIfPossible = value
+        }
+
     var playListener: LyricPlayListener? = null
         set(value) {
             field = value
@@ -137,8 +144,9 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     fun configureWith(
         text: TextLook, highlight: Highlight, marquee: Marquee,
-        gradient: Boolean, fadingEdge: Int
+        gradient: Boolean, fadingEdge: Int, center: Boolean
     ) {
+        this.centerIfPossible = center
         updateColor(text.color, highlight.background, highlight.foreground)
         setTextSize(text.size)
         textPaint.typeface = text.typeface

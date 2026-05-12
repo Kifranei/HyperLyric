@@ -26,6 +26,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     private val textDrawer = TextDrawer()
 
     var isScrollOnly = false
+    override var centerIfPossible = false
 
     var isCharMotionEnabled = true
 
@@ -167,7 +168,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
             canvas, model, viewWidth, viewHeight,
             state.scrollOffset, model.width > viewWidth,
             progressAnimator.currentWidth,
-            isGradientEnabled, isScrollOnly, isCharMotionEnabled,
+            isGradientEnabled, isScrollOnly, isCharMotionEnabled, centerIfPossible,
             bgPaint, hlPaint, paint
         )
     }

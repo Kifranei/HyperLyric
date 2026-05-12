@@ -251,11 +251,11 @@ object HookIslandLyric {
                 targetView = RichLyricLineView(rootView.context).apply {
                     this.tag = tag
                 }
-                wrapperView.addView(targetView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+                wrapperView.addView(targetView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
                     gravity = Gravity.CENTER_VERTICAL
                 })
                 
-                container.addView(wrapperView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+                container.addView(wrapperView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
                     gravity = Gravity.CENTER_VERTICAL
                 })
             } else {
@@ -265,7 +265,7 @@ object HookIslandLyric {
                     targetView = RichLyricLineView(rootView.context).apply {
                         this.tag = tag
                     }
-                    wrapperView.addView(targetView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+                    wrapperView.addView(targetView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
                         gravity = Gravity.CENTER_VERTICAL
                     })
                 }

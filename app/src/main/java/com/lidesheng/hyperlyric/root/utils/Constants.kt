@@ -32,6 +32,7 @@ object Constants {
     const val KEY_HOOK_FONT_ITALIC = "key_hook_font_italic"
     const val KEY_HOOK_FADING_EDGE_LENGTH = "key_hook_fading_edge_length"
     const val KEY_HOOK_GRADIENT_PROGRESS = "key_hook_gradient_progress"
+    const val KEY_HOOK_CENTER_LYRIC = "key_hook_center_lyric"
     const val KEY_HOOK_ISLAND_RIGHT_ICON = "key_hook_island_right_icon"
 
     // ================= ANIMATION & MARQUEE KEYS =================
@@ -111,6 +112,7 @@ object Constants {
     const val DEFAULT_HOOK_FONT_ITALIC = false
     const val DEFAULT_HOOK_FADING_EDGE_LENGTH = 15
     const val DEFAULT_HOOK_GRADIENT_PROGRESS = true
+    const val DEFAULT_HOOK_CENTER_LYRIC = false
     const val DEFAULT_HOOK_ISLAND_RIGHT_ICON = false
 
     const val DEFAULT_HOOK_ANIM_ENABLE = false

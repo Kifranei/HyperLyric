@@ -202,9 +202,9 @@
     <string name="title_marquee_metadata_loop">Loop Interval</string>
     <string name="title_marquee_metadata_infinite">Infinite Loop</string>
     <string name="title_marquee_delay">Initial Marquee Delay</string>
-    <string name="label_marquee_delay_range">ms Range: 0 ~ 5000</string>
+    <string name="label_marquee_delay_range">ms Range: 0 ~ 10000</string>
     <string name="title_marquee_loop">Loop Interval</string>
-    <string name="label_marquee_loop_range">ms Range: 0 ~ 5000</string>
+    <string name="label_marquee_loop_range">ms Range: 0 ~ 10000</string>
     <string name="title_text_size_ratio">Text Size Ratio in Multi-line Mode</string>
     <string name="label_text_size_ratio_range">Range: 10 ~ 100</string>
     <string name="title_bold">Bold</string>

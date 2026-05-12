@@ -55,16 +55,12 @@ import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
-import top.yukonga.miuix.kmp.basic.VerticalScrollBar
-import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
-
 
 @Composable
 fun LyricSettingsPage() {
@@ -97,6 +93,7 @@ fun LyricSettingsPage() {
     var extractCoverColor by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR)) }
     var extractCoverGradient by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, RootConstants.DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT)) }
     var customFontPath by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_CUSTOM_FONT_PATH, null) ?: "") }
+    var centerLyric by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_CENTER_LYRIC, RootConstants.DEFAULT_HOOK_CENTER_LYRIC)) }
 
     var aiTransEnabled by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, RootConstants.DEFAULT_HOOK_AI_TRANS_ENABLE)) }
     var autoIgnoreChinese by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_AUTO_IGNORE_CHINESE, RootConstants.DEFAULT_HOOK_AI_TRANS_AUTO_IGNORE_CHINESE)) }
@@ -171,6 +168,7 @@ fun LyricSettingsPage() {
             RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR,
             RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT,
             RootConstants.KEY_HOOK_CUSTOM_FONT_PATH,
+            RootConstants.KEY_HOOK_CENTER_LYRIC,
             RootConstants.KEY_HOOK_WORD_MOTION_ENABLED,
             RootConstants.KEY_HOOK_WORD_MOTION_CJK_LIFT,
             RootConstants.KEY_HOOK_WORD_MOTION_CJK_WAVE,
@@ -265,7 +263,7 @@ fun LyricSettingsPage() {
             label = stringResource(id = R.string.label_marquee_delay_range),
             initialValue = marqueeMetadataDelay,
             min = 0,
-            max = 5000,
+            max = 10000,
             onDismiss = { showMarqueeMetadataDelayDialog = false },
             onConfirm = { value -> marqueeMetadataDelay = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_METADATA_DELAY, value) }
         )
@@ -275,7 +273,7 @@ fun LyricSettingsPage() {
             label = stringResource(id = R.string.label_marquee_loop_range),
             initialValue = marqueeMetadataLoopDelay,
             min = 0,
-            max = 5000,
+            max = 10000,
             onDismiss = { showMarqueeMetadataLoopDialog = false },
             onConfirm = { value -> marqueeMetadataLoopDelay = value; saveConfig(RootConstants.KEY_HOOK_MARQUEE_METADATA_LOOP_DELAY, value) }
         )
@@ -388,6 +386,14 @@ fun LyricSettingsPage() {
                                                 title = stringResource(id = R.string.title_italic),
                                                 checked = fontItalic,
                                                 onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) }
+                                            )
+                                            HorizontalDivider(
+                                                modifier = Modifier.padding(horizontal = 16.dp)
+                                            )
+                                            SwitchPreference(
+                                                title = stringResource(id = R.string.title_center_lyric),
+                                                checked = centerLyric,
+                                                onCheckedChange = { centerLyric = it; saveConfig(RootConstants.KEY_HOOK_CENTER_LYRIC, it) }
                                             )
                                         }
                                     }
@@ -639,8 +645,8 @@ fun LyricSettingsPage() {
                             }
                         }
                     }
+                }
             }
         }
     }
-}
 }
