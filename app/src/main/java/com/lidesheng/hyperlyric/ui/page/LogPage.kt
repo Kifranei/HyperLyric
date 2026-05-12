@@ -5,7 +5,6 @@ package com.lidesheng.hyperlyric.ui.page
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
@@ -68,7 +67,11 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text
+
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.VerticalScrollBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
@@ -152,6 +155,8 @@ fun LogPage() {
     val exportFailedMsg = stringResource(id = R.string.format_export_failed)
     val copiedMsg = stringResource(id = R.string.copied)
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val reloadLogs = {
         coroutineScope.launch {
             isLoading = true
@@ -191,15 +196,26 @@ fun LogPage() {
                         it.write(sb.toString().toByteArray(Charsets.UTF_8))
                         it.flush()
                     }
-                    Toast.makeText(context, exportSuccessMsg, Toast.LENGTH_SHORT).show()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = exportSuccessMsg,
+                            duration = SnackbarDuration.Custom(2000L)
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, String.format(exportFailedMsg, e.message), Toast.LENGTH_SHORT).show()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = String.format(exportFailedMsg, e.message),
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
+                }
             }
         }
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(state = snackbarHostState) },
         topBar = {
             BlurredBar(backdrop, blurActive) {
                 searchStatus.TopAppBarAnim(backgroundColor = barColor) {
@@ -314,7 +330,7 @@ fun LogPage() {
                         }
                     } else {
                         items(count = filteredLogs.size, key = { it }) { index ->
-                            LogItem(entry = filteredLogs[index], copiedMsg = copiedMsg)
+                            LogItem(entry = filteredLogs[index], copiedMsg = copiedMsg, snackbarHostState = snackbarHostState)
                         }
                     }
                     item { Spacer(Modifier.height(16.dp)) }
@@ -359,7 +375,7 @@ fun LogPage() {
                             } else if (filteredLogs.isEmpty()) {
                                 item { Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary) } }
                             } else {
-                                items(filteredLogs) { entry -> LogItem(entry = entry, copiedMsg = copiedMsg) }
+                                items(filteredLogs) { entry -> LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState) }
                             }
                         }
                         VerticalScrollBar(
@@ -394,9 +410,11 @@ private fun updateFilteredLogs(
 @Composable
 fun LogItem(
     entry: LogEntry,
-    copiedMsg: String
+    copiedMsg: String,
+    snackbarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -411,7 +429,12 @@ fun LogItem(
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("HyperLyric Log", logText)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = copiedMsg,
+                    duration = SnackbarDuration.Custom(2000L)
+                )
+            }
         }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

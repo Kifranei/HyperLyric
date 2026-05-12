@@ -1,12 +1,11 @@
 package com.lidesheng.hyperlyric.ui.page.hooksettings
 
-import android.widget.Toast
 import com.lidesheng.hyperlyric.ui.component.SimpleDialog
 import com.lidesheng.hyperlyric.ui.component.TextInputDialog
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,8 +17,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +39,9 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -52,6 +54,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 fun LyricWhitelistPage() {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val msgAppExists = stringResource(id = R.string.toast_app_exists)
     val msgPkgEmpty = stringResource(id = R.string.toast_pkg_empty)
@@ -82,9 +86,19 @@ fun LyricWhitelistPage() {
             if (input.isNotBlank()) {
                 val success = DynamicLyricData.addPackageToHookList(context, input)
                 if (success) showAddWhitelistDialog = false
-                else Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show()
+                else coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = msgAppExists,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
+                }
             } else {
-                Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = msgPkgEmpty,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
+                }
             }
         }
     )
@@ -100,6 +114,7 @@ fun LyricWhitelistPage() {
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(state = snackbarHostState) },
         topBar = {
             BlurredBar(backdrop, blurActive) {
                 TopAppBar(
@@ -137,7 +152,11 @@ fun LyricWhitelistPage() {
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
                 state = lazyListState,
-                modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                modifier = Modifier.pageScrollModifiers(
+                    enableScrollEndHaptic = true,
+                    showTopAppBar = true,
+                    topAppBarScrollBehavior = topAppBarScrollBehavior
+                ),
                 contentPadding = contentPadding,
             ) {
                 whitelistSections(

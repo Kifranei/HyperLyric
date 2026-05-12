@@ -1,9 +1,10 @@
 package com.lidesheng.hyperlyric.utils
 
 import android.content.Context
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -95,7 +96,7 @@ class BackupRestoreHelper(
 }
 
 @Composable
-fun rememberBackupRestoreHelper(): BackupRestoreHelper {
+fun rememberBackupRestoreHelper(snackbarHostState: SnackbarHostState): BackupRestoreHelper {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -119,9 +120,15 @@ fun rememberBackupRestoreHelper(): BackupRestoreHelper {
                             it.flush()
                         }
                     }
-                    Toast.makeText(context, msgBackupSuccess, Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(
+                        message = msgBackupSuccess,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
                 } catch (e: Exception) {
-                    Toast.makeText(context, fmtBackupFailed.format(e.message), Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(
+                        message = fmtBackupFailed.format(e.message),
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
                 }
             }
         }
@@ -139,17 +146,22 @@ fun rememberBackupRestoreHelper(): BackupRestoreHelper {
                         } ?: ""
                     }
                     if (json.isBlank()) {
-                        Toast.makeText(context, msgRestoreEmpty, Toast.LENGTH_SHORT).show()
+                        snackbarHostState.showSnackbar(
+                            message = msgRestoreEmpty,
+                            duration = SnackbarDuration.Custom(2000L)
+                        )
                         return@launch
                     }
                     val success = BackupRestoreManager.restoreFromJson(context, json)
-                    Toast.makeText(
-                        context,
-                        if (success) msgRestoreSuccess else msgRestoreInvalid,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    snackbarHostState.showSnackbar(
+                        message = if (success) msgRestoreSuccess else msgRestoreInvalid,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
                 } catch (_: Exception) {
-                    Toast.makeText(context, msgRestoreFailed, Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(
+                        message = msgRestoreFailed,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
                 }
             }
         }

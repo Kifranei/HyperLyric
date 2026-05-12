@@ -1,12 +1,11 @@
 package com.lidesheng.hyperlyric.ui.page
 
-import com.lidesheng.hyperlyric.BuildConfig
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
+import com.lidesheng.hyperlyric.BuildConfig
 import androidx.compose.animation.AnimatedVisibility
 import com.lidesheng.hyperlyric.ui.component.NumberInputDialog
 import com.lidesheng.hyperlyric.ui.component.SimpleDialog
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +58,9 @@ import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
@@ -85,6 +85,7 @@ fun DynamicIslandNotificationPage() {
     val backdrop = rememberBlurBackdrop()
     val blurActive = backdrop != null
     val barColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surface
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val onlineLyricCacheLimit = prefs.getInt(
         ServiceConstants.KEY_ONLINE_LYRIC_CACHE_LIMIT,
@@ -143,6 +144,7 @@ fun DynamicIslandNotificationPage() {
     var packageToDelete by remember { mutableStateOf("") }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(state = snackbarHostState) },
         topBar = {
             BlurredBar(backdrop, blurActive) {
                 TopAppBar(
@@ -219,10 +221,20 @@ fun DynamicIslandNotificationPage() {
                     if (success) {
                         showAddWhitelistDialog = false
                     } else {
-                        Toast.makeText(context, msgAppExists, Toast.LENGTH_SHORT).show()
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = msgAppExists,
+                                duration = SnackbarDuration.Custom(2000L)
+                            )
+                        }
                     }
                 } else {
-                    Toast.makeText(context, msgPkgEmpty, Toast.LENGTH_SHORT).show()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = msgPkgEmpty,
+                            duration = SnackbarDuration.Custom(2000L)
+                        )
+                    }
                 }
             }
         )
@@ -249,7 +261,11 @@ fun DynamicIslandNotificationPage() {
                     0 -> {
                         LazyColumn(
                             state = configLazyListState,
-                            modifier = Modifier.pageScrollModifiers(true, true, scrollBehavior),
+                            modifier = Modifier.pageScrollModifiers(
+                                enableScrollEndHaptic = true,
+                                showTopAppBar = true,
+                                topAppBarScrollBehavior = scrollBehavior
+                            ),
                             contentPadding = contentPadding
                         ) {
                             item {
@@ -606,11 +622,12 @@ fun DynamicIslandNotificationPage() {
                                                                 }
                                                             context.startActivity(intent)
                                                         } catch (_: Exception) {
-                                                            Toast.makeText(
-                                                                context,
-                                                                msgAutostartFailed,
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
+                                                            coroutineScope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = msgAutostartFailed,
+                                                                    duration = SnackbarDuration.Custom(2000L)
+                                                                )
+                                                            }
                                                         }
                                                     }
                                                 })
@@ -631,11 +648,12 @@ fun DynamicIslandNotificationPage() {
                                                                 }
                                                             context.startActivity(intent)
                                                         } else {
-                                                            Toast.makeText(
-                                                                context,
-                                                                msgBatteryIgnored,
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
+                                                            coroutineScope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = msgBatteryIgnored,
+                                                                    duration = SnackbarDuration.Custom(2000L)
+                                                                )
+                                                            }
                                                         }
                                                     } catch (_: Exception) {
                                                         try {
@@ -643,11 +661,12 @@ fun DynamicIslandNotificationPage() {
                                                                 Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                                             context.startActivity(intent)
                                                         } catch (_: Exception) {
-                                                            Toast.makeText(
-                                                                context,
-                                                                msgBatteryFailed,
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
+                                                            coroutineScope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = msgBatteryFailed,
+                                                                    duration = SnackbarDuration.Custom(2000L)
+                                                                )
+                                                            }
                                                         }
                                                     }
                                                 })
@@ -683,7 +702,11 @@ fun DynamicIslandNotificationPage() {
                     1 -> {
                         LazyColumn(
                             state = whitelistLazyListState,
-                            modifier = Modifier.pageScrollModifiers(true, true, scrollBehavior),
+                            modifier = Modifier.pageScrollModifiers(
+                                enableScrollEndHaptic = true,
+                                showTopAppBar = true,
+                                topAppBarScrollBehavior = scrollBehavior
+                            ),
                             contentPadding = contentPadding
                         ) {
                             item {

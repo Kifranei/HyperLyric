@@ -9,7 +9,9 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
-import android.widget.Toast
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,7 +26,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -62,7 +64,6 @@ import com.lidesheng.hyperlyric.root.utils.ShellUtils
 import com.lidesheng.hyperlyric.service.LiveLyricService
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.navigation.Route
-import com.lidesheng.hyperlyric.ui.utils.BlurredBar
 import com.lidesheng.hyperlyric.ui.utils.rememberBlurBackdrop
 import com.lidesheng.hyperlyric.ui.page.main.AboutPage
 import com.lidesheng.hyperlyric.ui.page.main.HomePage
@@ -75,7 +76,6 @@ import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.NavigationBar
-import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.NavigationItem
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -101,6 +101,8 @@ fun MainPage() {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val sheetSnackbarHostState = remember { SnackbarHostState() }
 
     // --- pager ---
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -118,6 +120,7 @@ fun MainPage() {
     val msgNoRoot = stringResource(R.string.toast_no_root)
     val msgPermissionNotGranted = stringResource(R.string.toast_permission_not_granted)
     val msgOpenSettingsFailed = stringResource(R.string.toast_open_settings_failed)
+    val msgXposedNotActive = stringResource(R.string.toast_xposed_module_not_active)
 
     // --- prefs & state ---
     val prefs = remember { context.getSharedPreferences(UIConstants.PREF_NAME, Context.MODE_PRIVATE) }
@@ -145,11 +148,12 @@ fun MainPage() {
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
-            Toast.makeText(
-                context,
-                if (isGranted) msgPermissionGranted else msgPermissionDenied,
-                Toast.LENGTH_SHORT
-            ).show()
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = if (isGranted) msgPermissionGranted else msgPermissionDenied,
+                    duration = SnackbarDuration.Custom(2000L)
+                )
+            }
         }
     )
 
@@ -188,14 +192,19 @@ fun MainPage() {
     }
 
     // --- callbacks (remembered for reference stability) ---
-    val toggleSuperIsland = remember { { isChecked: Boolean ->
+    val toggleSuperIsland: (Boolean) -> Unit = remember { { isChecked ->
         if (isChecked) {
             if (ConfigSync.xposedService != null) {
                 enableSuperIsland = true
                 prefs.edit { putBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, true) }
                 ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, true)
             } else {
-                Toast.makeText(context, R.string.toast_xposed_module_not_active, Toast.LENGTH_SHORT).show()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = msgXposedNotActive,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
+                }
             }
         } else {
             enableSuperIsland = false
@@ -204,7 +213,7 @@ fun MainPage() {
         }
     } }
 
-    val toggleDynamicIsland = remember { { isChecked: Boolean ->
+    val toggleDynamicIsland: (Boolean) -> Unit = remember { { isChecked ->
         if (isChecked) {
             val hasPostNotification = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
             val hasListenerPermission = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
@@ -223,14 +232,19 @@ fun MainPage() {
         }
     } }
 
-    val toggleRemoveFocusWhitelist = remember { { checked: Boolean ->
+    val toggleRemoveFocusWhitelist: (Boolean) -> Unit = remember { { checked ->
         if (checked) {
             if (ConfigSync.xposedService != null) {
                 removeFocusWhitelist = true
                 prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, true) }
                 ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_FOCUS_WHITELIST, true)
             } else {
-                Toast.makeText(context, R.string.toast_xposed_module_not_active, Toast.LENGTH_SHORT).show()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = msgXposedNotActive,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
+                }
             }
         } else {
             removeFocusWhitelist = false
@@ -239,14 +253,19 @@ fun MainPage() {
         }
     } }
 
-    val toggleRemoveIslandWhitelist = remember { { checked: Boolean ->
+    val toggleRemoveIslandWhitelist: (Boolean) -> Unit = remember { { checked ->
         if (checked) {
             if (ConfigSync.xposedService != null) {
                 removeIslandWhitelist = true
                 prefs.edit { putBoolean(RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, true) }
                 ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_REMOVE_ISLAND_WHITELIST, true)
             } else {
-                Toast.makeText(context, R.string.toast_xposed_module_not_active, Toast.LENGTH_SHORT).show()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = msgXposedNotActive,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
+                }
             }
         } else {
             removeIslandWhitelist = false
@@ -255,7 +274,7 @@ fun MainPage() {
         }
     } }
 
-    val confirmPermissionSheet = remember { {
+    val confirmPermissionSheet: () -> Unit = remember { {
         val hasPostNotification = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         val hasListenerPermission = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
         if (hasPostNotification && hasListenerPermission) {
@@ -265,7 +284,12 @@ fun MainPage() {
             ConfigSync.syncPreference(UIConstants.PREF_NAME, RootConstants.KEY_HOOK_ENABLE_DYNAMIC_ISLAND, true)
             LiveLyricService.ensureListenerBound(context)
         } else {
-            Toast.makeText(context, msgPermissionNotGranted, Toast.LENGTH_SHORT).show()
+            scope.launch {
+                sheetSnackbarHostState.showSnackbar(
+                    message = msgPermissionNotGranted,
+                    duration = SnackbarDuration.Custom(2000L)
+                )
+            }
         }
     } }
 
@@ -308,13 +332,17 @@ fun MainPage() {
             scope.launch {
                 val success = ShellUtils.restartSystemUI()
                 if (!success) {
-                    Toast.makeText(context, msgNoRoot, Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(
+                        message = msgNoRoot,
+                        duration = SnackbarDuration.Custom(2000L)
+                    )
                 }
             }
         }
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(state = snackbarHostState) },
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             AnimatedVisibility(
@@ -465,28 +493,51 @@ fun MainPage() {
         },
         onDismissRequest = { showPermissionSheet = false }
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp)
-        ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                ArrowPreference(
-                    title = stringResource(R.string.title_permission_post_notification),
-                    onClick = { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
-                )
-                ArrowPreference(
-                    title = stringResource(R.string.title_permission_listener),
-                    onClick = {
-                        try {
-                            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                            context.startActivity(intent)
-                        } catch (_: Exception) {
-                            Toast.makeText(context, msgOpenSettingsFailed, Toast.LENGTH_SHORT).show()
-                        }
+                .layout { measurable, constraints ->
+                    val paddingPx = 24.dp.roundToPx()
+                    val placeable = measurable.measure(
+                        constraints.copy(maxWidth = constraints.maxWidth + paddingPx * 2)
+                    )
+                    layout(constraints.maxWidth, placeable.height) {
+                        placeable.place(-paddingPx, 0)
                     }
-                )
+                }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            ) {
+                Card(modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
+                    ArrowPreference(
+                        title = stringResource(R.string.title_permission_post_notification),
+                        onClick = { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+                    )
+                    ArrowPreference(
+                        title = stringResource(R.string.title_permission_listener),
+                        onClick = {
+                            try {
+                                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                                scope.launch {
+                                    sheetSnackbarHostState.showSnackbar(
+                                        message = msgOpenSettingsFailed,
+                                        duration = SnackbarDuration.Custom(2000L)
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
             }
+            SnackbarHost(
+                state = sheetSnackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
