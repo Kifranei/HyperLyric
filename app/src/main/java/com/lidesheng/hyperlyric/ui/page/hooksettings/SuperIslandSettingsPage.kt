@@ -131,61 +131,60 @@ fun SuperIslandSettingsPage() {
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
                 state = lazyListState,
-                modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                modifier = Modifier.pageScrollModifiers(
+                    enableScrollEndHaptic = true,
+                    showTopAppBar = true,
+                    topAppBarScrollBehavior = topAppBarScrollBehavior
+                ),
                 contentPadding = contentPadding,
             ) {
-                superIslandSettingsSections(
-                    islandContentLeft, islandContentRight, audioCover, audioRhythm,
-                    leftPaddingLeft, leftPaddingRight, rightPaddingLeft, rightPaddingRight,
-                    leftContentWidth, rightContentWidth, afterPauseBehavior,
-                    contentOptions, afterPauseOptions,
-                    { showLeftContentWidthDialog = true }, { showRightContentWidthDialog = true },
-                    { showLeftPaddingDialog = true }, { showRightPaddingDialog = true },
-                    ::saveConfig
-                )
+                item(key = "layout_title") { SmallTitle(text = stringResource(id = R.string.title_layout)) }
+                item(key = "layout_content") {
+                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
+                        Column {
+                            ArrowPreference(
+                                title = stringResource(id = R.string.title_left_content_width), 
+                                endActions = { Text("$leftContentWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, 
+                                onClick = { showLeftContentWidthDialog = true }, 
+                                bottomAction = { Slider(value = leftContentWidth.toFloat(), onValueChange = { leftContentWidth = it.toInt(); saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, it.toInt()) }, valueRange = 0f..100f) }
+                            )
+                            ArrowPreference(
+                                title = stringResource(id = R.string.title_right_content_width), 
+                                endActions = { Text("$rightContentWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, 
+                                onClick = { showRightContentWidthDialog = true }, 
+                                bottomAction = { Slider(value = rightContentWidth.toFloat(), onValueChange = { rightContentWidth = it.toInt(); saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, it.toInt()) }, valueRange = 0f..100f) }
+                            )
+                            ArrowPreference(
+                                title = stringResource(id = R.string.title_left_padding), 
+                                endActions = { Text(stringResource(id = R.string.format_padding_pair, leftPaddingLeft, leftPaddingRight), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, 
+                                onClick = { showLeftPaddingDialog = true }
+                            )
+                            ArrowPreference(
+                                title = stringResource(id = R.string.title_right_padding), 
+                                endActions = { Text(stringResource(id = R.string.format_padding_pair, rightPaddingLeft, rightPaddingRight), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, 
+                                onClick = { showRightPaddingDialog = true }
+                            )
+                        }
+                    }
+                }
+                item(key = "content_title") { SmallTitle(text = stringResource(id = R.string.title_content)) }
+                item(key = "content_options") {
+                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
+                        Column {
+                            SwitchPreference(title = stringResource(id = R.string.title_audio_cover), checked = audioCover, onCheckedChange = { audioCover = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_ALBUM, it) })
+                            SwitchPreference(title = stringResource(id = R.string.title_audio_rhythm), checked = audioRhythm, onCheckedChange = { audioRhythm = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_ICON, it) })
+                            OverlayDropdownPreference(title = stringResource(id = R.string.title_super_island_left), items = contentOptions, selectedIndex = islandContentLeft, onSelectedIndexChange = { islandContentLeft = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT, it) })
+                            OverlayDropdownPreference(title = stringResource(id = R.string.title_super_island_right), items = contentOptions, selectedIndex = islandContentRight, onSelectedIndexChange = { islandContentRight = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT, it) })
+                        }
+                    }
+                }
+                item(key = "special_features_title") { SmallTitle(text = stringResource(id = R.string.title_special_features)) }
+                item(key = "special_features_content") {
+                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
+                        OverlayDropdownPreference(title = stringResource(id = R.string.title_behavior_after_pause), items = afterPauseOptions, selectedIndex = afterPauseBehavior, onSelectedIndexChange = { afterPauseBehavior = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE, it) })
+                    }
+                }
             }
-        }
-    }
-}
-
-private fun LazyListScope.superIslandSettingsSections(
-    islandContentLeft: Int, islandContentRight: Int,
-    audioCover: Boolean, audioRhythm: Boolean,
-    leftPaddingLeft: Int, leftPaddingRight: Int,
-    rightPaddingLeft: Int, rightPaddingRight: Int,
-    leftContentWidth: Int, rightContentWidth: Int,
-    afterPauseBehavior: Int,
-    contentOptions: List<String>, afterPauseOptions: List<String>,
-    onLeftContentWidthClick: () -> Unit, onRightContentWidthClick: () -> Unit,
-    onLeftPaddingClick: () -> Unit, onRightPaddingClick: () -> Unit,
-    saveConfig: (String, Any) -> Unit
-) {
-    item(key = "layout_title") { SmallTitle(text = stringResource(id = R.string.title_layout)) }
-    item(key = "layout_content") {
-        Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-            Column {
-                ArrowPreference(title = stringResource(id = R.string.title_left_content_width), endActions = { Text("$leftContentWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = onLeftContentWidthClick, bottomAction = { Slider(value = leftContentWidth.toFloat(), onValueChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, it.toInt()) }, valueRange = 0f..100f) })
-                ArrowPreference(title = stringResource(id = R.string.title_right_content_width), endActions = { Text("$rightContentWidth", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = onRightContentWidthClick, bottomAction = { Slider(value = rightContentWidth.toFloat(), onValueChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, it.toInt()) }, valueRange = 0f..100f) })
-                ArrowPreference(title = stringResource(id = R.string.title_left_padding), endActions = { Text(stringResource(id = R.string.format_padding_pair, leftPaddingLeft, leftPaddingRight), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = onLeftPaddingClick)
-                ArrowPreference(title = stringResource(id = R.string.title_right_padding), endActions = { Text(stringResource(id = R.string.format_padding_pair, rightPaddingLeft, rightPaddingRight), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = onRightPaddingClick)
-            }
-        }
-    }
-    item(key = "content_title") { SmallTitle(text = stringResource(id = R.string.title_content)) }
-    item(key = "content_options") {
-        Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-            Column {
-                SwitchPreference(title = stringResource(id = R.string.title_audio_cover), checked = audioCover, onCheckedChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_LEFT_ALBUM, it) })
-                SwitchPreference(title = stringResource(id = R.string.title_audio_rhythm), checked = audioRhythm, onCheckedChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_RIGHT_ICON, it) })
-                OverlayDropdownPreference(title = stringResource(id = R.string.title_super_island_left), items = contentOptions, selectedIndex = islandContentLeft, onSelectedIndexChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_CONTENT_LEFT, it) })
-                OverlayDropdownPreference(title = stringResource(id = R.string.title_super_island_right), items = contentOptions, selectedIndex = islandContentRight, onSelectedIndexChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT, it) })
-            }
-        }
-    }
-    item(key = "special_features_title") { SmallTitle(text = stringResource(id = R.string.title_special_features)) }
-    item(key = "special_features_content") {
-        Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-            OverlayDropdownPreference(title = stringResource(id = R.string.title_behavior_after_pause), items = afterPauseOptions, selectedIndex = afterPauseBehavior, onSelectedIndexChange = { saveConfig(RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE, it) })
         }
     }
 }
