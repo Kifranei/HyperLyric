@@ -68,6 +68,7 @@ fun SuperIslandSettingsPage() {
     var leftContentWidth by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH)) }
     var rightContentWidth by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH)) }
     var afterPauseBehavior by remember { mutableIntStateOf(prefs.getInt(RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE, RootConstants.DEFAULT_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE)) }
+    var extractGlowColor by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ISLAND_GLOW_EXTRACT_COLOR, RootConstants.DEFAULT_HOOK_ISLAND_GLOW_EXTRACT_COLOR)) }
 
     var showLeftPaddingDialog by remember { mutableStateOf(false) }
     var showRightPaddingDialog by remember { mutableStateOf(false) }
@@ -88,7 +89,7 @@ fun SuperIslandSettingsPage() {
             RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_LEFT, RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_RIGHT,
             RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_LEFT, RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_RIGHT,
             RootConstants.KEY_HOOK_ISLAND_LEFT_CONTENT_MAX_WIDTH, RootConstants.KEY_HOOK_ISLAND_RIGHT_CONTENT_MAX_WIDTH,
-            RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE
+            RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE, RootConstants.KEY_HOOK_ISLAND_GLOW_EXTRACT_COLOR
         )
         if (key in refreshKeys) context.sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
     }
@@ -181,7 +182,24 @@ fun SuperIslandSettingsPage() {
                 item(key = "special_features_title") { SmallTitle(text = stringResource(id = R.string.title_special_features)) }
                 item(key = "special_features_content") {
                     Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-                        OverlayDropdownPreference(title = stringResource(id = R.string.title_behavior_after_pause), items = afterPauseOptions, selectedIndex = afterPauseBehavior, onSelectedIndexChange = { afterPauseBehavior = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE, it) })
+                        Column {
+                            OverlayDropdownPreference(
+                                title = stringResource(id = R.string.title_behavior_after_pause),
+                                items = afterPauseOptions,
+                                selectedIndex = afterPauseBehavior,
+                                onSelectedIndexChange = {
+                                    afterPauseBehavior = it; saveConfig(
+                                    RootConstants.KEY_HOOK_ISLAND_BEHAVIOR_AFTER_PAUSE,
+                                    it
+                                )
+                                }
+                            )
+                            SwitchPreference(
+                                title = stringResource(id = R.string.title_glow_cover_color),
+                                checked = extractGlowColor,
+                                onCheckedChange = { extractGlowColor = it; saveConfig(RootConstants.KEY_HOOK_ISLAND_GLOW_EXTRACT_COLOR, it) }
+                            )
+                        }
                     }
                 }
             }

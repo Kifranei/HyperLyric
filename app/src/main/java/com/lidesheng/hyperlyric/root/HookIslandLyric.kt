@@ -7,8 +7,9 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.CoverColorHelper
+import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
+
 import com.lidesheng.hyperlyric.root.utils.DynamicFinder
 import com.lidesheng.hyperlyric.root.utils.LyricStyleHelper
 import com.lidesheng.hyperlyric.root.utils.MediaMetadataHelper
@@ -25,12 +26,12 @@ import io.github.proify.lyricon.lyric.view.yoyo.animateUpdate
 object HookIslandLyric {
     lateinit var module: XposedModule
 
-    var activeContentView: java.lang.ref.WeakReference<View>? = null
+    var activeIslandPkgNames = java.util.Collections.synchronizedMap(java.util.WeakHashMap<View, String>())
+    var activeContentView: java.lang.ref.WeakReference<ViewGroup>? = null
     
     @Volatile
     private var isHookedSuccess = false
-    
-    private val activeIslandPkgNames = java.util.Collections.synchronizedMap(java.util.WeakHashMap<View, String>())
+
 
     @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
     fun hook(xposedModule: XposedModule, cl: ClassLoader) {
@@ -68,6 +69,8 @@ object HookIslandLyric {
                 }
             }
 
+            // 初始化外圈光效处理中心
+            HookIslandGlow.init(module, cl)
 
             isHookedSuccess = true
             xLog("HyperLyric active: Super Island hooked successfully")
@@ -151,11 +154,15 @@ object HookIslandLyric {
             injectToSlot(viewGroup, "island_container_module_image_text_1", "HYPERLYRIC_LEFT_VIEW", leftMode, prefs, pkgName)
             injectToSlot(viewGroup, "island_container_module_image_text_2", "HYPERLYRIC_RIGHT_VIEW", rightMode, prefs, pkgName)
 
+            // 注入光效 Bundle 标记 + 主动触发 BigIslandView 的 startGlowEffect
+            HookIslandGlow.injectAndTriggerGlow(viewGroup, islandData, prefs)
+
             return result
         }
     }
 
-    private fun isPackageHookEnabled(packageName: String?): Boolean {
+
+    fun isPackageHookEnabled(packageName: String?): Boolean {
         if (packageName.isNullOrEmpty()) return false
         val prefs = (module as HookEntry).prefs
         // 通过已添加列表判断用户是否配置过白名单
@@ -350,8 +357,6 @@ object HookIslandLyric {
         }
     }
 
-    // removed configureTextView
-
     private fun configureRichLyricView(view: RichLyricLineView, prefs: SharedPreferences, res: android.content.res.Resources, mode: Int, albumBitmap: android.graphics.Bitmap? = null) {
         // Sync display flags to the view's internal rendering engine
         view.displayTranslation = LyriconDataBridge.isDisplayTranslation
@@ -384,6 +389,11 @@ object HookIslandLyric {
                         val rightMode = prefs.getInt(RootConstants.KEY_HOOK_ISLAND_CONTENT_RIGHT, RootConstants.DEFAULT_HOOK_ISLAND_CONTENT_RIGHT)
                         injectToSlot(cv, "island_container_module_image_text_1", "HYPERLYRIC_LEFT_VIEW", leftMode, prefs, pkgName)
                         injectToSlot(cv, "island_container_module_image_text_2", "HYPERLYRIC_RIGHT_VIEW", rightMode, prefs, pkgName)
+                        
+                        // 刷新时同步更新光效
+                        val mediaInfo = MediaMetadataHelper.getMediaInfo(cv.context, pkgName)
+                        HookIslandGlow.updateMusicGlow(pkgName, mediaInfo.albumArt, prefs)
+
                         triggerSystemRelayout(cv)
                     }
                 }

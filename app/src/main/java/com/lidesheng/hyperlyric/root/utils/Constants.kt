@@ -63,6 +63,7 @@ object Constants {
     // ================= COLOR KEYS =================
     const val KEY_HOOK_EXTRACT_COVER_TEXT_COLOR = "key_hook_extract_cover_text_color"
     const val KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT = "key_hook_extract_cover_text_gradient"
+    const val KEY_HOOK_ISLAND_GLOW_EXTRACT_COLOR = "key_hook_island_glow_extract_color"
 
     // ================= FONT KEYS =================
     const val KEY_HOOK_CUSTOM_FONT_PATH = "key_hook_custom_font_path"
@@ -137,6 +138,7 @@ object Constants {
     const val DEFAULT_HOOK_SWAP_TRANSLATION = false
     const val DEFAULT_HOOK_EXTRACT_COVER_TEXT_COLOR = false
     const val DEFAULT_HOOK_EXTRACT_COVER_TEXT_GRADIENT = false
+    const val DEFAULT_HOOK_ISLAND_GLOW_EXTRACT_COLOR = false
     const val DEFAULT_HOOK_WORD_MOTION_ENABLED = false
     const val DEFAULT_HOOK_WORD_MOTION_CJK_LIFT = 0.05f
     const val DEFAULT_HOOK_WORD_MOTION_CJK_WAVE = 2.8f

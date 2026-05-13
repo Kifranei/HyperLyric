@@ -224,7 +224,7 @@
     <string name="title_disable_translation">禁用所有翻译</string>
     <string name="title_translation_only">仅显示翻译</string>
     <string name="title_swap_translation">原词翻译对调位置</string>
-    <string name="title_extract_cover_color">提取封面颜色</string>
+    <string name="title_extract_cover_color">提取封面色</string>
     <string name="title_extract_cover_gradient">提取封面渐变色</string>
     <string name="title_word_motion">字词上浮动画</string>
     <string name="title_word_motion_cjk_lift">中日韩上浮系数</string>
@@ -285,6 +285,7 @@
     <string name="title_behavior_after_pause">暂停音乐后行为</string>
     <string name="option_after_pause_default">恢复默认</string>
     <string name="option_after_pause_keep">保持不变</string>
+    <string name="title_glow_cover_color">边缘光效封面色</string>
 
     <!-- ———————————————————————— Shared ———————————————————————— -->
     <string name="filter">筛选</string>
