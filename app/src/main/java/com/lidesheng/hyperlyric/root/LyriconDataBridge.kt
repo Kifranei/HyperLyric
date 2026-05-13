@@ -45,7 +45,7 @@ object LyriconDataBridge {
     @Volatile
     var isTextMode: Boolean = false
 
-    /** 是否显示翻译（由插件回调控制） */
+    /** 是否显示翻译（由插件回调控制；AI 翻译成功也会置 true） */
     @Volatile
     var isDisplayTranslation: Boolean = true
 
@@ -69,7 +69,10 @@ object LyriconDataBridge {
             if (prefs != null) {
                 val aiEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, RootConstants.DEFAULT_HOOK_AI_TRANS_ENABLE)
                 if (aiEnabled) {
+                    xLog("AI: starting translation for ${song.name}")
                     startAiTranslation(song, prefs)
+                } else {
+                    isDisplayTranslation = false
                 }
             }
         } else {
@@ -79,36 +82,42 @@ object LyriconDataBridge {
 
     private fun startAiTranslation(song: Song, prefs: SharedPreferences) {
         val configs = buildAiTranslationConfigs(prefs)
-        if (!configs.isUsable) return
+        if (!configs.isUsable) {
+            xLog("AI: config unusable, skipping — apiKey empty?")
+            return
+        }
 
+        xLog("AI: enqueued — ${configs.baseUrl} model=${configs.model} lines=${song.lyrics?.size ?: 0}")
         aiTransScope.launch {
             try {
                 val translatedSong = AITranslator.translateSongSync(song, configs)
                 if (translatedSong !== song && translatedSong.lyrics != null) {
-                    // Update the current song with translations
                     currentSong = translatedSong
                     val processor = SongPreprocessor(TitleSlot.NAME_ARTIST)
                     val lines = processor.prepare(translatedSong)
                     timingNavigator = TimingNavigator(lines.toTypedArray())
 
-                    xLog("AI translation applied to: ${song.name}")
-                    // Refresh the island to show translations
+                    isDisplayTranslation = true
+                    xLog("AI: success — ${song.name} (${lines.size} lines)")
                     HookIslandLyric.refreshActiveIsland()
+                } else {
+                    xLog("AI: returned same song, no translation applied for ${song.name}")
                 }
             } catch (e: Exception) {
-                xLogError("AI translation failed for: ${song.name}", e)
+                xLogError("AI: failed for ${song.name}", e)
             }
         }
     }
 
     private fun buildAiTranslationConfigs(prefs: SharedPreferences): AiTranslationConfigs {
-        val providerName = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROVIDER, AiTranslationProvider.OPENAI.name) ?: AiTranslationProvider.OPENAI.name
+        val providerName = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROVIDER, AiTranslationProvider.OPENAI.name)
+            ?: AiTranslationProvider.OPENAI.name
         val provider = try { AiTranslationProvider.valueOf(providerName) } catch (_: Exception) { AiTranslationProvider.OPENAI }
 
         return AiTranslationConfigs(
             provider = providerName,
-            targetLanguage = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_TARGET_LANG, ""),
-            apiKey = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_API_KEY, ""),
+            targetLanguage = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_TARGET_LANG, "") ?: "",
+            apiKey = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_API_KEY, "") ?: "",
             model = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_MODEL, "").orEmpty().ifBlank { provider.model },
             baseUrl = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_BASE_URL, "").orEmpty().ifBlank { provider.url },
             prompt = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROMPT, "") ?: "",
