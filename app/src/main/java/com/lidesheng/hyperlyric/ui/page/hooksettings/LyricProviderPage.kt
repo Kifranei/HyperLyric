@@ -170,7 +170,8 @@ private fun LazyListScope.providerSections(
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
                         .padding(bottom = 12.dp)
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    onClick = { expandedStates[packageName] = !isExpanded }
                 ) {
                     Column {
                         SuperSwitchPreference(
