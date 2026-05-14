@@ -1,8 +1,14 @@
 package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,6 +24,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,10 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
-import com.lidesheng.hyperlyric.ui.utils.LyricModule
-import com.lidesheng.hyperlyric.ui.utils.LyricProviderManager
-import com.lidesheng.hyperlyric.ui.utils.ModuleCategory
-import com.lidesheng.hyperlyric.ui.utils.ProviderUiState
+import com.lidesheng.hyperlyric.ui.component.SuperSwitchPreference
+import com.lidesheng.hyperlyric.ui.component.ProComponent
+import com.lidesheng.hyperlyric.utils.LyricModule
+import com.lidesheng.hyperlyric.utils.LyricProviderManager
+import com.lidesheng.hyperlyric.utils.ModuleCategory
+import com.lidesheng.hyperlyric.utils.ModuleTag
+import com.lidesheng.hyperlyric.utils.ProviderUiState
 import com.lidesheng.hyperlyric.ui.utils.BlurredBar
 import com.lidesheng.hyperlyric.ui.utils.pageScrollModifiers
 import com.lidesheng.hyperlyric.ui.utils.rememberBlurBackdrop
@@ -49,14 +59,14 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
 @Composable
 fun LyricProviderPage() {
@@ -78,6 +88,9 @@ fun LyricProviderPage() {
     val groupedModules = remember(providerUiState.value.modules) {
         LyricProviderManager.categorizeModules(providerUiState.value.modules, othersCategoryName)
     }
+
+    val expandedStates = remember { mutableStateMapOf<String, Boolean>() }
+    val enabledStates = remember { mutableStateMapOf<String, Boolean>() }
 
     Scaffold(
         topBar = {
@@ -121,14 +134,19 @@ fun LyricProviderPage() {
                     modifier = Modifier.pageScrollModifiers(true, false, topAppBarScrollBehavior),
                     contentPadding = contentPadding,
                 ) {
-                    providerSections(providerUiState.value, groupedModules)
+                    providerSections(providerUiState.value, groupedModules, expandedStates, enabledStates)
                 }
             }
         }
     }
 }
 
-private fun LazyListScope.providerSections(uiState: ProviderUiState, groupedModules: List<ModuleCategory>) {
+private fun LazyListScope.providerSections(
+    uiState: ProviderUiState,
+    groupedModules: List<ModuleCategory>,
+    expandedStates: MutableMap<String, Boolean>,
+    enabledStates: MutableMap<String, Boolean>
+) {
     if (!uiState.isLoading && uiState.modules.isEmpty()) {
         item(key = "no_provider") {
             Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
@@ -142,23 +160,105 @@ private fun LazyListScope.providerSections(uiState: ProviderUiState, groupedModu
                     SmallTitle(text = category.name, insideMargin = PaddingValues(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 4.dp))
                 }
             }
-            items(category.items.size, key = { "provider_${category.items[it].label}" }) { index ->
+            items(category.items.size, key = { "provider_${category.items[it].packageInfo.packageName}" }) { index ->
                 val module = category.items[index]
-                Card(modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth(), pressFeedbackType = PressFeedbackType.Sink) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = module.label, style = MiuixTheme.textStyles.title4, fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        val version = module.packageInfo.versionName ?: stringResource(id = R.string.unknown)
-                        val author = module.author ?: stringResource(id = R.string.unknown_author)
-                        Text(text = stringResource(id = R.string.format_version_author, version, author), style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantActions)
-                        if (!module.description.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider(modifier = Modifier.fillMaxWidth(), thickness = 0.5.dp, color = MiuixTheme.colorScheme.outline)
-                            Text(modifier = Modifier.padding(top = 12.dp), text = module.description, style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantActions)
+                val packageName = module.packageInfo.packageName
+                val isExpanded = expandedStates[packageName] ?: false
+                val isEnabled = enabledStates[packageName] ?: true
+
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 12.dp)
+                        .fillMaxWidth()
+                        .animateContentSize()
+                ) {
+                    Column {
+                        SuperSwitchPreference(
+                            checked = isEnabled,
+                            onCheckedChange = { enabledStates[packageName] = it },
+                            title = module.label,
+                            summary = stringResource(
+                                id = R.string.format_version_author,
+                                module.packageInfo.versionName ?: stringResource(id = R.string.unknown),
+                                module.author ?: stringResource(id = R.string.unknown_author)
+                            ),
+                            onClick = { expandedStates[packageName] = !isExpanded },
+                            startAction = {
+                                val pm = LocalContext.current.packageManager
+                                val appInfo = module.packageInfo.applicationInfo
+                                val icon = remember(packageName) { appInfo?.loadIcon(pm) }
+                                if (icon != null) {
+                                    Box(modifier = Modifier.size(40.dp)) {
+                                        androidx.compose.ui.viewinterop.AndroidView(
+                                            factory = { context ->
+                                                android.widget.ImageView(context).apply {
+                                                    setImageDrawable(icon)
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                            },
+                            showIndication = false
+                        )
+                        AnimatedVisibility(visible = isExpanded) {
+                            ProComponent(
+                                summary = module.description,
+                                bottomAction = {
+                                    if (module.tags.isNotEmpty()) {
+                                        ModuleTagsFlow(module.tags)
+                                    }
+                                }
+                            )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ModuleTagsFlow(tags: List<ModuleTag>) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 12.dp)
+    ) {
+        tags.forEach { tag ->
+            val title = if (tag.titleRes != -1) stringResource(tag.titleRes) else tag.title.orEmpty()
+            Card(
+                modifier = Modifier.padding(end = 8.dp, top = 4.dp),
+                colors = top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.surfaceVariant
+                ),
+                pressFeedbackType = top.yukonga.miuix.kmp.utils.PressFeedbackType.None
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (tag.iconRes != null) {
+                        Icon(
+                            painter = painterResource(id = tag.iconRes),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                        )
+                        Spacer(modifier = Modifier.padding(start = 4.dp))
+                    }
+                    Text(
+                        text = title,
+                        style = MiuixTheme.textStyles.body2,
+                        fontSize = MiuixTheme.textStyles.body2.fontSize * 0.85f,
+                        color = if (tag.isRainbow) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceVariantActions,
+                        fontWeight = if (tag.isRainbow) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
             }
         }
     }

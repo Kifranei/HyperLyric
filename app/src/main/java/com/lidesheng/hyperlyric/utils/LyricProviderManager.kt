@@ -1,4 +1,4 @@
-package com.lidesheng.hyperlyric.ui.utils
+package com.lidesheng.hyperlyric.utils
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -11,13 +11,21 @@ import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.util.Locale
 
+data class ModuleTag(
+    val iconRes: Int? = null,
+    val title: String? = null,
+    val titleRes: Int = -1,
+    val isRainbow: Boolean = false
+)
+
 data class LyricModule(
     val packageInfo: PackageInfo,
     val label: String,
     val description: String?,
     val author: String?,
     val category: String?,
-    val isCertified: Boolean = false
+    val isCertified: Boolean = false,
+    val tags: List<ModuleTag> = emptyList()
 )
 
 data class ProviderUiState(
@@ -106,10 +114,36 @@ object LyricProviderManager {
                 description = metaData.getString("lyricon_module_description"),
                 author = metaData.getString("lyricon_module_author"),
                 category = metaData.getString("lyricon_module_category"),
-                isCertified = isCertified
+                isCertified = isCertified,
+                tags = extractTags(pm, appInfo, metaData)
             )
         } catch (_: Exception) {
             null
+        }
+    }
+
+    private fun extractTags(pm: PackageManager, appInfo: ApplicationInfo, metaData: android.os.Bundle): List<ModuleTag> {
+        val tagsResId = metaData.getInt("lyricon_module_tags")
+        val rawTags = if (tagsResId != 0) {
+            runCatching {
+                val resources = pm.getResourcesForApplication(appInfo)
+                resources.getStringArray(tagsResId).toList()
+            }.getOrDefault(emptyList())
+        } else {
+            metaData.getString("lyricon_module_tags")?.let { listOf(it) } ?: emptyList()
+        }
+        return rawTags.mapNotNull { tagKey ->
+            if (tagKey.isBlank()) return@mapNotNull null
+            getPredefinedTag(tagKey) ?: ModuleTag(title = tagKey)
+        }
+    }
+
+    private fun getPredefinedTag(key: String): ModuleTag? {
+        return when (key) {
+            "\$syllable" -> ModuleTag(titleRes = com.lidesheng.hyperlyric.R.string.module_tag_syllable, isRainbow = true)
+            "\$translation" -> ModuleTag(titleRes = com.lidesheng.hyperlyric.R.string.module_tag_translation)
+            "\$bluetooth" -> ModuleTag(titleRes = com.lidesheng.hyperlyric.R.string.module_tag_bluetooth)
+            else -> null
         }
     }
 

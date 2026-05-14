@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
@@ -17,13 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.SwitchColors
 import top.yukonga.miuix.kmp.basic.SwitchDefaults
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * A "Super" Switch Preference that separates the click event of the card from the switch.
@@ -37,11 +34,11 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * @param summary The summary text.
  * @param summaryColor The color of the summary.
  * @param startAction Optional composable on the start side.
- * @param endActions Optional additional composables before the divider.
+ * @param endActions Optional additional composables before the switch.
  * @param bottomAction Optional composable at the bottom.
  * @param switchColors The colors for the switch.
  * @param insideMargin The margin inside the preference.
- * @param holdDownState Used to determine whether it is in the pressed state.
+ * @param showIndication Whether to show click indication (shadow).
  * @param enabled Whether the preference is enabled.
  */
 @Composable
@@ -60,13 +57,13 @@ fun SuperSwitchPreference(
     bottomAction: (@Composable () -> Unit)? = null,
     switchColors: SwitchColors = SwitchDefaults.switchColors(),
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
-    holdDownState: Boolean = false,
+    showIndication: Boolean = true,
     enabled: Boolean = true,
 ) {
     val currentOnCheckedChange by rememberUpdatedState(onCheckedChange)
     val currentOnClick by rememberUpdatedState(onClick)
 
-    BasicComponent(
+    ProComponent(
         modifier = modifier,
         insideMargin = insideMargin,
         title = title,
@@ -75,7 +72,7 @@ fun SuperSwitchPreference(
         summaryColor = summaryColor,
         startAction = startAction,
         endActions = {
-            // User provided end actions (e.g. secondary icons or status text)
+            // User provided end actions
             Row(
                 modifier = Modifier
                     .padding(end = 8.dp)
@@ -85,7 +82,7 @@ fun SuperSwitchPreference(
                 endActions()
             }
 
-            // The Switch area - maintained with padding to keep functional separation
+            // The Switch area
             Box(
                 modifier = Modifier
                     .padding(start = 8.dp)
@@ -106,8 +103,8 @@ fun SuperSwitchPreference(
                 currentOnClick?.invoke()
             }
         },
-        role = Role.Button, // Changed from Role.Switch to Button because the card is a button now
-        holdDownState = holdDownState,
+        role = Role.Button,
+        showIndication = showIndication,
         enabled = enabled,
     )
 }

@@ -257,6 +257,9 @@
     <string name="category_others">其他</string>
     <string name="unknown_author">未知作者</string>
     <string name="format_version_author">%1$s | %2$s</string>
+    <string name="module_tag_syllable">逐字歌词</string>
+    <string name="module_tag_translation">翻译</string>
+    <string name="module_tag_bluetooth">蓝牙歌词</string>
 
     <!-- ———————————————————————— SuperIslandSettingsPage ———————————————————————— -->
     <string name="title_layout">布局</string>
