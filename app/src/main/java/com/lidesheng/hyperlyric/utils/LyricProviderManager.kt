@@ -8,11 +8,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.lidesheng.hyperlyric.R
+import com.lidesheng.hyperlyric.ui.component.icon.GeminiColor
 import java.text.Collator
 import java.util.Locale
 
 data class ModuleTag(
     val iconRes: Int? = null,
+    val imageVector: ImageVector? = null,
     val title: String? = null,
     val titleRes: Int = -1,
     val isRainbow: Boolean = false
@@ -140,9 +144,16 @@ object LyricProviderManager {
 
     private fun getPredefinedTag(key: String): ModuleTag? {
         return when (key) {
-            "\$syllable" -> ModuleTag(titleRes = com.lidesheng.hyperlyric.R.string.module_tag_syllable, isRainbow = true)
-            "\$translation" -> ModuleTag(titleRes = com.lidesheng.hyperlyric.R.string.module_tag_translation)
-            "\$bluetooth" -> ModuleTag(titleRes = com.lidesheng.hyperlyric.R.string.module_tag_bluetooth)
+            "\$syllable" -> ModuleTag(
+                imageVector = GeminiColor,
+                titleRes = R.string.module_tag_syllable,
+                isRainbow = true
+            )
+            "\$translation" -> ModuleTag(
+                iconRes = R.drawable.translate_24px,
+                titleRes = R.string.module_tag_translation
+            )
+            "\$bluetooth" -> ModuleTag(titleRes = R.string.module_tag_bluetooth)
             else -> null
         }
     }

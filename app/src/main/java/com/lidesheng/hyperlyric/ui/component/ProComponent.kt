@@ -110,7 +110,7 @@ fun ProComponent(
     Column(
         modifier = modifier
             .then(clickableModifier)
-            .heightIn(min = 56.dp)
+            .heightIn(min = 10.dp)
             .fillMaxWidth()
             .padding(insideMargin),
         verticalArrangement = Arrangement.Center,
@@ -148,7 +148,7 @@ fun ProComponent(
                     }
                 },
             ) { measurables, constraints ->
-                val spacerPx = 8.dp.roundToPx()
+                val spacerPx = 16.dp.roundToPx()
 
                 val startMeasurable = measurables.firstOrNull { it.layoutId == "start" }
                 val centerMeasurable = measurables.first { it.layoutId == "center" }

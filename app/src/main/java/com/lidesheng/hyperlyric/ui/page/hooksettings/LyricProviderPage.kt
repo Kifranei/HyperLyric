@@ -2,16 +2,13 @@ package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +37,7 @@ import com.lidesheng.hyperlyric.R
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.component.SuperSwitchPreference
 import com.lidesheng.hyperlyric.ui.component.ProComponent
+import com.lidesheng.hyperlyric.ui.component.TagComponent
 import com.lidesheng.hyperlyric.utils.LyricModule
 import com.lidesheng.hyperlyric.utils.LyricProviderManager
 import com.lidesheng.hyperlyric.utils.ModuleCategory
@@ -50,7 +48,6 @@ import com.lidesheng.hyperlyric.ui.utils.pageScrollModifiers
 import com.lidesheng.hyperlyric.ui.utils.rememberBlurBackdrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
@@ -150,7 +147,10 @@ private fun LazyListScope.providerSections(
     if (!uiState.isLoading && uiState.modules.isEmpty()) {
         item(key = "no_provider") {
             Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-                BasicComponent(title = stringResource(id = R.string.title_no_provider), summary = stringResource(id = R.string.summary_no_provider))
+                ProComponent(
+                    title = stringResource(id = R.string.title_no_provider), 
+                    summary = stringResource(id = R.string.summary_no_provider)
+                )
             }
         }
     } else {
@@ -171,7 +171,6 @@ private fun LazyListScope.providerSections(
                         .padding(horizontal = 12.dp)
                         .padding(bottom = 12.dp)
                         .fillMaxWidth()
-                        .animateContentSize()
                 ) {
                     Column {
                         SuperSwitchPreference(
@@ -204,14 +203,16 @@ private fun LazyListScope.providerSections(
                             showIndication = false
                         )
                         AnimatedVisibility(visible = isExpanded) {
-                            ProComponent(
-                                summary = module.description,
-                                bottomAction = {
-                                    if (module.tags.isNotEmpty()) {
-                                        ModuleTagsFlow(module.tags)
-                                    }
+                            Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                ProComponent(
+                                    summary = module.description,
+                                    insideMargin = PaddingValues(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 0.dp)
+                                )
+                                if (module.tags.isNotEmpty()) {
+                                    ModuleTagsFlow(module.tags)
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -227,39 +228,18 @@ private fun ModuleTagsFlow(tags: List<ModuleTag>) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp)
+            .padding(top = 10.dp),
+        horizontalArrangement = Arrangement.Start
     ) {
         tags.forEach { tag ->
             val title = if (tag.titleRes != -1) stringResource(tag.titleRes) else tag.title.orEmpty()
-            Card(
-                modifier = Modifier.padding(end = 8.dp, top = 4.dp),
-                colors = top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(
-                    color = MiuixTheme.colorScheme.surfaceVariant
-                ),
-                pressFeedbackType = top.yukonga.miuix.kmp.utils.PressFeedbackType.None
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (tag.iconRes != null) {
-                        Icon(
-                            painter = painterResource(id = tag.iconRes),
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
-                        )
-                        Spacer(modifier = Modifier.padding(start = 4.dp))
-                    }
-                    Text(
-                        text = title,
-                        style = MiuixTheme.textStyles.body2,
-                        fontSize = MiuixTheme.textStyles.body2.fontSize * 0.85f,
-                        color = if (tag.isRainbow) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceVariantActions,
-                        fontWeight = if (tag.isRainbow) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
-            }
+            TagComponent(
+                text = title,
+                iconRes = tag.iconRes,
+                imageVector = tag.imageVector,
+                isRainbow = tag.isRainbow,
+                modifier = Modifier.padding(end = 10.dp)
+            )
         }
     }
 }
