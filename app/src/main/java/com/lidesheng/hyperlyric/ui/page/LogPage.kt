@@ -158,7 +158,7 @@ fun LogPage() {
                 val matchLevel = selectedLevel == "ALL" || it.level == selectedLevel
                 val matchQuery = q.isEmpty() || it.message.lowercase(Locale.getDefault()).contains(q) || it.tag.lowercase(Locale.getDefault()).contains(q)
                 matchLevel && matchQuery
-            }
+            }.distinct()
         }
     }
 
@@ -345,7 +345,7 @@ fun LogPage() {
                             }
                         }
                     } else {
-                        items(filteredLogs, key = { "${it.timestamp}_${it.level}_${it.tag}_${it.message.hashCode()}" }) { entry ->
+                        items(filteredLogs, key = { "${it.timestamp}_${it.level}_${it.tag}_${it.message}" }) { entry ->
                             LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState)
                         }
                     }
@@ -391,7 +391,7 @@ fun LogPage() {
                             } else if (filteredLogs.isEmpty()) {
                                 item { Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary) } }
                             } else {
-                                items(filteredLogs, key = { "${it.timestamp}_${it.level}_${it.tag}_${it.message.hashCode()}" }) { entry -> LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState) }
+                                items(filteredLogs, key = { "${it.timestamp}_${it.level}_${it.tag}_${it.message}" }) { entry -> LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState) }
                             }
                         }
                         VerticalScrollBar(

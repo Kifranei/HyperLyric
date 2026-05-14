@@ -37,9 +37,13 @@ object HookIslandGlow {
             )
 
             // Hook updateTemplate — 注入 highlightColor
+            // 用 baseContentViewClass 的 ClassLoader 加载 DynamicIslandData（两个类在不同 APK 中）
+            val dataClass = baseContentViewClass.classLoader.loadClass(
+                "com.android.systemui.plugins.miui.dynamicisland.DynamicIslandData"
+            )
             val updateTemplateMethod = baseContentViewClass.getDeclaredMethod(
                 "updateTemplate",
-                cl.loadClass("com.android.systemui.plugins.miui.dynamicisland.DynamicIslandData")
+                dataClass
             )
             updateTemplateMethod.isAccessible = true
             module.deoptimize(updateTemplateMethod)
