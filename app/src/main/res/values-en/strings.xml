@@ -100,7 +100,7 @@
 
     <!-- ———————————————————————— DynamicIslandNotificationPage ———————————————————————— -->
     <string name="dialog_cache_limit_title">Online Lyric Cache Limit</string>
-    <string name="label_cache_limit_range">0 - 10000</string>
+    <string name="label_cache_limit_range">0 – 10000</string>
     <string name="dialog_add_whitelist_title">Enter Application Package Name</string>
     <string name="dialog_add_whitelist_hint">e.g. com.spotify.music</string>
     <string name="save">Save</string>
@@ -249,13 +249,16 @@
     <!-- ———————————————————————— LyricProviderPage ———————————————————————— -->
     <string name="refresh_pull_down">Pull down to refresh</string>
     <string name="refresh_release">Release to refresh</string>
-    <string name="refreshing">Refreshing...</string>
+    <string name="refreshing">Refreshing…</string>
     <string name="refresh_success">Refresh successful</string>
     <string name="title_no_provider">No lyric providers found</string>
     <string name="summary_no_provider">Click the top right icon to visit LyricProvider repo, download and enable plugins</string>
     <string name="category_others">Others</string>
     <string name="unknown_author">Unknown Author</string>
     <string name="format_version_author">%1$s | %2$s</string>
+    <string name="module_tag_syllable">Verbatim Lyrics</string>
+    <string name="module_tag_translation">Translation</string>
+    <string name="module_tag_bluetooth">车载蓝牙歌词</string>
 
     <!-- ———————————————————————— SuperIslandSettingsPage ———————————————————————— -->
     <string name="title_layout">Layout</string>
@@ -304,7 +307,7 @@
     <string name="summary_help_dynamic_island_hint">Use real-time notifications and Xiaomi focus notifications to achieve dynamic island effects, suitable for devices that support both.</string>
     <string name="summary_help_focus_whitelist_hint">Xiaomi focus notifications have whitelist verification; you need to find a way to bypass it yourself.</string>
     <string name="summary_help_dynamic_island_steps">1. Turn on the Notification-style Dynamic Island switch on the HyperLyric home page\n2. Add music app package names in the whitelist page\n3. Turn on the Bluetooth lyrics feature in the music app and connect a Bluetooth device</string>
-    <string name="summary_help_salt_player">Salt Player is supported, more apps coming soon...</string>
+    <string name="summary_help_salt_player">Salt Player is supported, more apps coming soon…</string>
 
     <!-- Poetry Page -->
     <string name="back_to_top">Back to top</string>
@@ -346,4 +349,5 @@
 
     <string name="channel_name_live">Live Update Notification Lyrics</string>
     <string name="channel_name_focus">Xiaomi Notification Spotlight Lyrics</string>
+    <string name="title_center_lyric">Center Lyric</string>
 </resources>

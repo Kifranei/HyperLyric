@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -82,7 +80,11 @@ fun HookSettingsPage() {
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
                 state = lazyListState,
-                modifier = Modifier.pageScrollModifiers(true, true, topAppBarScrollBehavior),
+                modifier = Modifier.pageScrollModifiers(
+                    enableScrollEndHaptic = true,
+                    showTopAppBar = true,
+                    topAppBarScrollBehavior = topAppBarScrollBehavior
+                ),
                 contentPadding = contentPadding,
             ) {
                 hookSettingsSections()
@@ -124,7 +126,6 @@ private fun LazyListScope.hookSettingsSections() {
                 ArrowPreference(title = stringResource(R.string.title_lyrics), onClick = { navigator.navigate(Route.LyricSettings) })
                 ArrowPreference(title = stringResource(R.string.title_lyric_anim), onClick = { navigator.navigate(Route.LyricAnimation) })
                 ArrowPreference(title = stringResource(R.string.title_lyric_provider), onClick = { navigator.navigate(Route.LyricProvider) })
-                ArrowPreference(title = stringResource(R.string.title_lyric_whitelist), onClick = { navigator.navigate(Route.LyricWhitelist) })
             }
         }
     }

@@ -100,7 +100,7 @@
 
     <!-- ———————————————————————— DynamicIslandNotificationPage ———————————————————————— -->
     <string name="dialog_cache_limit_title">在线歌词缓存上限</string>
-    <string name="label_cache_limit_range">0 - 10000</string>
+    <string name="label_cache_limit_range">0 – 10000</string>
     <string name="dialog_add_whitelist_title">输入应用包名</string>
     <string name="dialog_add_whitelist_hint">例如 com.netease.cloudmusic</string>
     <string name="save">保存</string>
@@ -252,14 +252,14 @@
     <string name="refresh_release">松开刷新</string>
     <string name="refreshing">正在刷新...</string>
     <string name="refresh_success">刷新成功</string>
-    <string name="title_no_provider">暂未发现歌词提供服务</string>
+    <string name="title_no_provider">暂未发现歌词提供器</string>
     <string name="summary_no_provider">请点击右上角图标前往 LyricProvider 仓库下载安装并启用插件</string>
     <string name="category_others">其他</string>
     <string name="unknown_author">未知作者</string>
     <string name="format_version_author">%1$s | %2$s</string>
     <string name="module_tag_syllable">逐字歌词</string>
     <string name="module_tag_translation">翻译</string>
-    <string name="module_tag_bluetooth">蓝牙歌词</string>
+    <string name="module_tag_bluetooth">车载蓝牙歌词</string>
 
     <!-- ———————————————————————— SuperIslandSettingsPage ———————————————————————— -->
     <string name="title_layout">布局</string>
