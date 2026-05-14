@@ -42,6 +42,7 @@ import com.lidesheng.hyperlyric.ui.utils.Constants
 import com.lidesheng.hyperlyric.lyric.DynamicLyricData
 import com.lidesheng.hyperlyric.lyric.commonMusicApps
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -58,6 +59,7 @@ import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SetupPage(onNavigateToMain: () -> Unit) {
@@ -232,9 +234,9 @@ fun PermissionPage() {
     val isNotificationGranted = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        while (true) {
+        while (isActive) {
             isNotificationGranted.value = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
-            delay(1000)
+            delay(1000.milliseconds)
         }
     }
     
@@ -315,7 +317,7 @@ fun WhitelistPage() {
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 commonMusicApps.forEach { (pkg: String, name: String) ->
-                    item {
+                    item(key = pkg) {
                         val isChecked = whitelistSet.contains(pkg)
                         BasicComponent(
                             title = name,

@@ -45,6 +45,7 @@ fun ChangelogPage() {
     val blurActive = backdrop != null
     val barColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surface
     val topAppBarScrollBehavior = MiuixScrollBehavior()
+    val changelogs = remember { ChangelogManager.getChangelog() }
 
     Scaffold(
         topBar = {
@@ -83,7 +84,7 @@ fun ChangelogPage() {
                 ),
                 contentPadding = contentPadding,
             ) {
-                changelogPageSections()
+                changelogPageSections(changelogs)
             }
             VerticalScrollBar(
                 adapter = rememberScrollBarAdapter(lazyListState),
@@ -94,8 +95,7 @@ fun ChangelogPage() {
     }
 }
 
-private fun LazyListScope.changelogPageSections() {
-    val changelogs = ChangelogManager.getChangelog()
+private fun LazyListScope.changelogPageSections(changelogs: List<com.lidesheng.hyperlyric.utils.ChangelogItem>) {
     changelogs.forEachIndexed { index, item ->
         if (item.version.isNotBlank()) {
             item(key = "version_${item.version}_$index") {

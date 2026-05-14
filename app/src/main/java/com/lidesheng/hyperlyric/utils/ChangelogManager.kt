@@ -26,7 +26,8 @@ object ChangelogManager {
                         "优化应用架构\n" +
                         "应用内全部toast替换成snackbar\n" +
                         "优化模糊效果\n" +
-                        "优化组件间距"
+                        "优化组件间距\n" +
+                        "优化性能"
             ),
             ChangelogItem(
                 version = "",

@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +56,9 @@ import com.lidesheng.hyperlyric.ui.utils.BlurredBar
 import com.lidesheng.hyperlyric.ui.utils.pageScrollModifiers
 import com.lidesheng.hyperlyric.ui.utils.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownEntry
@@ -85,6 +89,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@Stable
 data class LogEntry(
     val timestamp: String,
     val level: String,
@@ -138,7 +143,6 @@ fun LogPage() {
     val blurActive = backdrop != null
     val barColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surface
     val allLogs = remember { mutableStateListOf<LogEntry>() }
-    val filteredLogs = remember { mutableStateListOf<LogEntry>() }
     var isLoading by remember { mutableStateOf(true) }
     val searchLabel = stringResource(id = R.string.search)
     var searchStatus by remember { mutableStateOf(SearchStatus(label = searchLabel)) }
@@ -146,6 +150,17 @@ fun LogPage() {
     val density = LocalDensity.current
     val pullToRefreshState = rememberPullToRefreshState()
     var showMorePopup by remember { mutableStateOf(false) }
+
+    val filteredLogs by remember {
+        derivedStateOf {
+            val q = searchStatus.searchText.lowercase(Locale.getDefault())
+            allLogs.filter {
+                val matchLevel = selectedLevel == "ALL" || it.level == selectedLevel
+                val matchQuery = q.isEmpty() || it.message.lowercase(Locale.getDefault()).contains(q) || it.tag.lowercase(Locale.getDefault()).contains(q)
+                matchLevel && matchQuery
+            }
+        }
+    }
 
     val exportHeader = stringResource(id = R.string.export_header)
     val exportTimeFormat = stringResource(id = R.string.format_export_time)
@@ -164,14 +179,15 @@ fun LogPage() {
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val reloadLogs = {
-        coroutineScope.launch {
-            isLoading = true
-            val logs = com.lidesheng.hyperlyric.utils.LogManager.collectAllLogs(context)
-            allLogs.clear()
-            allLogs.addAll(logs)
-            updateFilteredLogs(allLogs, searchStatus.searchText, selectedLevel, filteredLogs)
-            isLoading = false
+    val reloadLogs = remember {
+        {
+            coroutineScope.launch {
+                isLoading = true
+                val logs = com.lidesheng.hyperlyric.utils.LogManager.collectAllLogs(context)
+                allLogs.clear()
+                allLogs.addAll(logs)
+                isLoading = false
+            }
         }
     }
 
@@ -179,43 +195,42 @@ fun LogPage() {
         reloadLogs()
     }
 
-    LaunchedEffect(searchStatus.searchText, selectedLevel) {
-        updateFilteredLogs(allLogs, searchStatus.searchText, selectedLevel, filteredLogs)
-    }
-
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/plain"),
         onResult = { uri ->
             if (uri == null) return@rememberLauncherForActivityResult
-            try {
-                val sb = StringBuilder()
-                sb.appendLine(exportHeader)
-                sb.appendLine(String.format(exportTimeFormat, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
-                sb.appendLine()
-                filteredLogs.forEach {
-                    sb.appendLine("[${it.timestamp}][${it.level}][${it.tag}]")
-                    sb.appendLine(it.message)
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    val sb = StringBuilder()
+                    sb.appendLine(exportHeader)
+                    sb.appendLine(String.format(exportTimeFormat, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
                     sb.appendLine()
-                }
-                val output = context.contentResolver.openOutputStream(uri)
-                if (output != null) {
-                    output.use {
-                        it.write(sb.toString().toByteArray(Charsets.UTF_8))
-                        it.flush()
+                    val logsToExport = filteredLogs.toList()
+                    logsToExport.forEach {
+                        sb.appendLine("[${it.timestamp}][${it.level}][${it.tag}]")
+                        sb.appendLine(it.message)
+                        sb.appendLine()
                     }
-                    coroutineScope.launch {
+                    val output = context.contentResolver.openOutputStream(uri)
+                    if (output != null) {
+                        output.use {
+                            it.write(sb.toString().toByteArray(Charsets.UTF_8))
+                            it.flush()
+                        }
+                        withContext(Dispatchers.Main) {
+                            snackbarHostState.showSnackbar(
+                                message = exportSuccessMsg,
+                                duration = SnackbarDuration.Custom(2000L)
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
                         snackbarHostState.showSnackbar(
-                            message = exportSuccessMsg,
+                            message = String.format(exportFailedMsg, e.message),
                             duration = SnackbarDuration.Custom(2000L)
                         )
                     }
-                }
-            } catch (e: Exception) {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = String.format(exportFailedMsg, e.message),
-                        duration = SnackbarDuration.Custom(2000L)
-                    )
                 }
             }
         }
@@ -330,8 +345,8 @@ fun LogPage() {
                             }
                         }
                     } else {
-                        items(count = filteredLogs.size, key = { it }) { index ->
-                            LogItem(entry = filteredLogs[index], copiedMsg = copiedMsg, snackbarHostState = snackbarHostState)
+                        items(filteredLogs, key = { "${it.timestamp}_${it.level}_${it.tag}_${it.message.hashCode()}" }) { entry ->
+                            LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState)
                         }
                     }
                     item { Spacer(Modifier.height(16.dp)) }
@@ -376,7 +391,7 @@ fun LogPage() {
                             } else if (filteredLogs.isEmpty()) {
                                 item { Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(id = R.string.no_logs_found), color = MiuixTheme.colorScheme.onSurfaceSecondary) } }
                             } else {
-                                items(filteredLogs) { entry -> LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState) }
+                                items(filteredLogs, key = { "${it.timestamp}_${it.level}_${it.tag}_${it.message.hashCode()}" }) { entry -> LogItem(entry = entry, copiedMsg = copiedMsg, snackbarHostState = snackbarHostState) }
                             }
                         }
                         VerticalScrollBar(
@@ -389,23 +404,6 @@ fun LogPage() {
             }
         }
     }
-}
-
-private fun updateFilteredLogs(
-    all: List<LogEntry>,
-    query: String,
-    level: String,
-    filtered: MutableList<LogEntry>
-) {
-    val q = query.lowercase(Locale.getDefault())
-    filtered.clear()
-    filtered.addAll(
-        all.filter {
-            val matchLevel = level == "ALL" || it.level == level
-            val matchQuery = q.isEmpty() || it.message.lowercase(Locale.getDefault()).contains(q) || it.tag.lowercase(Locale.getDefault()).contains(q)
-            matchLevel && matchQuery
-        }
-    )
 }
 
 @Composable

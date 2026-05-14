@@ -118,6 +118,24 @@ fun DynamicIslandNotificationPage() {
     }
     var showCacheLimitDialog by remember { mutableStateOf(false) }
 
+    var notificationType by remember {
+        mutableIntStateOf(
+            prefs.getInt(
+                ServiceConstants.KEY_NOTIFICATION_TYPE,
+                ServiceConstants.DEFAULT_NOTIFICATION_TYPE
+            )
+        )
+    }
+    val initialIconStyleKey =
+        if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+    var islandLeftIconStyle by remember {
+        mutableIntStateOf(
+            prefs.getInt(
+                initialIconStyleKey,
+                ServiceConstants.DEFAULT_ISLAND_LEFT_ICON
+            )
+        )
+    }
 
     val tabs = listOf(
         stringResource(R.string.title_custom_config),
@@ -268,429 +286,416 @@ fun DynamicIslandNotificationPage() {
                             ),
                             contentPadding = contentPadding
                         ) {
-                            item {
-                                Column {
-                                    var notificationType by remember {
-                                        mutableIntStateOf(
-                                            prefs.getInt(
-                                                ServiceConstants.KEY_NOTIFICATION_TYPE,
-                                                ServiceConstants.DEFAULT_NOTIFICATION_TYPE
-                                            )
-                                        )
-                                    }
-                                    val notificationTypeOptions = listOf(
-                                        stringResource(R.string.option_notification_live),
-                                        stringResource(R.string.option_notification_focus)
-                                    )
-                                    val initialIconStyleKey =
-                                        if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
-                                    var islandLeftIconStyle by remember {
-                                        mutableIntStateOf(
-                                            prefs.getInt(
-                                                initialIconStyleKey,
+                            // Notification Type
+                            item(key = "notification_type") {
+                                val notificationTypeOptions = remember {
+                                    listOf(R.string.option_notification_live, R.string.option_notification_focus)
+                                }.map { stringResource(id = it) }
+                                Card(
+                                    modifier = Modifier.padding(horizontal = 12.dp)
+                                        .padding(bottom = 12.dp).fillMaxWidth()
+                                ) {
+                                    OverlayDropdownPreference(
+                                        title = stringResource(R.string.title_notification_type),
+                                        items = notificationTypeOptions,
+                                        selectedIndex = notificationType,
+                                        onSelectedIndexChange = { index ->
+                                            val oldTypeKey =
+                                                if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                            prefs.edit {
+                                                putInt(
+                                                    oldTypeKey,
+                                                    islandLeftIconStyle
+                                                )
+                                            }
+                                            notificationType = index
+                                            prefs.edit {
+                                                putInt(
+                                                    ServiceConstants.KEY_NOTIFICATION_TYPE,
+                                                    index
+                                                )
+                                            }
+                                            val newTypeKey =
+                                                if (index == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                            islandLeftIconStyle = prefs.getInt(
+                                                newTypeKey,
                                                 ServiceConstants.DEFAULT_ISLAND_LEFT_ICON
                                             )
+                                            prefs.edit {
+                                                putInt(
+                                                    ServiceConstants.KEY_ISLAND_LEFT_ICON,
+                                                    islandLeftIconStyle
+                                                )
+                                            }
+                                        })
+                                }
+                            }
+
+                            // Island Settings
+                            item(key = "island_settings_title") {
+                                SmallTitle(text = stringResource(R.string.title_island_settings))
+                            }
+
+                            item(key = "island_settings_content") {
+                                var disableLyricSplitEnabled by remember {
+                                    mutableStateOf(
+                                        prefs.getBoolean(
+                                            ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT,
+                                            ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT
                                         )
-                                    }
-                                    Card(
-                                        modifier = Modifier.padding(horizontal = 12.dp)
-                                            .padding(bottom = 12.dp).fillMaxWidth()
-                                    ) {
-                                        OverlayDropdownPreference(
-                                            title = stringResource(R.string.title_notification_type),
-                                            items = notificationTypeOptions,
-                                            selectedIndex = notificationType,
+                                    )
+                                }
+                                Card(
+                                    modifier = Modifier.padding(horizontal = 12.dp)
+                                        .padding(bottom = 12.dp).fillMaxWidth()
+                                ) {
+                                    Column {
+                                        val iconStyleOptions = remember(notificationType) {
+                                            if (notificationType == 1) {
+                                                listOf(R.string.option_icon_style_note, R.string.option_icon_style_rounded, R.string.option_icon_style_circular, R.string.option_icon_style_none)
+                                            } else {
+                                                listOf(R.string.option_icon_style_note, R.string.option_icon_style_rounded, R.string.option_icon_style_circular)
+                                            }
+                                        }.map { stringResource(id = it) }
+                                        val iconStyleKey =
+                                            if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                        WindowDropdownPreference(
+                                            title = stringResource(R.string.title_island_left_icon),
+                                            items = iconStyleOptions,
+                                            selectedIndex = islandLeftIconStyle,
                                             onSelectedIndexChange = { index ->
-                                                val oldTypeKey =
-                                                    if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
+                                                islandLeftIconStyle = index
                                                 prefs.edit {
+                                                    putInt(iconStyleKey, index)
                                                     putInt(
-                                                        oldTypeKey,
-                                                        islandLeftIconStyle
-                                                    )
-                                                }
-                                                notificationType = index
-                                                prefs.edit {
-                                                    putInt(
-                                                        ServiceConstants.KEY_NOTIFICATION_TYPE,
+                                                        ServiceConstants.KEY_ISLAND_LEFT_ICON,
                                                         index
                                                     )
                                                 }
-                                                val newTypeKey =
-                                                    if (index == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
-                                                islandLeftIconStyle = prefs.getInt(
-                                                    newTypeKey,
-                                                    ServiceConstants.DEFAULT_ISLAND_LEFT_ICON
-                                                )
-                                                prefs.edit {
-                                                    putInt(
-                                                        ServiceConstants.KEY_ISLAND_LEFT_ICON,
-                                                        islandLeftIconStyle
-                                                    )
-                                                }
-                                            })
-                                    }
-
-                                    SmallTitle(text = stringResource(R.string.title_island_settings))
-                                    var disableLyricSplitEnabled by remember {
-                                        mutableStateOf(
-                                            prefs.getBoolean(
-                                                ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT,
-                                                ServiceConstants.DEFAULT_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT
-                                            )
-                                        )
-                                    }
-                                    Card(
-                                        modifier = Modifier.padding(horizontal = 12.dp)
-                                            .padding(bottom = 12.dp).fillMaxWidth()
-                                    ) {
-                                        Column {
-                                            val iconStyleOptions = if (notificationType == 1) {
-                                                listOf(
-                                                    stringResource(R.string.option_icon_style_note),
-                                                    stringResource(R.string.option_icon_style_rounded),
-                                                    stringResource(R.string.option_icon_style_circular),
-                                                    stringResource(R.string.option_icon_style_none)
-                                                )
-                                            } else {
-                                                listOf(
-                                                    stringResource(R.string.option_icon_style_note),
-                                                    stringResource(R.string.option_icon_style_rounded),
-                                                    stringResource(R.string.option_icon_style_circular)
-                                                )
-                                            }
-                                            val iconStyleKey =
-                                                if (notificationType == 1) ServiceConstants.KEY_ISLAND_LEFT_ICON_FOCUS else ServiceConstants.KEY_ISLAND_LEFT_ICON_NORMAL
-                                            WindowDropdownPreference(
-                                                title = stringResource(R.string.title_island_left_icon),
-                                                items = iconStyleOptions,
-                                                selectedIndex = islandLeftIconStyle,
-                                                onSelectedIndexChange = { index ->
-                                                    islandLeftIconStyle = index
+                                                if (index !in 0..2) {
+                                                    disableLyricSplitEnabled = false
                                                     prefs.edit {
-                                                        putInt(iconStyleKey, index)
-                                                        putInt(
-                                                            ServiceConstants.KEY_ISLAND_LEFT_ICON,
-                                                            index
-                                                        )
-                                                    }
-                                                    if (index !in 0..2) {
-                                                        disableLyricSplitEnabled = false
-                                                        prefs.edit {
-                                                            putBoolean(
-                                                                ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT,
-                                                                false
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                            AnimatedVisibility(visible = notificationType == 1 && islandLeftIconStyle in 0..2) {
-                                                SwitchPreference(
-                                                    title = stringResource(R.string.title_disable_lyric_split),
-                                                    checked = disableLyricSplitEnabled,
-                                                    onCheckedChange = { checked ->
-                                                        disableLyricSplitEnabled =
-                                                            checked; prefs.edit {
                                                         putBoolean(
                                                             ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT,
-                                                            checked
+                                                            false
                                                         )
                                                     }
-                                                    })
-                                            }
-                                            SwitchPreference(
-                                                title = stringResource(R.string.title_limit_width),
-                                                summary = stringResource(R.string.summary_experimental),
-                                                checked = limitWidthEnabled,
-                                                onCheckedChange = { checked ->
-                                                    limitWidthEnabled = checked; prefs.edit {
-                                                    putBoolean(
-                                                        ServiceConstants.KEY_NOTIFICATION_ISLAND_LIMIT_WIDTH,
-                                                        checked
-                                                    )
                                                 }
-                                                }
-                                            )
-                                            AnimatedVisibility(visible = limitWidthEnabled) {
-                                                BasicComponent(
-                                                    title = stringResource(R.string.title_limit_width_desc),
-                                                    summary = stringResource(R.string.summary_limit_width),
-                                                    endActions = {
-                                                        top.yukonga.miuix.kmp.basic.Text(
-                                                            "$maxWidth",
-                                                            fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                            color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                        )
-                                                    },
-                                                    bottomAction = {
-                                                        Slider(
-                                                            value = maxWidth.toFloat(),
-                                                            onValueChange = {
-                                                                maxWidth = it.toInt()
-                                                                prefs.edit {
-                                                                    putInt(
-                                                                        ServiceConstants.KEY_NOTIFICATION_ISLAND_MAX_WIDTH,
-                                                                        it.toInt()
-                                                                    )
-                                                                }
-                                                            },
-                                                            valueRange = 100f..720f
-                                                        )
-                                                    }
-                                                )
                                             }
-                                        }
-                                    }
-
-                                    SmallTitle(text = stringResource(R.string.title_notification_settings))
-                                    Card(
-                                        modifier = Modifier.padding(horizontal = 12.dp)
-                                            .padding(bottom = 12.dp).fillMaxWidth()
-                                    ) {
-                                        var notificationClickAction by remember {
-                                            mutableIntStateOf(
-                                                prefs.getInt(
-                                                    ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION,
-                                                    ServiceConstants.DEFAULT_NOTIFICATION_CLICK_ACTION
-                                                )
-                                            )
-                                        }
-                                        val clickOptions = listOf(
-                                            stringResource(R.string.option_click_pause),
-                                            stringResource(R.string.option_click_open_app),
-                                            stringResource(R.string.option_click_open_media)
                                         )
-                                        WindowDropdownPreference(
-                                            title = stringResource(R.string.title_notification_click),
-                                            items = clickOptions,
-                                            selectedIndex = notificationClickAction,
-                                            onSelectedIndexChange = {
-                                                notificationClickAction = it; prefs.edit {
-                                                putInt(
-                                                    ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION,
-                                                    it
-                                                )
-                                            }
-                                            })
-
-                                        var showProgressEnabled by remember {
-                                            mutableStateOf(
-                                                prefs.getBoolean(
-                                                    ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS,
-                                                    ServiceConstants.DEFAULT_NOTIFICATION_SHOW_PROGRESS
-                                                )
-                                            )
-                                        }
-                                        SwitchPreference(
-                                            title = stringResource(R.string.title_show_progress),
-                                            summary = stringResource(R.string.summary_show_progress),
-                                            checked = showProgressEnabled,
-                                            onCheckedChange = { checked ->
-                                                showProgressEnabled = checked; prefs.edit {
-                                                putBoolean(
-                                                    ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS,
-                                                    checked
-                                                )
-                                            }
-                                            })
-
-                                        AnimatedVisibility(visible = showProgressEnabled) {
-                                            var progressColorEnabled by remember {
-                                                mutableStateOf(
-                                                    prefs.getBoolean(
-                                                        ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR,
-                                                        ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR
-                                                    )
-                                                )
-                                            }
+                                        AnimatedVisibility(visible = notificationType == 1 && islandLeftIconStyle in 0..2) {
                                             SwitchPreference(
-                                                title = stringResource(R.string.title_progress_color),
-                                                summary = stringResource(R.string.summary_progress_color),
-                                                checked = progressColorEnabled,
+                                                title = stringResource(R.string.title_disable_lyric_split),
+                                                checked = disableLyricSplitEnabled,
                                                 onCheckedChange = { checked ->
-                                                    progressColorEnabled = checked; prefs.edit {
+                                                    disableLyricSplitEnabled =
+                                                        checked; prefs.edit {
                                                     putBoolean(
-                                                        ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR,
+                                                        ServiceConstants.KEY_NOTIFICATION_ISLAND_DISABLE_LYRIC_SPLIT,
                                                         checked
                                                     )
                                                 }
                                                 })
                                         }
-
-                                        var showAlbumArtEnabled by remember {
-                                            mutableStateOf(
-                                                prefs.getBoolean(
-                                                    ServiceConstants.KEY_NOTIFICATION_ALBUM,
-                                                    ServiceConstants.DEFAULT_NOTIFICATION_ALBUM
-                                                )
-                                            )
-                                        }
                                         SwitchPreference(
-                                            title = stringResource(R.string.title_show_album_art),
-                                            checked = showAlbumArtEnabled,
+                                            title = stringResource(R.string.title_limit_width),
+                                            summary = stringResource(R.string.summary_experimental),
+                                            checked = limitWidthEnabled,
                                             onCheckedChange = { checked ->
-                                                showAlbumArtEnabled = checked; prefs.edit {
+                                                limitWidthEnabled = checked; prefs.edit {
                                                 putBoolean(
-                                                    ServiceConstants.KEY_NOTIFICATION_ALBUM,
+                                                    ServiceConstants.KEY_NOTIFICATION_ISLAND_LIMIT_WIDTH,
                                                     checked
                                                 )
                                             }
-                                            })
-
-                                        val focusStyleOptions = listOf("OS2", "OS3")
-                                        var focusNotificationType by remember {
-                                            mutableIntStateOf(
-                                                prefs.getInt(
-                                                    ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE,
-                                                    ServiceConstants.DEFAULT_NOTIFICATION_FOCUS_STYLE
-                                                )
-                                            )
-                                        }
-                                        AnimatedVisibility(visible = notificationType == 1) {
-                                            WindowDropdownPreference(
-                                                title = stringResource(R.string.title_focus_style),
-                                                items = focusStyleOptions,
-                                                selectedIndex = 1 - focusNotificationType,
-                                                onSelectedIndexChange = { index ->
-                                                    val storedValue =
-                                                        1 - index; focusNotificationType =
-                                                    storedValue; prefs.edit {
-                                                    putInt(
-                                                        ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE,
-                                                        storedValue
-                                                    )
-                                                }
-                                                })
-                                        }
-
-                                        val normalTitleOptions = listOf(
-                                            stringResource(R.string.option_info_none),
-                                            stringResource(R.string.option_info_title),
-                                            stringResource(R.string.option_info_artist),
-                                            stringResource(R.string.option_info_album),
-                                            stringResource(R.string.option_info_title_artist),
-                                            stringResource(R.string.option_info_artist_title),
-                                            stringResource(R.string.option_info_artist_album)
-                                        )
-                                        var normalNotificationTitleStyle by remember {
-                                            mutableIntStateOf(
-                                                prefs.getInt(
-                                                    ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE,
-                                                    ServiceConstants.DEFAULT_NOTIFICATION_TITLE_STYLE
-                                                )
-                                            )
-                                        }
-                                        WindowDropdownPreference(
-                                            title = stringResource(R.string.title_song_info),
-                                            items = normalTitleOptions,
-                                            selectedIndex = normalNotificationTitleStyle,
-                                            onSelectedIndexChange = {
-                                                normalNotificationTitleStyle = it; prefs.edit {
-                                                putInt(
-                                                    ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE,
-                                                    it
-                                                )
                                             }
-                                            })
-                                    }
-
-                                    SmallTitle(text = stringResource(R.string.title_advanced_features))
-                                    Card(
-                                        modifier = Modifier.padding(horizontal = 12.dp)
-                                            .padding(bottom = 12.dp).fillMaxWidth()
-                                    ) {
-                                        Column {
-                                            ArrowPreference(
-                                                title = stringResource(R.string.title_autostart),
-                                                onClick = {
-                                                    try {
-                                                        val intent = Intent().apply {
-                                                            component =
-                                                                android.content.ComponentName(
-                                                                    "com.miui.securitycenter",
-                                                                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
+                                        )
+                                        AnimatedVisibility(visible = limitWidthEnabled) {
+                                            var sliderDragValue by remember { mutableIntStateOf(maxWidth) }
+                                            BasicComponent(
+                                                title = stringResource(R.string.title_limit_width_desc),
+                                                summary = stringResource(R.string.summary_limit_width),
+                                                endActions = {
+                                                    top.yukonga.miuix.kmp.basic.Text(
+                                                        "$sliderDragValue",
+                                                        fontSize = MiuixTheme.textStyles.body2.fontSize,
+                                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions
+                                                    )
+                                                },
+                                                bottomAction = {
+                                                    Slider(
+                                                        value = sliderDragValue.toFloat(),
+                                                        onValueChange = {
+                                                            sliderDragValue = it.toInt()
+                                                        },
+                                                        onValueChangeFinished = {
+                                                            maxWidth = sliderDragValue
+                                                            prefs.edit {
+                                                                putInt(
+                                                                    ServiceConstants.KEY_NOTIFICATION_ISLAND_MAX_WIDTH,
+                                                                    sliderDragValue
                                                                 )
-                                                        }
+                                                            }
+                                                        },
+                                                        valueRange = 100f..720f
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Notification Settings
+                            item(key = "notification_settings_title") {
+                                SmallTitle(text = stringResource(R.string.title_notification_settings))
+                            }
+
+                            item(key = "notification_settings_content") {
+                                Card(
+                                    modifier = Modifier.padding(horizontal = 12.dp)
+                                        .padding(bottom = 12.dp).fillMaxWidth()
+                                ) {
+                                    var notificationClickAction by remember {
+                                        mutableIntStateOf(
+                                            prefs.getInt(
+                                                ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION,
+                                                ServiceConstants.DEFAULT_NOTIFICATION_CLICK_ACTION
+                                            )
+                                        )
+                                    }
+                                    val clickOptions = remember {
+                                        listOf(R.string.option_click_pause, R.string.option_click_open_app, R.string.option_click_open_media)
+                                    }.map { stringResource(id = it) }
+                                    WindowDropdownPreference(
+                                        title = stringResource(R.string.title_notification_click),
+                                        items = clickOptions,
+                                        selectedIndex = notificationClickAction,
+                                        onSelectedIndexChange = {
+                                            notificationClickAction = it; prefs.edit {
+                                            putInt(
+                                                ServiceConstants.KEY_NOTIFICATION_CLICK_ACTION,
+                                                it
+                                            )
+                                        }
+                                        })
+
+                                    var showProgressEnabled by remember {
+                                        mutableStateOf(
+                                            prefs.getBoolean(
+                                                ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS,
+                                                ServiceConstants.DEFAULT_NOTIFICATION_SHOW_PROGRESS
+                                            )
+                                        )
+                                    }
+                                    SwitchPreference(
+                                        title = stringResource(R.string.title_show_progress),
+                                        summary = stringResource(R.string.summary_show_progress),
+                                        checked = showProgressEnabled,
+                                        onCheckedChange = { checked ->
+                                            showProgressEnabled = checked; prefs.edit {
+                                            putBoolean(
+                                                ServiceConstants.KEY_NOTIFICATION_SHOW_PROGRESS,
+                                                checked
+                                            )
+                                        }
+                                        })
+
+                                    AnimatedVisibility(visible = showProgressEnabled) {
+                                        var progressColorEnabled by remember {
+                                            mutableStateOf(
+                                                prefs.getBoolean(
+                                                    ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR,
+                                                    ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR
+                                                )
+                                            )
+                                        }
+                                        SwitchPreference(
+                                            title = stringResource(R.string.title_progress_color),
+                                            summary = stringResource(R.string.summary_progress_color),
+                                            checked = progressColorEnabled,
+                                            onCheckedChange = { checked ->
+                                                progressColorEnabled = checked; prefs.edit {
+                                                putBoolean(
+                                                    ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR,
+                                                    checked
+                                                )
+                                            }
+                                            })
+                                    }
+
+                                    var showAlbumArtEnabled by remember {
+                                        mutableStateOf(
+                                            prefs.getBoolean(
+                                                ServiceConstants.KEY_NOTIFICATION_ALBUM,
+                                                ServiceConstants.DEFAULT_NOTIFICATION_ALBUM
+                                            )
+                                        )
+                                    }
+                                    SwitchPreference(
+                                        title = stringResource(R.string.title_show_album_art),
+                                        checked = showAlbumArtEnabled,
+                                        onCheckedChange = { checked ->
+                                            showAlbumArtEnabled = checked; prefs.edit {
+                                            putBoolean(
+                                                ServiceConstants.KEY_NOTIFICATION_ALBUM,
+                                                checked
+                                            )
+                                        }
+                                        })
+
+                                    val focusStyleOptions = remember { listOf("OS2", "OS3") }
+                                    var focusNotificationType by remember {
+                                        mutableIntStateOf(
+                                            prefs.getInt(
+                                                ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE,
+                                                ServiceConstants.DEFAULT_NOTIFICATION_FOCUS_STYLE
+                                            )
+                                        )
+                                    }
+                                    AnimatedVisibility(visible = notificationType == 1) {
+                                        WindowDropdownPreference(
+                                            title = stringResource(R.string.title_focus_style),
+                                            items = focusStyleOptions,
+                                            selectedIndex = 1 - focusNotificationType,
+                                            onSelectedIndexChange = { index ->
+                                                val storedValue =
+                                                    1 - index; focusNotificationType =
+                                                storedValue; prefs.edit {
+                                                putInt(
+                                                    ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE,
+                                                    storedValue
+                                                )
+                                            }
+                                            })
+                                    }
+
+                                    val normalTitleOptions = remember {
+                                        listOf(R.string.option_info_none, R.string.option_info_title, R.string.option_info_artist, R.string.option_info_album, R.string.option_info_title_artist, R.string.option_info_artist_title, R.string.option_info_artist_album)
+                                    }.map { stringResource(id = it) }
+                                    var normalNotificationTitleStyle by remember {
+                                        mutableIntStateOf(
+                                            prefs.getInt(
+                                                ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE,
+                                                ServiceConstants.DEFAULT_NOTIFICATION_TITLE_STYLE
+                                            )
+                                        )
+                                    }
+                                    WindowDropdownPreference(
+                                        title = stringResource(R.string.title_song_info),
+                                        items = normalTitleOptions,
+                                        selectedIndex = normalNotificationTitleStyle,
+                                        onSelectedIndexChange = {
+                                            normalNotificationTitleStyle = it; prefs.edit {
+                                            putInt(
+                                                ServiceConstants.KEY_NOTIFICATION_TITLE_STYLE,
+                                                it
+                                            )
+                                        }
+                                        })
+                                }
+                            }
+
+                            // Advanced Features
+                            item(key = "advanced_features_title") {
+                                SmallTitle(text = stringResource(R.string.title_advanced_features))
+                            }
+
+                            item(key = "advanced_features_content") {
+                                Card(
+                                    modifier = Modifier.padding(horizontal = 12.dp)
+                                        .padding(bottom = 12.dp).fillMaxWidth()
+                                ) {
+                                    Column {
+                                        ArrowPreference(
+                                            title = stringResource(R.string.title_autostart),
+                                            onClick = {
+                                                try {
+                                                    val intent = Intent().apply {
+                                                        component =
+                                                            android.content.ComponentName(
+                                                                "com.miui.securitycenter",
+                                                                "com.miui.permcenter.autostart.AutoStartManagementActivity"
+                                                            )
+                                                    }
+                                                    context.startActivity(intent)
+                                                } catch (_: Exception) {
+                                                    try {
+                                                        val intent =
+                                                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                                                data =
+                                                                    "package:${context.packageName}".toUri()
+                                                            }
                                                         context.startActivity(intent)
                                                     } catch (_: Exception) {
-                                                        try {
-                                                            val intent =
-                                                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                                                    data =
-                                                                        "package:${context.packageName}".toUri()
-                                                                }
-                                                            context.startActivity(intent)
-                                                        } catch (_: Exception) {
-                                                            coroutineScope.launch {
-                                                                snackbarHostState.showSnackbar(
-                                                                    message = msgAutostartFailed,
-                                                                    duration = SnackbarDuration.Custom(2000L)
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                })
-                                            ArrowPreference(
-                                                title = stringResource(R.string.title_battery_optimization),
-                                                onClick = {
-                                                    try {
-                                                        val pm =
-                                                            context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                                                        if (!pm.isIgnoringBatteryOptimizations(
-                                                                context.packageName
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = msgAutostartFailed,
+                                                                duration = SnackbarDuration.Custom(2000L)
                                                             )
-                                                        ) {
-                                                            val intent =
-                                                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                                                    data =
-                                                                        "package:${context.packageName}".toUri()
-                                                                }
-                                                            context.startActivity(intent)
-                                                        } else {
-                                                            coroutineScope.launch {
-                                                                snackbarHostState.showSnackbar(
-                                                                    message = msgBatteryIgnored,
-                                                                    duration = SnackbarDuration.Custom(2000L)
-                                                                )
-                                                            }
-                                                        }
-                                                    } catch (_: Exception) {
-                                                        try {
-                                                            val intent =
-                                                                Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                                                            context.startActivity(intent)
-                                                        } catch (_: Exception) {
-                                                            coroutineScope.launch {
-                                                                snackbarHostState.showSnackbar(
-                                                                    message = msgBatteryFailed,
-                                                                    duration = SnackbarDuration.Custom(2000L)
-                                                                )
-                                                            }
                                                         }
                                                     }
-                                                })
-                                            if (BuildConfig.ONLINE_FEATURES_ENABLED) {
-                                                SwitchPreference(
-                                                    title = stringResource(R.string.title_online_lyric),
-                                                    summary = stringResource(R.string.summary_online_lyric),
-                                                    checked = onlineLyricEnabled,
-                                                    onCheckedChange = { checked ->
-                                                        onlineLyricEnabled = checked; prefs.edit {
-                                                        putBoolean(
-                                                            ServiceConstants.KEY_ONLINE_LYRIC_ENABLED,
-                                                            checked
-                                                        )
-                                                    }
-                                                    })
-                                                if (onlineLyricEnabled) {
-                                                    ArrowPreference(
-                                                        title = stringResource(R.string.dialog_cache_limit_title),
-                                                        summary = fmtSongsCount.format(
-                                                            onlineLyricCacheLimitState
-                                                        ),
-                                                        onClick = { showCacheLimitDialog = true })
                                                 }
+                                            })
+                                        ArrowPreference(
+                                            title = stringResource(R.string.title_battery_optimization),
+                                            onClick = {
+                                                try {
+                                                    val pm =
+                                                        context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                                                    if (!pm.isIgnoringBatteryOptimizations(
+                                                            context.packageName
+                                                        )
+                                                    ) {
+                                                        val intent =
+                                                            Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                                                data =
+                                                                    "package:${context.packageName}".toUri()
+                                                            }
+                                                        context.startActivity(intent)
+                                                    } else {
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = msgBatteryIgnored,
+                                                                duration = SnackbarDuration.Custom(2000L)
+                                                            )
+                                                        }
+                                                    }
+                                                } catch (_: Exception) {
+                                                    try {
+                                                        val intent =
+                                                            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                                        context.startActivity(intent)
+                                                    } catch (_: Exception) {
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = msgBatteryFailed,
+                                                                duration = SnackbarDuration.Custom(2000L)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            })
+                                        if (BuildConfig.ONLINE_FEATURES_ENABLED) {
+                                            SwitchPreference(
+                                                title = stringResource(R.string.title_online_lyric),
+                                                summary = stringResource(R.string.summary_online_lyric),
+                                                checked = onlineLyricEnabled,
+                                                onCheckedChange = { checked ->
+                                                    onlineLyricEnabled = checked; prefs.edit {
+                                                    putBoolean(
+                                                        ServiceConstants.KEY_ONLINE_LYRIC_ENABLED,
+                                                        checked
+                                                    )
+                                                }
+                                                })
+                                            if (onlineLyricEnabled) {
+                                                ArrowPreference(
+                                                    title = stringResource(R.string.dialog_cache_limit_title),
+                                                    summary = fmtSongsCount.format(
+                                                        onlineLyricCacheLimitState
+                                                    ),
+                                                    onClick = { showCacheLimitDialog = true })
                                             }
                                         }
                                     }
@@ -709,7 +714,7 @@ fun DynamicIslandNotificationPage() {
                             ),
                             contentPadding = contentPadding
                         ) {
-                            item {
+                            item(key = "add_whitelist_button") {
                                 Card(
                                     modifier = Modifier.padding(horizontal = 12.dp)
                                         .padding(bottom = 12.dp).fillMaxWidth()
@@ -723,45 +728,45 @@ fun DynamicIslandNotificationPage() {
                                     )
                                 }
                             }
-                            item { SmallTitle(text = stringResource(R.string.title_added_apps)) }
-                            item {
-                                if (whitelist.isNotEmpty()) {
-                                    Card(
-                                        modifier = Modifier.padding(horizontal = 12.dp)
-                                            .padding(bottom = 12.dp).fillMaxWidth()
-                                    ) {
-                                        Column {
-                                            whitelist.forEachIndexed { _, packageName ->
-                                                val appName = commonMusicApps[packageName]
-                                                BasicComponent(
-                                                    title = appName ?: packageName,
-                                                    summary = if (appName != null) packageName else null,
-                                                    endActions = {
-                                                        IconButton(onClick = {
-                                                            packageToDelete =
-                                                                packageName; showDeleteWhitelistDialog =
-                                                            true
-                                                        }) {
-                                                            Icon(
-                                                                imageVector = MiuixIcons.Delete,
-                                                                contentDescription = stringResource(
-                                                                    R.string.delete
-                                                                ),
-                                                                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                            )
-                                                        }
-                                                    },
-                                                    onClick = {
+                            item(key = "added_apps_title") { SmallTitle(text = stringResource(R.string.title_added_apps)) }
+                            if (whitelist.isNotEmpty()) {
+                                whitelist.forEach { packageName ->
+                                    item(key = packageName) {
+                                        val appName = commonMusicApps[packageName]
+                                        Card(
+                                            modifier = Modifier.padding(horizontal = 12.dp)
+                                                .padding(bottom = 12.dp).fillMaxWidth()
+                                        ) {
+                                            BasicComponent(
+                                                title = appName ?: packageName,
+                                                summary = if (appName != null) packageName else null,
+                                                endActions = {
+                                                    IconButton(onClick = {
                                                         packageToDelete =
                                                             packageName; showDeleteWhitelistDialog =
                                                         true
-                                                    },
-                                                    holdDownState = showDeleteWhitelistDialog && packageToDelete == packageName
-                                                )
-                                            }
+                                                    }) {
+                                                        Icon(
+                                                            imageVector = MiuixIcons.Delete,
+                                                            contentDescription = stringResource(
+                                                                R.string.delete
+                                                            ),
+                                                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {
+                                                    packageToDelete =
+                                                        packageName; showDeleteWhitelistDialog =
+                                                    true
+                                                },
+                                                holdDownState = showDeleteWhitelistDialog && packageToDelete == packageName
+                                            )
                                         }
                                     }
-                                } else {
+                                }
+                            } else {
+                                item(key = "no_whitelist") {
                                     Card(
                                         modifier = Modifier.padding(horizontal = 12.dp)
                                             .padding(bottom = 12.dp).fillMaxWidth()
@@ -771,8 +776,8 @@ fun DynamicIslandNotificationPage() {
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(20.dp))
                             }
+                            item(key = "whitelist_bottom_spacer") { Spacer(modifier = Modifier.height(20.dp)) }
                         }
                     }
                 }

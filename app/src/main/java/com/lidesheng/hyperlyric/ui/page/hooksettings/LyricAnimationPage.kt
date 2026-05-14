@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -129,16 +127,19 @@ private fun LazyListScope.animationPageSections() {
         var animEnable by remember { mutableStateOf(prefs.getBoolean(RootConstants.KEY_HOOK_ANIM_ENABLE, RootConstants.DEFAULT_HOOK_ANIM_ENABLE)) }
         var animId by remember { mutableStateOf(prefs.getString(RootConstants.KEY_HOOK_ANIM_ID, RootConstants.DEFAULT_HOOK_ANIM_ID) ?: RootConstants.DEFAULT_HOOK_ANIM_ID) }
 
-        fun saveConfig(key: String, value: Any) {
-            prefs.edit {
-                when (value) {
-                    is Boolean -> putBoolean(key, value)
-                    is String -> putString(key, value)
+        val saveConfig = remember {
+            { key: String, value: Any ->
+                prefs.edit {
+                    when (value) {
+                        is Boolean -> putBoolean(key, value)
+                        is String -> putString(key, value)
+                    }
                 }
+                ConfigSync.syncPreference(UIConstants.PREF_NAME, key, value)
+                context.sendBroadcast(Intent("com.lidesheng.hyperlyric.UPDATE_LYRIC_ANIM"))
             }
-            ConfigSync.syncPreference(UIConstants.PREF_NAME, key, value)
-            context.sendBroadcast(Intent("com.lidesheng.hyperlyric.UPDATE_LYRIC_ANIM"))
         }
+
         Card(modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
             Column {
                 RadioButtonPreference(

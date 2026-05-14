@@ -7,11 +7,9 @@ import com.lidesheng.hyperlyric.ui.component.PaddingInputDialog
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,7 +17,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -94,10 +91,12 @@ fun SuperIslandSettingsPage() {
         if (key in refreshKeys) context.sendBroadcast(Intent("com.lidesheng.hyperlyric.REFRESH_ISLAND"))
     }
 
-    val contentOptionResList = listOf(R.string.option_content_none, R.string.option_content_metadata_title, R.string.option_content_lyricon_title, R.string.option_content_artist, R.string.option_content_album, R.string.option_content_lyricon_title_artist, R.string.option_content_lyricon_title_plus_artist, R.string.option_content_lyricon_title_plus_artist_album, R.string.option_content_lyricon_lyric)
-    val contentOptions = contentOptionResList.map { stringResource(id = it) }
-    val afterPauseOptionResList = listOf(R.string.option_after_pause_default, R.string.option_after_pause_keep)
-    val afterPauseOptions = afterPauseOptionResList.map { stringResource(id = it) }
+    val contentOptions = remember {
+        listOf(R.string.option_content_none, R.string.option_content_metadata_title, R.string.option_content_lyricon_title, R.string.option_content_artist, R.string.option_content_album, R.string.option_content_lyricon_title_artist, R.string.option_content_lyricon_title_plus_artist, R.string.option_content_lyricon_title_plus_artist_album, R.string.option_content_lyricon_lyric)
+    }.map { stringResource(id = it) }
+    val afterPauseOptions = remember {
+        listOf(R.string.option_after_pause_default, R.string.option_after_pause_keep)
+    }.map { stringResource(id = it) }
 
     val backdrop = rememberBlurBackdrop()
     val blurActive = backdrop != null
