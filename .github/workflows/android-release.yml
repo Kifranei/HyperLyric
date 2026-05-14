@@ -87,14 +87,14 @@ jobs:
           if-no-files-found: error
 
       - name: 准备签名 APK Prepare APKs for Signing
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
         run: |
           mkdir -p app/build/outputs/apk/release
           cp app/build/outputs/apk/online/release/*.apk app/build/outputs/apk/release/online-release-unsigned.apk
           cp app/build/outputs/apk/offline/release/*.apk app/build/outputs/apk/release/offline-release-unsigned.apk
 
       - name: 签名 Sign APK
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
         id: sign_app
         uses: r0adkll/sign-android-release@v1
         with:
