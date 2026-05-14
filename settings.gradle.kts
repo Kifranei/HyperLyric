@@ -38,18 +38,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "HyperLyric"
 include(":app")
-
-includeBuild("D:/AndroidProjects/miuix-main") {
-    dependencySubstitution {
-        substitute(module("top.yukonga.miuix.kmp:miuix-ui-android"))
-            .using(project(":miuix-ui"))
-        substitute(module("top.yukonga.miuix.kmp:miuix-blur-android"))
-            .using(project(":miuix-blur"))
-        substitute(module("top.yukonga.miuix.kmp:miuix-icons-android"))
-            .using(project(":miuix-icons"))
-        substitute(module("top.yukonga.miuix.kmp:miuix-preference-android"))
-            .using(project(":miuix-preference"))
-        substitute(module("top.yukonga.miuix.kmp:miuix-navigation3-ui-android"))
-            .using(project(":miuix-navigation3-ui"))
-    }
-}

@@ -49,6 +49,13 @@ object LyriconDataBridge {
     @Volatile
     var isDisplayTranslation: Boolean = true
 
+    /** 是否显示罗马音（由插件回调控制） */
+    @Volatile
+    var isDisplayRoma: Boolean = true
+
+    /** 标记 isDisplayTranslation 是否由 AI 翻译置 true，用于 AI 关闭后正确复位 */
+    private var aiSetDisplayTranslation: Boolean = false
+
     private var timingNavigator: TimingNavigator<TimedLine> = TimingNavigator(emptyArray())
     private var interludeTracker = InterludeTracker(8_000L)
 
@@ -71,8 +78,10 @@ object LyriconDataBridge {
                 if (aiEnabled) {
                     xLog("AI: starting translation for ${song.name}")
                     startAiTranslation(song, prefs)
-                } else {
+                } else if (aiSetDisplayTranslation) {
+                    // 仅当上一首歌的翻译行是 AI 加的，才复位
                     isDisplayTranslation = false
+                    aiSetDisplayTranslation = false
                 }
             }
         } else {
@@ -98,6 +107,7 @@ object LyriconDataBridge {
                     timingNavigator = TimingNavigator(lines.toTypedArray())
 
                     isDisplayTranslation = true
+                    aiSetDisplayTranslation = true
                     xLog("AI: success — ${song.name} (${lines.size} lines)")
                     HookIslandLyric.refreshActiveIsland()
                 } else {
@@ -171,6 +181,8 @@ object LyriconDataBridge {
         currentLyricLine = null
         isTextMode = false
         isDisplayTranslation = true
+        isDisplayRoma = true
+        aiSetDisplayTranslation = false
         timingNavigator = TimingNavigator(emptyArray())
     }
 }

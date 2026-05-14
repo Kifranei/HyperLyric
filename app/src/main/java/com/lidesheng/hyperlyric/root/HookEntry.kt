@@ -185,7 +185,10 @@ class HookEntry : XposedModule() {
                     HookIslandLyric.refreshActiveIsland()
                 }
 
-                override fun onDisplayRomaChanged(displayRoma: Boolean) {}
+                override fun onDisplayRomaChanged(displayRoma: Boolean) {
+                    LyriconDataBridge.isDisplayRoma = displayRoma
+                    HookIslandLyric.refreshActiveIsland()
+                }
             })
         }
 

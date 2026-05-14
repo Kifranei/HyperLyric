@@ -359,8 +359,10 @@ object HookIslandLyric {
 
     private fun configureRichLyricView(view: RichLyricLineView, prefs: SharedPreferences, res: android.content.res.Resources, mode: Int, albumBitmap: android.graphics.Bitmap? = null) {
         // Sync display flags to the view's internal rendering engine
-        view.displayTranslation = LyriconDataBridge.isDisplayTranslation
-        view.displayRoma = true // Currently always allow romaji if available
+        val disableAll = TranslationHelper.isTranslationDisabled(prefs)
+        val translationOnly = TranslationHelper.isTranslationOnly(prefs)
+        view.displayTranslation = LyriconDataBridge.isDisplayTranslation && !disableAll
+        view.displayRoma = LyriconDataBridge.isDisplayRoma && !disableAll && !translationOnly
 
         val style = LyricStyleHelper.buildStyle(prefs, res, mode, albumBitmap)
         view.setStyle(style)
@@ -448,7 +450,10 @@ object HookIslandLyric {
             val animId = prefs.getString(RootConstants.KEY_HOOK_ANIM_ID, RootConstants.DEFAULT_HOOK_ANIM_ID)
 
             val applyLine: RichLyricLineView.() -> Unit = {
-                displayTranslation = LyriconDataBridge.isDisplayTranslation
+                val disableAll = TranslationHelper.isTranslationDisabled(prefs)
+                val translationOnly = TranslationHelper.isTranslationOnly(prefs)
+                displayTranslation = LyriconDataBridge.isDisplayTranslation && !disableAll
+                displayRoma = LyriconDataBridge.isDisplayRoma && !disableAll && !translationOnly
                 line = targetLine
                 post {
                     if (prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)) {

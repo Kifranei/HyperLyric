@@ -36,11 +36,9 @@ object LyricStyleHelper {
         val primarySizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat(), res.displayMetrics)
 
         val isMetadataDualLine = (mode == 6 || mode == 7)
-        val isTranslationOnly = TranslationHelper.isTranslationOnly(prefs)
-        val isTranslationDisabled = TranslationHelper.isTranslationDisabled(prefs)
-        val isTranslationVisible = LyriconDataBridge.isDisplayTranslation && !isTranslationDisabled && !isTranslationOnly
-        
-        val showSecondary = isMetadataDualLine || isTranslationVisible
+        // Style 层永远允许 secondary 显示；翻译开关通过 view.displayTranslation/displayRoma
+        // 控制 assembler 选什么内容，无内容时 assembler 返回 alwaysShow=false → secondary GONE
+        val showSecondary = isMetadataDualLine || mode == 8
 
         val isMarqueeEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)
         val infinite = prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_INFINITE, RootConstants.DEFAULT_HOOK_MARQUEE_INFINITE)
