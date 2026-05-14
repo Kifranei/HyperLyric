@@ -86,35 +86,34 @@ jobs:
           path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
 
-      - name: 准备签名 APK Prepare APKs for Signing
+      - name: 解码签名密钥 Decode Keystore
         if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
-        run: |
-          mkdir -p app/build/outputs/apk/release
-          cp app/build/outputs/apk/online/release/*.apk app/build/outputs/apk/release/online-release-unsigned.apk
-          cp app/build/outputs/apk/offline/release/*.apk app/build/outputs/apk/release/offline-release-unsigned.apk
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: echo "$SIGNING_KEY" | base64 -d > release.jks
 
-      - name: 签名 Sign APK
+      - name: 签名 Sign APKs
         if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
-        id: sign_app
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: "34.0.0"
-
-      - name: 重命名 Rename Signed APKs
-        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
+        env:
+          STORE_PASS: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
         run: |
+          BTDIR="$ANDROID_SDK_ROOT/build-tools/34.0.0"
+          ZA="$BTDIR/zipalign"
+          AS="$BTDIR/apksigner"
+
           V_NAME="${{ steps.gate.outputs.name }}"
-          if [ -f "app/build/outputs/apk/release/online-release-unsigned-signed.apk" ]; then
-            mv app/build/outputs/apk/release/online-release-unsigned-signed.apk HyperLyric-v${V_NAME}-online.apk
-          fi
-          if [ -f "app/build/outputs/apk/release/offline-release-unsigned-signed.apk" ]; then
-            mv app/build/outputs/apk/release/offline-release-unsigned-signed.apk HyperLyric-v${V_NAME}-offline.apk
-          fi
+
+          # online
+          ONLINE_IN=$(echo app/build/outputs/apk/online/release/*.apk)
+          $ZA -v -p 4 $ONLINE_IN online-aligned.apk
+          $AS sign --ks release.jks --ks-pass env:STORE_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS --out HyperLyric-v${V_NAME}-online.apk online-aligned.apk
+
+          # offline
+          OFFLINE_IN=$(echo app/build/outputs/apk/offline/release/*.apk)
+          $ZA -v -p 4 $OFFLINE_IN offline-aligned.apk
+          $AS sign --ks release.jks --ks-pass env:STORE_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS --out HyperLyric-v${V_NAME}-offline.apk offline-aligned.apk
 
       - name: 生成发布说明 Generate Release Body
         if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
