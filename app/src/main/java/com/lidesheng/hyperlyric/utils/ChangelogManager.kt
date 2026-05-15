@@ -10,6 +10,17 @@ object ChangelogManager {
     fun getChangelog(): List<ChangelogItem> {
         return listOf(
             ChangelogItem(
+                version = "5.8-1928",
+                title = "小更新",
+                summary = "- 超级岛内容新增metadata标题和艺术家双行信息显示\n" +
+                        "- 新增焦点通知歌词“歌曲信息强调色”\n" +
+                        "- 新增焦点通知超级岛“歌词强调色”\n" +
+                        "- 优化“通知型灵动岛歌词”的专辑封面取色逻辑，大幅提升\n" +
+                        "- 优化xposed相关功能的稳定性和兼容性\n" +
+                        "- 优化xposed相关功能的日志输出\n" +
+                        "- 优化多个页面性能"
+            ),
+            ChangelogItem(
                 version = "5.7-1928",
                 title = "本次更新日志如下",
                 summary = "- 新增音乐信息“居中显示”功能\n" +

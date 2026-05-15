@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
@@ -108,7 +109,7 @@ class LiveLyricService : NotificationListenerService() {
         DynamicLyricData.initWhitelist(this)
 
         serviceScope.launch(Dispatchers.Default) {
-            lyricUpdateFlow.debounce(200).collectLatest { data -> processSyncData(data) }
+            lyricUpdateFlow.debounce(200.milliseconds).collectLatest { data -> processSyncData(data) }
         }
 
         serviceScope.launch {
@@ -292,7 +293,7 @@ class LiveLyricService : NotificationListenerService() {
         DynamicLyricData.updateLoadingAlbumArt(true)
         bitmapRetryJob = serviceScope.launch {
             while (bitmapRetryCount < maxBitmapRetries) {
-                delay(bitmapRetryDelayMs)
+                delay(bitmapRetryDelayMs.milliseconds)
                 bitmapRetryCount++
                 val metadata = controller.metadata ?: continue
                 val bitmap = metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
@@ -356,12 +357,10 @@ class LiveLyricService : NotificationListenerService() {
             val colors = if (shouldExtract) {
                 AlbumImageProcessor.extractColors(data.albumBitmap)
             } else {
-                AlbumImageProcessor.ExtractedColors(
-                    "#E0E0E0".toColorInt(),
-                    "#E0E0E0".toColorInt()
-                )
+                val default = "#E0E0E0".toColorInt()
+                AlbumImageProcessor.ExtractedColors(default, default)
             }
-            DynamicLyricData.updateColor(colors.dominant, colors.vibrant)
+            DynamicLyricData.updateColor(colors.main, colors.secondary)
         }
 
         isCurrentlyPlaying = data.isPlaying
@@ -425,7 +424,7 @@ class LiveLyricService : NotificationListenerService() {
                 }
 
                 if (!data.isPlaying) break
-                delay(150)
+                delay(150.milliseconds)
             }
         }
     }
@@ -451,7 +450,7 @@ class LiveLyricService : NotificationListenerService() {
                 }
                 
                 if (currentPercent >= 100) break
-                delay(1000)
+                delay(1000.milliseconds)
             }
         }
     }

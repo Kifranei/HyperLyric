@@ -92,7 +92,7 @@ fun SuperIslandSettingsPage() {
     }
 
     val contentOptions = remember {
-        listOf(R.string.option_content_none, R.string.option_content_metadata_title, R.string.option_content_lyricon_title, R.string.option_content_artist, R.string.option_content_album, R.string.option_content_lyricon_title_artist, R.string.option_content_lyricon_title_plus_artist, R.string.option_content_lyricon_title_plus_artist_album, R.string.option_content_lyricon_lyric)
+        listOf(R.string.option_content_none, R.string.option_content_metadata_title, R.string.option_content_lyricon_title, R.string.option_content_artist, R.string.option_content_album, R.string.option_content_lyricon_title_artist, R.string.option_content_lyricon_title_plus_artist, R.string.option_content_lyricon_title_plus_artist_album, R.string.option_content_lyricon_lyric, R.string.option_content_metadata_title_plus_artist)
     }.map { stringResource(id = it) }
     val afterPauseOptions = remember {
         listOf(R.string.option_after_pause_default, R.string.option_after_pause_keep)

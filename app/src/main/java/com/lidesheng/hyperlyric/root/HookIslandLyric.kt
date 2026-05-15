@@ -248,7 +248,7 @@ object HookIslandLyric {
         val pR = if (isLeft) prefs.getInt(RootConstants.KEY_HOOK_ISLAND_LEFT_PADDING_RIGHT, RootConstants.DEFAULT_HOOK_ISLAND_LEFT_PADDING_RIGHT)
                  else prefs.getInt(RootConstants.KEY_HOOK_ISLAND_RIGHT_PADDING_RIGHT, RootConstants.DEFAULT_HOOK_ISLAND_RIGHT_PADDING_RIGHT)
 
-        if (mode in 1..8) {
+        if (mode in 1..9) {
             val wrapperTag = tag + "_WRAPPER"
             var wrapperView = container.findViewWithTag<FrameLayout>(wrapperTag)
             
@@ -319,11 +319,12 @@ object HookIslandLyric {
                     }
                     rawLine
                 }
+                9 -> RichLyricLine(text = metadataSongName, words = emptyList(), secondary = finalArtistName, secondaryWords = emptyList())
                 else -> null
             }
 
             // mode 1~7 是歌曲信息，使用独立的跑马灯参数覆盖歌词默认值
-            if (mode in 1..7 && prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_METADATA_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_METADATA_MODE)) {
+            if ((mode in 1..7 || mode == 9) && prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_METADATA_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_METADATA_MODE)) {
                 val mdSpeed = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_METADATA_SPEED, RootConstants.DEFAULT_HOOK_MARQUEE_METADATA_SPEED).toFloat()
                 val mdDelay = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_METADATA_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_METADATA_DELAY)
                 val mdLoopDelay = prefs.getInt(RootConstants.KEY_HOOK_MARQUEE_METADATA_LOOP_DELAY, RootConstants.DEFAULT_HOOK_MARQUEE_METADATA_LOOP_DELAY)
@@ -356,7 +357,7 @@ object HookIslandLyric {
 
             // 如果开启了跑马灯，请求开始滚动
             richView.post {
-                val shouldMarquee = if (mode in 1..7) {
+                val shouldMarquee = if (mode in 1..7 || mode == 9) {
                     prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_METADATA_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_METADATA_MODE)
                 } else {
                     prefs.getBoolean(RootConstants.KEY_HOOK_MARQUEE_MODE, RootConstants.DEFAULT_HOOK_MARQUEE_MODE)

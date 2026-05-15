@@ -2,7 +2,6 @@ package com.lidesheng.hyperlyric.service
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
@@ -10,8 +9,6 @@ import android.graphics.RectF
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.graphics.toColorInt
-import androidx.palette.graphics.Palette
-import kotlin.math.abs
 
 /**
  * 专辑图片与色彩处理中心。
@@ -23,7 +20,10 @@ object AlbumImageProcessor {
 
     private val defaultColor = "#E0E0E0".toColorInt()
 
-    data class ExtractedColors(val dominant: Int, val vibrant: Int)
+    data class ExtractedColors(
+        val main: Int,
+        val secondary: Int
+    )
 
     /**
      * 将原始专辑封面裁剪为正方形并添加圆角。
@@ -81,31 +81,30 @@ object AlbumImageProcessor {
     }
 
     /**
-     * 从专辑封面提取主色和强调色。
-     * 当用户未开启进度条强调色开关时，调用方不应调用此方法。
+     * 使用 ColorExtractorImpl 从专辑封面提取主色和次色。
+     * 统一返回适配深色背景的高亮度颜色（即使在浅色背景下也使用鲜艳色）。
      */
     fun extractColors(bitmap: Bitmap?): ExtractedColors {
-        if (bitmap == null || bitmap.isRecycled) return ExtractedColors(defaultColor, defaultColor)
+        val fallback = ExtractedColors(defaultColor, defaultColor)
+        if (bitmap == null || bitmap.isRecycled) return fallback
+        
         return try {
             val targetBitmap = if (bitmap.width > 100 || bitmap.height > 100) {
                 bitmap.scale(100, 100, false)
             } else bitmap
 
-            val palette = Palette.from(targetBitmap).generate()
+            // 使用 ColorExtractorImpl 提取调色板
+            val palette = com.lidesheng.hyperlyric.root.utils.ColorExtractorImpl.extractThemePalette(targetBitmap, 2)
+            
             if (targetBitmap != bitmap && !targetBitmap.isRecycled) targetBitmap.recycle()
 
-            val dominant = palette.getDominantColor(defaultColor)
-            var vibrant = palette.getVibrantColor(dominant)
-
-            if (isNearBlack(dominant) || isNearWhite(dominant)) {
-                vibrant = "#808080".toColorInt()
-            } else if (vibrant == dominant || isColorTooSimilar(dominant, vibrant)) {
-                vibrant = lightenColor(dominant)
-            }
-
-            ExtractedColors(dominant, vibrant)
+            // 统一取 onBlackBackground (高亮度) 的结果
+            ExtractedColors(
+                main = palette.onBlackBackground.getOrNull(0) ?: defaultColor,
+                secondary = palette.onBlackBackground.getOrNull(1) ?: (palette.onBlackBackground.getOrNull(0) ?: defaultColor)
+            )
         } catch (_: Exception) {
-            ExtractedColors(defaultColor, defaultColor)
+            fallback
         }
     }
 
@@ -119,34 +118,5 @@ object AlbumImageProcessor {
         } catch (_: Exception) {
             null
         }
-    }
-
-    private fun isNearBlack(color: Int): Boolean {
-        val hsv = FloatArray(3)
-        Color.colorToHSV(color, hsv)
-        return hsv[2] < 0.15f
-    }
-
-    private fun isNearWhite(color: Int): Boolean {
-        val hsv = FloatArray(3)
-        Color.colorToHSV(color, hsv)
-        return hsv[2] > 0.85f && hsv[1] < 0.15f
-    }
-
-    private fun isColorTooSimilar(color1: Int, color2: Int): Boolean {
-        val hsv1 = FloatArray(3)
-        val hsv2 = FloatArray(3)
-        Color.colorToHSV(color1, hsv1)
-        Color.colorToHSV(color2, hsv2)
-
-        return abs(hsv1[0] - hsv2[0]) < 10 && abs(hsv1[1] - hsv2[1]) < 0.1f
-    }
-
-    private fun lightenColor(color: Int): Int {
-        val hsv = FloatArray(3)
-        Color.colorToHSV(color, hsv)
-        hsv[2] = (hsv[2] * 1.4f).coerceAtMost(1.0f) // 提高亮度
-        hsv[1] = (hsv[1] * 0.8f) // 降低饱和度
-        return Color.HSVToColor(hsv)
     }
 }

@@ -120,7 +120,6 @@ object DynamicLyricData {
         _musicState.update { it.copy(albumColor = color, albumColorEnd = colorEnd) }
     }
 
-
     fun updateRightTitles(
         islandText: String,
         notificationText: String = "",
@@ -237,7 +236,7 @@ object DynamicLyricData {
     fun cleanupOrphanedPackages(context: Context, installedProviderPkgs: Set<String>) {
         val allPossibleTargets = LyricProviderManager.providerToTargetMap.values.flatten().toSet()
         val currentlyCoveredTargets = installedProviderPkgs.flatMap { 
-            LyricProviderManager.providerToTargetMap[it] ?: emptyList<String>() 
+            LyricProviderManager.providerToTargetMap[it] ?: emptyList()
         }.toSet()
 
         // 找出“原本在映射表中，但当前没有任何插件覆盖”的包名

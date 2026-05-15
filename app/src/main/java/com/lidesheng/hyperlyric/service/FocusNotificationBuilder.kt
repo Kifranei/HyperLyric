@@ -55,7 +55,7 @@ class FocusNotificationBuilder(
     private fun buildParamIsland(): JSONObject {
         val json = JSONObject()
         if (uiState.highlightColorEnabled) {
-            json.put("highlightColor", getColorHex(uiState.color)) // 使用封面动态取色
+            json.put("highlightColor", getColorHex(uiState.color)) // 使用高亮度主色
         }
         json.put("bigIslandArea", buildBigIslandArea())
         json.put("smallIslandArea", buildSmallIslandArea())
