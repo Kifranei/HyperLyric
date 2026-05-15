@@ -42,7 +42,9 @@ object NotificationManagerHelper {
         val islandLeftIconStyle: Int = 0,
         val focusNotificationType: Int = 0,
         val showAlbumArt: Boolean = true,
-        val highlightColorEnabled: Boolean = false
+        val highlightColorEnabled: Boolean = false,
+        val songInfoHighlightColorEnabled: Boolean = false,
+        val progressColorEnabled: Boolean = true
     )
 
     private var lastAlbumBitmap: Bitmap? = null
@@ -139,7 +141,8 @@ object NotificationManagerHelper {
                 val segments = ArrayList<NotificationCompat.ProgressStyle.Segment>(2)
 
                 if (uiState.progress > 0) {
-                    segments.add(NotificationCompat.ProgressStyle.Segment(uiState.progress).setColor(uiState.color))
+                    val color = if (uiState.progressColorEnabled) uiState.color else 0xFF2C2C2C.toInt()
+                    segments.add(NotificationCompat.ProgressStyle.Segment(uiState.progress).setColor(color))
                 }
                 if (remaining > 0) {
                     segments.add(NotificationCompat.ProgressStyle.Segment(remaining).setColor(0x40FFFFFF))

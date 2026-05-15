@@ -126,6 +126,14 @@ class FocusNotificationBuilder(
         json.put("title", uiState.notificationTitleLeft)
         // OS2 使用 songInfo，OS3 使用 lyric (notificationTitleRight)
         json.put("content", if (uiState.focusNotificationType == 1) uiState.songInfo else uiState.notificationTitleRight)
+
+        if (uiState.songInfoHighlightColorEnabled) {
+            val hex = getColorHex(uiState.color)
+            json.put("colorTitle", hex)
+            json.put("colorTitleDark", hex)
+            json.put("colorContent", hex)
+            json.put("colorContentDark", hex)
+        }
         return json
     }
 
@@ -142,8 +150,10 @@ class FocusNotificationBuilder(
     private fun buildOS2ProgressInfo(): JSONObject {
         val json = JSONObject()
         json.put("progress", uiState.progress)
-        json.put("colorProgress", getColorHex(uiState.color))
-        json.put("colorProgressEnd", getColorHex(uiState.colorEnd))
+        val color = if (uiState.progressColorEnabled) getColorHex(uiState.color) else "#FF2C2C2C"
+        val colorEnd = if (uiState.progressColorEnabled) getColorHex(uiState.colorEnd) else "#FF2C2C2C"
+        json.put("colorProgress", color)
+        json.put("colorProgressEnd", colorEnd)
         return json
     }
 
@@ -151,7 +161,14 @@ class FocusNotificationBuilder(
         val json = JSONObject()
         json.put("title", uiState.songInfo)
         json.put("progress", uiState.progress)
-        json.put("color", getColorHex(uiState.color))
+        val color = if (uiState.progressColorEnabled) getColorHex(uiState.color) else "#FF2C2C2C"
+        json.put("color", color)
+
+        if (uiState.songInfoHighlightColorEnabled) {
+            val hex = getColorHex(uiState.color)
+            json.put("colorTitle", hex)
+            json.put("colorTitleDark", hex)
+        }
         return json
     }
 

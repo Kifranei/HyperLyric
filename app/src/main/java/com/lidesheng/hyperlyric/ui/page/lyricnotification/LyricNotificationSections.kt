@@ -45,6 +45,8 @@ fun LazyListScope.configSections(
     onMaxWidthChange: (Int) -> Unit,
     highlightColorEnabled: Boolean,
     onHighlightColorToggle: (Boolean) -> Unit,
+    songInfoHighlightColorEnabled: Boolean,
+    onSongInfoHighlightColorToggle: (Boolean) -> Unit,
     notificationClickAction: Int,
     onNotificationClickActionChange: (Int) -> Unit,
     showProgressEnabled: Boolean,
@@ -187,6 +189,14 @@ fun LazyListScope.configSections(
                 checked = showProgressEnabled,
                 onCheckedChange = onShowProgressToggle
             )
+
+            AnimatedVisibility(visible = notificationType == 1) {
+                SwitchPreference(
+                    title = stringResource(R.string.title_song_info_highlight_color),
+                    checked = songInfoHighlightColorEnabled,
+                    onCheckedChange = onSongInfoHighlightColorToggle
+                )
+            }
 
             AnimatedVisibility(visible = showProgressEnabled) {
                 SwitchPreference(

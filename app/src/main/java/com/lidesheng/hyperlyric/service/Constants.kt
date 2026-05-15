@@ -19,6 +19,7 @@ object Constants {
     const val KEY_NOTIFICATION_ISLAND_LIMIT_WIDTH = "key_notification_island_limit_width"
     const val KEY_NOTIFICATION_ISLAND_MAX_WIDTH = "key_notification_island_max_width"
     const val KEY_NOTIFICATION_HIGHLIGHT_COLOR = "key_notification_island_highlight_color"
+    const val KEY_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR = "key_notification_song_info_highlight_color"
     const val KEY_ONLINE_LYRIC_CACHE_LIMIT = "key_online_lyric_cache_limit"
     const val KEY_ONLINE_LYRIC_ENABLED = "key_online_lyric_enabled"
 
@@ -36,6 +37,7 @@ object Constants {
     const val DEFAULT_NOTIFICATION_ISLAND_LIMIT_WIDTH = false
     const val DEFAULT_NOTIFICATION_ISLAND_MAX_WIDTH = 720
     const val DEFAULT_NOTIFICATION_HIGHLIGHT_COLOR = false
+    const val DEFAULT_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR = false
     const val DEFAULT_ONLINE_LYRIC_CACHE_LIMIT = 200
     const val DEFAULT_ONLINE_LYRIC_ENABLED = false
 }

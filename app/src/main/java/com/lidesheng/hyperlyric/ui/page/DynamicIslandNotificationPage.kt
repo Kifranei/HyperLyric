@@ -218,6 +218,15 @@ fun DynamicIslandNotificationPage() {
         )
     }
 
+    var songInfoHighlightColorEnabled by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                ServiceConstants.KEY_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR,
+                ServiceConstants.DEFAULT_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR
+            )
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(state = snackbarHostState) },
         topBar = {
@@ -457,6 +466,11 @@ fun DynamicIslandNotificationPage() {
                             onHighlightColorToggle = { checked ->
                                 highlightColorEnabled = checked
                                 prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_HIGHLIGHT_COLOR, checked) }
+                            },
+                            songInfoHighlightColorEnabled = songInfoHighlightColorEnabled,
+                            onSongInfoHighlightColorToggle = { checked ->
+                                songInfoHighlightColorEnabled = checked
+                                prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR, checked) }
                             }
                         )
                     }

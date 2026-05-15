@@ -345,13 +345,22 @@ class LiveLyricService : NotificationListenerService() {
 
         DynamicLyricData.updateAnchor(data.position, data.isPlaying)
 
-        // 使用 AlbumImageProcessor 做取色，仅在开关打开时
+        // 使用 AlbumImageProcessor 做取色，仅在任意强调色开关打开时
         if (data.isNewSong) {
             val progressColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)
-            val colors = if (progressColorEnabled) AlbumImageProcessor.extractColors(data.albumBitmap) else AlbumImageProcessor.ExtractedColors(
-                "#E0E0E0".toColorInt(),
-                "#E0E0E0".toColorInt()
-            )
+            val highlightColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_HIGHLIGHT_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_HIGHLIGHT_COLOR)
+            val songInfoHighlightColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR)
+            
+            val shouldExtract = progressColorEnabled || highlightColorEnabled || songInfoHighlightColorEnabled
+            
+            val colors = if (shouldExtract) {
+                AlbumImageProcessor.extractColors(data.albumBitmap)
+            } else {
+                AlbumImageProcessor.ExtractedColors(
+                    "#E0E0E0".toColorInt(),
+                    "#E0E0E0".toColorInt()
+                )
+            }
             DynamicLyricData.updateColor(colors.dominant, colors.vibrant)
         }
 

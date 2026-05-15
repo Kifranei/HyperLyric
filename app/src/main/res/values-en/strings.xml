@@ -130,6 +130,7 @@
     <string name="summary_show_progress">Do not disable on other systems! Only tested on HyperOS 3</string>
     <string name="title_progress_color">Progress Bar Accent Color</string>
     <string name="title_lyric_highlight_color">Lyric Highlight Color</string>
+    <string name="title_song_info_highlight_color">Song Info Highlight Color</string>
     <string name="summary_progress_color">Takes effect after track change</string>
     <string name="title_show_album_art">Show Album Art</string>
     <string name="title_focus_style">Notification Spotlight Style</string>
