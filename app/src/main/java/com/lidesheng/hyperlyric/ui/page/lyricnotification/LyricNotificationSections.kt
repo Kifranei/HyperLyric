@@ -190,14 +190,6 @@ fun LazyListScope.configSections(
                 onCheckedChange = onShowProgressToggle
             )
 
-            AnimatedVisibility(visible = notificationType == 1) {
-                SwitchPreference(
-                    title = stringResource(R.string.title_song_info_highlight_color),
-                    checked = songInfoHighlightColorEnabled,
-                    onCheckedChange = onSongInfoHighlightColorToggle
-                )
-            }
-
             AnimatedVisibility(visible = showProgressEnabled) {
                 SwitchPreference(
                     title = stringResource(R.string.title_progress_color),
@@ -234,6 +226,14 @@ fun LazyListScope.configSections(
                 selectedIndex = normalNotificationTitleStyle,
                 onSelectedIndexChange = onNormalNotificationTitleStyleChange
             )
+
+            AnimatedVisibility(visible = notificationType == 1) {
+                SwitchPreference(
+                    title = stringResource(R.string.title_song_info_highlight_color),
+                    checked = songInfoHighlightColorEnabled,
+                    onCheckedChange = onSongInfoHighlightColorToggle
+                )
+            }
         }
     }
 
