@@ -10,6 +10,11 @@ object ChangelogManager {
     fun getChangelog(): List<ChangelogItem> {
         return listOf(
             ChangelogItem(
+                version = "5.9-1928",
+                title = "仅针对xposed功能的修复",
+                summary = "- 修复取色延迟的错误"
+            ),
+            ChangelogItem(
                 version = "5.8-1928",
                 title = "小更新",
                 summary = "- 超级岛内容新增metadata标题和艺术家双行信息显示\n" +
