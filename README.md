@@ -1,15 +1,39 @@
 # HyperLyric
-> 歌词上岛轻量工具，基于系统通知实现歌词展示
+> 歌词上岛工具，作为Xposed模块服务于HyperOS 3系统，同时拥有基于系统通知实现歌词展示的功能。
 
 ## ✨ 功能特性
-- 依托安卓实时通知/小米焦点通知，实现歌词上岛效果
-- 支持hook移除小米澎湃3.0.300媒体超级岛下拉白名单
-- 支持hook移除小米焦点通知白名单
-- 支持hook歌词上小米澎湃3系统媒体超级岛
+
+- 在小米HyperOS 3系统媒体超级岛显示歌词
+- 移除HyperOS 3.0.300媒体超级岛下拉白名单
+- 移除小米焦点通知白名单
+- 基于安卓实时通知/小米焦点通知，实现歌词上岛效果
 
 ## 📱 适配说明
-- 适配覆盖范围有限，开发者能力有限，当前版本存在Bug，不能及时修复
-- 安卓15/16
+
+> 适配覆盖范围有限，开发者能力有限，Bug不能及时修复
+
+| 功能 | 安卓版本 | 系统版本 |
+|------|----------|--|
+| xposed 超级岛歌词 | Android 15+ | HyperOS 3 |
+| xposed 移除焦点通知白名单 | Android 13+  | HyperOS 2、HyperOS 3 |
+| xposed 移除媒体超级岛下拉白名单 | Android 16 | HyperOS 3.0.300+ |
+| Live upadte 安卓实时通知歌词 | Android 16 | HyperOS 3.0.300+、ColorOS 16 |
+|Notification Spotlight 小米焦点通知歌词 | Android 13+ | HyperOS 2、HyperOS 3 |
+
+## 📸 截图
+
+<table>
+  <tr>
+    <td><img src="https://github.com/limczhh/HyperLyric/blob/main/assets/001.webp?raw=true" width="300" alt="截图 001"/></td>
+    <td><img src="https://github.com/limczhh/HyperLyric/blob/main/assets/002.webp?raw=true" width="300" alt="截图 002"/></td>
+    <td><img src="https://github.com/limczhh/HyperLyric/blob/main/assets/003.webp?raw=true" width="300" alt="截图 003"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/limczhh/HyperLyric/blob/main/assets/004.webp?raw=true" width="300" alt="截图 004"/></td>
+    <td><img src="https://github.com/limczhh/HyperLyric/blob/main/assets/005.webp?raw=true" width="300" alt="截图 005"/></td>
+    <td><img src="https://github.com/limczhh/HyperLyric/blob/main/assets/006.webp?raw=true" width="300" alt="截图 006"/></td>
+  </tr>
+</table>
 
 ## 📎 项目引用与参考
 - [miuix](https://github.com/compose-miuix-ui/miuix)
