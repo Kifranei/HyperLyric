@@ -2,14 +2,11 @@ package com.lidesheng.hyperlyric.ui.page.hooksettings
 
 import android.content.Context
 import io.github.proify.lyricon.app.bridge.LyriconBridge
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -35,30 +32,24 @@ import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.navigation.LocalNavigator
 import com.lidesheng.hyperlyric.ui.utils.BlurredBar
-import com.lidesheng.hyperlyric.ui.utils.pageScrollModifiers
 import com.lidesheng.hyperlyric.ui.utils.rememberBlurBackdrop
 import kotlinx.coroutines.launch
 import com.lidesheng.hyperlyric.ui.component.FloatInputDialog
 import com.lidesheng.hyperlyric.ui.component.NumberInputDialog
 import com.lidesheng.hyperlyric.ui.component.TextInputDialog
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.Slider
-import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
-import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.lidesheng.hyperlyric.ui.page.hooksettings.xposedLyricSettings.LyricBasicTab
+import com.lidesheng.hyperlyric.ui.page.hooksettings.xposedLyricSettings.LyricAdvancedTab
 
 @Composable
 fun LyricSettingsPage() {
@@ -295,347 +286,109 @@ fun LyricSettingsPage() {
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(), userScrollEnabled = true, beyondViewportPageCount = 1) { page ->
                 when (page) {
                     0 -> {
-                        LazyColumn(
-                            state = basicLazyListState,
-                            modifier = Modifier.pageScrollModifiers(
-                                enableScrollEndHaptic = true,
-                                showTopAppBar = true,
-                                topAppBarScrollBehavior = topAppBarScrollBehavior
-                            ),
+                        LyricBasicTab(
+                            lazyListState = basicLazyListState,
+                            topAppBarScrollBehavior = topAppBarScrollBehavior,
                             contentPadding = contentPadding,
-                        ) {
-                            item {
-                                Column {
-                                    SmallTitle(text = stringResource(id = R.string.title_text))
-                                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-                                        Column {
-                                            ArrowPreference(
-                                                title = stringResource(id = R.string.title_size),
-                                                endActions = {
-                                                    Text(
-                                                        "$textSize",
-                                                        fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                    )
-                                                },
-                                                onClick = { showTextSizeDialog = true }
-                                            )
-                                            ArrowPreference(
-                                                title = stringResource(id = R.string.title_text_size_ratio),
-                                                endActions = { Text(stringResource(id = R.string.format_percent, (textSizeRatio * 100).toInt()), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
-                                                onClick = { showTextSizeRatioDialog = true }
-                                            )
-                                            ArrowPreference(
-                                                title = stringResource(id = R.string.title_fading_edge),
-                                                endActions = {
-                                                    Text(
-                                                        "$fadingEdge",
-                                                        fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                    ) },
-                                                onClick = { showFadingEdgeDialog = true },
-                                                bottomAction = {
-                                                    Slider(
-                                                        value = fadingEdge.toFloat(),
-                                                        onValueChange = { fadingEdge = it.toInt(); saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, fadingEdge) },
-                                                        valueRange = 0f..100f
-                                                    )
-                                                }
-                                            )
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                            SwitchPreference(title = stringResource(id = R.string.title_extract_cover_color), checked = extractCoverColor, onCheckedChange = { extractCoverColor = it; saveConfig(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, it) })
-                                            AnimatedVisibility(visible = extractCoverColor) {
-                                                SwitchPreference(title = stringResource(id = R.string.title_extract_cover_gradient), checked = extractCoverGradient, onCheckedChange = { extractCoverGradient = it; saveConfig(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, it) })
-                                            }
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                            ArrowPreference(
-                                                title = stringResource(id = R.string.title_custom_font),
-                                                endActions = {
-                                                    Text(
-                                                        customFontPath.ifEmpty { stringResource(id = R.string.summary_default_font) },
-                                                        fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                    )
-                                                },
-                                                onClick = { showFontPathDialog = true }
-                                            )
-                                            ArrowPreference(
-                                                title = stringResource(id = R.string.title_font_weight),
-                                                endActions = {
-                                                    Text(
-                                                        fontWeight.toString(),
-                                                        fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                    )
-                                                },
-                                                onClick = { showFontWeightDialog = true }
-                                            )
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_italic),
-                                                checked = fontItalic,
-                                                onCheckedChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) }
-                                            )
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_center_lyric),
-                                                checked = centerLyric,
-                                                onCheckedChange = { centerLyric = it; saveConfig(RootConstants.KEY_HOOK_CENTER_LYRIC, it) }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            item {
-                                Column {
-                                    SmallTitle(text = stringResource(id = R.string.title_marquee))
-                                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-                                        SwitchPreference(
-                                            title = stringResource(id = R.string.title_lyric_marquee),
-                                            summary = stringResource(id = R.string.summary_lyric_marquee),
-                                            checked = marqueeMode,
-                                            onCheckedChange = { marqueeMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_MODE, it) }
-                                        )
-                                        AnimatedVisibility(visible = marqueeMode) {
-                                            Column {
-                                                ArrowPreference(
-                                                    title = stringResource(id = R.string.title_marquee_speed),
-                                                    endActions = { Text("$marqueeSpeed", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
-                                                    onClick = { showMarqueeSpeedDialog = true }
-                                                )
-                                                ArrowPreference(title = stringResource(id = R.string.title_marquee_delay), endActions = { Text(stringResource(id = R.string.format_ms, marqueeDelay), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeDelayDialog = true } )
-                                                SwitchPreference(title = stringResource(id = R.string.title_infinite_loop), checked = marqueeInfinite, onCheckedChange = { marqueeInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_INFINITE, it) })
-                                                ArrowPreference(title = stringResource(id = R.string.title_marquee_loop), endActions = { Text(stringResource(id = R.string.format_ms, marqueeLoop), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) }, onClick = { showMarqueeLoopDialog = true } )
-                                                SwitchPreference(title = stringResource(id = R.string.title_stop_at_end), checked = marqueeStopEnd, onCheckedChange = { marqueeStopEnd = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_STOP_END, it) })
-                                            }
-                                        }
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 16.dp)
-                                        )
-                                        // ---- 歌曲信息独立跑马灯参数 ----
-                                        SwitchPreference(
-                                            title = stringResource(id = R.string.title_marquee_metadata_mode),
-                                            summary = stringResource(id = R.string.summary_marquee_metadata_mode),
-                                            checked = marqueeMetadataMode,
-                                            onCheckedChange = { marqueeMetadataMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_METADATA_MODE, it) }
-                                        )
-                                        AnimatedVisibility(visible = marqueeMetadataMode) {
-                                            Column {
-                                                ArrowPreference(
-                                                    title = stringResource(id = R.string.title_marquee_metadata_speed),
-                                                    endActions = { Text("$marqueeMetadataSpeed", fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
-                                                    onClick = { showMarqueeMetadataSpeedDialog = true }
-                                                )
-                                                ArrowPreference(
-                                                    title = stringResource(id = R.string.title_marquee_metadata_delay),
-                                                    endActions = { Text(stringResource(id = R.string.format_ms, marqueeMetadataDelay), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
-                                                    onClick = { showMarqueeMetadataDelayDialog = true }
-                                                )
-                                                SwitchPreference(title = stringResource(id = R.string.title_marquee_metadata_infinite), checked = marqueeMetadataInfinite, onCheckedChange = { marqueeMetadataInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_METADATA_INFINITE, it) })
-                                                ArrowPreference(
-                                                    title = stringResource(id = R.string.title_marquee_metadata_loop),
-                                                    endActions = { Text(stringResource(id = R.string.format_ms, marqueeMetadataLoopDelay), fontSize = MiuixTheme.textStyles.body2.fontSize, color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
-                                                    onClick = { showMarqueeMetadataLoopDialog = true }
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                            textSize = textSize,
+                            onTextSizeClick = { showTextSizeDialog = true },
+                            textSizeRatio = textSizeRatio,
+                            onTextSizeRatioClick = { showTextSizeRatioDialog = true },
+                            fadingEdge = fadingEdge,
+                            onFadingEdgeChange = { fadingEdge = it; saveConfig(RootConstants.KEY_HOOK_FADING_EDGE_LENGTH, it) },
+                            onFadingEdgeClick = { showFadingEdgeDialog = true },
+                            extractCoverColor = extractCoverColor,
+                            onExtractCoverColorChange = { extractCoverColor = it; saveConfig(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_COLOR, it) },
+                            extractCoverGradient = extractCoverGradient,
+                            onExtractCoverGradientChange = { extractCoverGradient = it; saveConfig(RootConstants.KEY_HOOK_EXTRACT_COVER_TEXT_GRADIENT, it) },
+                            customFontPath = customFontPath,
+                            onFontPathClick = { showFontPathDialog = true },
+                            fontWeight = fontWeight,
+                            onFontWeightClick = { showFontWeightDialog = true },
+                            fontItalic = fontItalic,
+                            onFontItalicChange = { fontItalic = it; saveConfig(RootConstants.KEY_HOOK_FONT_ITALIC, it) },
+                            centerLyric = centerLyric,
+                            onCenterLyricChange = { centerLyric = it; saveConfig(RootConstants.KEY_HOOK_CENTER_LYRIC, it) },
+                            marqueeMode = marqueeMode,
+                            onMarqueeModeChange = { marqueeMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_MODE, it) },
+                            marqueeSpeed = marqueeSpeed,
+                            onMarqueeSpeedClick = { showMarqueeSpeedDialog = true },
+                            marqueeDelay = marqueeDelay,
+                            onMarqueeDelayClick = { showMarqueeDelayDialog = true },
+                            marqueeInfinite = marqueeInfinite,
+                            onMarqueeInfiniteChange = { marqueeInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_INFINITE, it) },
+                            marqueeLoop = marqueeLoop,
+                            onMarqueeLoopClick = { showMarqueeLoopDialog = true },
+                            marqueeStopEnd = marqueeStopEnd,
+                            onMarqueeStopEndChange = { marqueeStopEnd = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_STOP_END, it) },
+                            marqueeMetadataMode = marqueeMetadataMode,
+                            onMarqueeMetadataModeChange = { marqueeMetadataMode = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_METADATA_MODE, it) },
+                            marqueeMetadataSpeed = marqueeMetadataSpeed,
+                            onMarqueeMetadataSpeedClick = { showMarqueeMetadataSpeedDialog = true },
+                            marqueeMetadataDelay = marqueeMetadataDelay,
+                            onMarqueeMetadataDelayClick = { showMarqueeMetadataDelayDialog = true },
+                            marqueeMetadataInfinite = marqueeMetadataInfinite,
+                            onMarqueeMetadataInfiniteChange = { marqueeMetadataInfinite = it; saveConfig(RootConstants.KEY_HOOK_MARQUEE_METADATA_INFINITE, it) },
+                            marqueeMetadataLoopDelay = marqueeMetadataLoopDelay,
+                            onMarqueeMetadataLoopClick = { showMarqueeMetadataLoopDialog = true }
+                        )
                     }
-                1 -> {
-                    LazyColumn(
-                        state = advancedLazyListState,
-                        modifier = Modifier.pageScrollModifiers(
-                            enableScrollEndHaptic = true,
-                            showTopAppBar = true,
-                            topAppBarScrollBehavior = topAppBarScrollBehavior
-                        ),
-                        contentPadding = contentPadding,
-                    ) {
-                            item {
-                                Column {
-                                    SmallTitle(text = stringResource(id = R.string.title_verbatim_lyric))
-                                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-                                        Column {
-                                            SwitchPreference(title = stringResource(id = R.string.title_gradient_progress), checked = gradientStyle, onCheckedChange = { gradientStyle = it; saveConfig(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, it) })
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_syllable_relative),
-                                                summary = stringResource(id = R.string.summary_syllable_relative),
-                                                checked = syllableRelative,
-                                                onCheckedChange = { syllableRelative = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, it) }
-                                            )
-                                            SwitchPreference(title = stringResource(id = R.string.title_syllable_highlight), checked = syllableHighlight, onCheckedChange = { syllableHighlight = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, it) })
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_word_motion),
-                                                checked = wordMotionEnabled,
-                                                onCheckedChange = { wordMotionEnabled = it; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_ENABLED, it) }
-                                            )
-                                            AnimatedVisibility(visible = wordMotionEnabled) {
-                                                Column {
-                                                    ArrowPreference(
-                                                        title = stringResource(id = R.string.title_word_motion_cjk_lift),
-                                                        onClick = { showWordMotionCjkLiftDialog = true },
-                                                        endActions = {
-                                                            Text(
-                                                                String.format("%.2f", wordMotionCjkLift),
-                                                                fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                            )
-                                                        }
-                                                    )
-                                                    ArrowPreference(
-                                                        title = stringResource(id = R.string.title_word_motion_cjk_wave),
-                                                        endActions = {
-                                                            Text(
-                                                                String.format("%.2f", wordMotionCjkWave),
-                                                                fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                            )
-                                                        },
-                                                        onClick = { showWordMotionCjkWaveDialog = true }
-                                                    )
-                                                    ArrowPreference(
-                                                        title = stringResource(id = R.string.title_word_motion_latin_lift),
-                                                        endActions = {
-                                                            Text(
-                                                                String.format("%.2f", wordMotionLatinLift),
-                                                                fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                            )
-                                                        },
-                                                        onClick = { showWordMotionLatinLiftDialog = true }
-                                                    )
-                                                    ArrowPreference(
-                                                        title = stringResource(id = R.string.title_word_motion_latin_wave),
-                                                        endActions = {
-                                                            Text(
-                                                                String.format("%.2f", wordMotionLatinWave),
-                                                                fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                            )
-                                                        },
-                                                        onClick = { showWordMotionLatinWaveDialog = true }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
+                    1 -> {
+                        LyricAdvancedTab(
+                            lazyListState = advancedLazyListState,
+                            topAppBarScrollBehavior = topAppBarScrollBehavior,
+                            contentPadding = contentPadding,
+                            gradientStyle = gradientStyle,
+                            onGradientStyleChange = { gradientStyle = it; saveConfig(RootConstants.KEY_HOOK_GRADIENT_PROGRESS, it) },
+                            syllableRelative = syllableRelative,
+                            onSyllableRelativeChange = { syllableRelative = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_RELATIVE, it) },
+                            syllableHighlight = syllableHighlight,
+                            onSyllableHighlightChange = { syllableHighlight = it; saveConfig(RootConstants.KEY_HOOK_SYLLABLE_HIGHLIGHT, it) },
+                            wordMotionEnabled = wordMotionEnabled,
+                            onWordMotionEnabledChange = { wordMotionEnabled = it; saveConfig(RootConstants.KEY_HOOK_WORD_MOTION_ENABLED, it) },
+                            wordMotionCjkLift = wordMotionCjkLift,
+                            onWordMotionCjkLiftClick = { showWordMotionCjkLiftDialog = true },
+                            wordMotionCjkWave = wordMotionCjkWave,
+                            onWordMotionCjkWaveClick = { showWordMotionCjkWaveDialog = true },
+                            wordMotionLatinLift = wordMotionLatinLift,
+                            onWordMotionLatinLiftClick = { showWordMotionLatinLiftDialog = true },
+                            wordMotionLatinWave = wordMotionLatinWave,
+                            onWordMotionLatinWaveClick = { showWordMotionLatinWaveDialog = true },
+                            disableTranslation = disableTranslation,
+                            onDisableTranslationChange = { disableTranslation = it; saveConfig(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, it) },
+                            translationOnly = translationOnly,
+                            onTranslationOnlyChange = {
+                                translationOnly = it
+                                saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, it)
+                                if (it && swapTranslation) {
+                                    swapTranslation = false
+                                    saveConfig(RootConstants.KEY_HOOK_SWAP_TRANSLATION, false)
                                 }
-                            }
-                            item {
-                                Column {
-                                    SmallTitle(text = stringResource(id = R.string.title_translation))
-                                    Card(modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp).fillMaxWidth()) {
-                                        Column {
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_disable_translation),
-                                                checked = disableTranslation,
-                                                onCheckedChange = { disableTranslation = it; saveConfig(RootConstants.KEY_HOOK_DISABLE_TRANSLATION, it) }
-                                            )
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_translation_only),
-                                                checked = translationOnly,
-                                                onCheckedChange = {
-                                                    translationOnly = it
-                                                    saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, it)
-                                                    if (it && swapTranslation) {
-                                                        swapTranslation = false
-                                                        saveConfig(RootConstants.KEY_HOOK_SWAP_TRANSLATION, false)
-                                                    }
-                                                }
-                                            )
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_swap_translation),
-                                                checked = swapTranslation,
-                                                onCheckedChange = {
-                                                    swapTranslation = it
-                                                    saveConfig(RootConstants.KEY_HOOK_SWAP_TRANSLATION, it)
-                                                    if (it && translationOnly) {
-                                                        translationOnly = false
-                                                        saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, false)
-                                                    }
-                                                }
-                                            )
-                                        }
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 16.dp)
-                                        )
-                                        Column {
-                                            SwitchPreference(
-                                                title = stringResource(id = R.string.title_ai_translation),
-                                                checked = aiTransEnabled,
-                                                onCheckedChange = { aiTransEnabled = it; saveConfig(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, it) }
-                                            )
-                                            AnimatedVisibility(visible = aiTransEnabled) {
-                                                Column {
-                                                    SwitchPreference(
-                                                        title = stringResource(id = R.string.title_ai_trans_auto_ignore_chinese),
-                                                        checked = autoIgnoreChinese,
-                                                        onCheckedChange = { autoIgnoreChinese = it; saveConfig(RootConstants.KEY_HOOK_AI_TRANS_AUTO_IGNORE_CHINESE, it) }
-                                                    )
-                                                    Column {
-                                                        ArrowPreference(
-                                                            title = stringResource(id = R.string.label_ai_trans_target_lang),
-                                                            endActions = {
-                                                                Text(
-                                                                    targetLang,
-                                                                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                    color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                                )
-                                                            },
-                                                            onClick = { showTargetLangDialog = true }
-                                                        )
-                                                        ArrowPreference(
-                                                            title = stringResource(id = R.string.label_ai_trans_api_key),
-                                                            endActions = {
-                                                                Text(
-                                                                    if (apiKey.isNotEmpty()) "***************" else "未配置",
-                                                                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                    color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                                )
-                                                            },
-                                                            onClick = { showApiKeyDialog = true }
-                                                        )
-                                                        ArrowPreference(
-                                                            title = stringResource(id = R.string.label_ai_trans_model),
-                                                            endActions = {
-                                                                Text(
-                                                                    model,
-                                                                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                                                    color = MiuixTheme.colorScheme.onSurfaceVariantActions
-                                                                )
-                                                            },
-                                                            onClick = { showModelDialog = true }
-                                                        )
-                                                        ArrowPreference(
-                                                            title = stringResource(id = R.string.label_ai_trans_base_url),
-                                                            summary = baseUrl,
-                                                            onClick = { showBaseUrlDialog = true }
-                                                        )
-                                                        ArrowPreference(
-                                                            title = stringResource(R.string.title_custom_prompt),
-                                                            summary = if (prompt.lines().size > 3) prompt.lines().take(2).joinToString("\n") + "..." else prompt,
-                                                            onClick = { showPromptDialog = true }
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                            },
+                            swapTranslation = swapTranslation,
+                            onSwapTranslationChange = {
+                                swapTranslation = it
+                                saveConfig(RootConstants.KEY_HOOK_SWAP_TRANSLATION, it)
+                                if (it && translationOnly) {
+                                    translationOnly = false
+                                    saveConfig(RootConstants.KEY_HOOK_TRANSLATION_ONLY, false)
                                 }
-                            }
-                        }
+                            },
+                            aiTransEnabled = aiTransEnabled,
+                            onAiTransEnabledChange = { aiTransEnabled = it; saveConfig(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, it) },
+                            autoIgnoreChinese = autoIgnoreChinese,
+                            onAutoIgnoreChineseChange = { autoIgnoreChinese = it; saveConfig(RootConstants.KEY_HOOK_AI_TRANS_AUTO_IGNORE_CHINESE, it) },
+                            targetLang = targetLang,
+                            onTargetLangClick = { showTargetLangDialog = true },
+                            apiKey = apiKey,
+                            onApiKeyClick = { showApiKeyDialog = true },
+                            model = model,
+                            onModelClick = { showModelDialog = true },
+                            baseUrl = baseUrl,
+                            onBaseUrlClick = { showBaseUrlDialog = true },
+                            prompt = prompt,
+                            onPromptClick = { showPromptDialog = true }
+                        )
                     }
                 }
             }
