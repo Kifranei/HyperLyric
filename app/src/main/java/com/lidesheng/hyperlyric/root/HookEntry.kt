@@ -3,6 +3,7 @@ package com.lidesheng.hyperlyric.root
 import com.lidesheng.hyperlyric.root.aitrans.AITranslator
 import com.lidesheng.hyperlyric.root.utils.xLog
 import com.lidesheng.hyperlyric.root.utils.xLogError
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
@@ -34,7 +35,7 @@ class HookEntry : XposedModule() {
     override fun onModuleLoaded(param: ModuleLoadedParam) {
         super.onModuleLoaded(param)
         com.lidesheng.hyperlyric.root.utils.globalXposedModule = this
-        xLog("onModuleLoaded: HyperLyric 模块已初始化")
+        xLog("ModuleInit : HookEntry -> Core module loaded")
     }
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
@@ -43,15 +44,27 @@ class HookEntry : XposedModule() {
         if (packageName == "com.android.systemui") {
             try {
                 UnlockIslandWhitelist.hook(this, param.defaultClassLoader)
+            } catch (e: Exception) {
+                 if (e is ClassNotFoundException || e is NoSuchMethodException) {
+                     xLogWarn("ModuleInit : Whitelist -> Island whitelist not supported on this version")
+                 } else {
+                     xLogError("ModuleInit : Whitelist -> ERROR: Island whitelist hook failed", e)
+                 }
+            }
+            try {
                 UnlockFocusWhitelist.hook(this, param.defaultClassLoader)
             } catch (e: Exception) {
-                 xLogError("Failed to hook white-lists", e)
+                 if (e is ClassNotFoundException || e is NoSuchMethodException) {
+                     xLogWarn("ModuleInit : Whitelist -> Focus whitelist not supported on this version")
+                 } else {
+                     xLogError("ModuleInit : Whitelist -> ERROR: Focus whitelist hook failed", e)
+                 }
             }
 
             val isSuperIslandEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_ENABLE_SUPER_ISLAND, RootConstants.DEFAULT_HOOK_ENABLE_SUPER_ISLAND)
             
             if (!isSuperIslandEnabled) {
-                xLog("HyperLyric is active. Note: Super Island hook is disabled by user.")
+                xLog("ModuleInit : SuperIsland -> Disabled by user configuration")
                 return
             }
 
@@ -61,9 +74,13 @@ class HookEntry : XposedModule() {
                 val onCreateMethod = appClass.getDeclaredMethod("onCreate")
                 deoptimize(onCreateMethod)
                 hook(onCreateMethod).intercept(AppCreateHooker())
-                xLog("Hooked Application.onCreate for com.android.systemui")
+                xLog("ModuleInit : SystemUI -> Application.onCreate hooked")
             } catch (e: Exception) {
-                xLogError("Failed to hook Application.onCreate", e)
+                if (e is ClassNotFoundException || e is NoSuchMethodException) {
+                    xLogWarn("ModuleInit : SystemUI -> Application.onCreate not found for hooking")
+                } else {
+                    xLogError("ModuleInit : SystemUI -> ERROR: Failed to hook Application.onCreate", e)
+                }
             }
 
             // 核心：拦截 ClassLoader 构造，以捕捉 miui.systemui.plugin 等动态加载的插件
@@ -73,9 +90,13 @@ class HookEntry : XposedModule() {
                     deoptimize(constructor)
                     hook(constructor).intercept(ClassLoaderHooker())
                 }
-                xLog("Hooked BaseDexClassLoader constructors successfully")
+                xLog("ModuleInit : SystemUI -> ClassLoader hooked")
             } catch (e: Exception) {
-                xLogError("Failed to hook ClassLoader constructors", e)
+                if (e is ClassNotFoundException || e is NoSuchMethodException) {
+                    xLogWarn("ModuleInit : SystemUI -> ClassLoader methods not found")
+                } else {
+                    xLogError("ModuleInit : SystemUI -> ERROR: Failed to hook ClassLoader constructors", e)
+                }
             }
 
         } else if (packageName == "miui.systemui.plugin") {
@@ -98,7 +119,11 @@ class HookEntry : XposedModule() {
             try {
                 HookIslandLyric.hook(this@HookEntry, cl)
             } catch (e: Exception) {
-                xLogError("Exception in HookIslandLyric.hook", e)
+                if (e is ClassNotFoundException || e is NoSuchMethodException) {
+                    xLogWarn("ModuleInit : SuperIsland -> Island classes not found in this plugin")
+                } else {
+                    xLogError("ModuleInit : SuperIsland -> ERROR: Hook failed in dynamic ClassLoader", e)
+                }
             }
             return result
         }
@@ -114,9 +139,9 @@ class HookEntry : XposedModule() {
                 try {
                     initializeLyricon(app)
                     registerActivePlayerListener()
-                    xLog("Lyricon environment initialized in SystemUI")
+                    xLog("ModuleInit : Lyricon -> Environment initialized")
                 } catch (e: Exception) {
-                    xLogError("Receiver init failed", e)
+                    xLogError("ModuleInit : Lyricon -> ERROR: Environment initialization failed", e)
                 }
             }
             return chain.proceed()
@@ -133,15 +158,15 @@ class HookEntry : XposedModule() {
         private fun initBridgeRouting(app: android.app.Application) {
             LyriconBridge.routing(app) {
                 onCommand(AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
-                    xLog("Bridge: received style update request")
+                    xLog("Bridge : Received style update")
                     HookIslandLyric.refreshActiveIsland()
                 }
                 onCommand("com.lidesheng.hyperlyric.REFRESH_ISLAND") {
-                    xLog("Bridge: received REFRESH_ISLAND")
+                    xLog("Bridge : Received refresh request")
                     HookIslandLyric.refreshActiveIsland()
                 }
                 onCommand("com.lidesheng.hyperlyric.UPDATE_LYRIC_ANIM") {
-                    xLog("Bridge: received UPDATE_LYRIC_ANIM")
+                    xLog("Bridge : Received animation update")
                     HookIslandLyric.refreshActiveIsland()
                 }
             }

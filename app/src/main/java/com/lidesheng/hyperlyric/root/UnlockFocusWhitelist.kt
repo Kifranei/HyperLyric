@@ -2,6 +2,9 @@ package com.lidesheng.hyperlyric.root
 
 import android.content.Context
 import android.os.Bundle
+import com.lidesheng.hyperlyric.root.utils.xLog
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
+import com.lidesheng.hyperlyric.root.utils.xLogError
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
@@ -19,43 +22,65 @@ object UnlockFocusWhitelist {
     fun hook(xposedModule: XposedModule, defaultClassLoader: ClassLoader) {
         module = xposedModule
 
-        try {
+        // Hook PluginInstance to intercept other plugins loading
+        runCatching {
             val pluginInstanceClass = defaultClassLoader.loadClass(PLUGIN_INSTANCE_CLASS)
-            for (method in pluginInstanceClass.declaredMethods) {
-                if (method.name == "loadPlugin") {
-                    module.deoptimize(method)
-                    module.hook(method).intercept(PluginLoadHooker())
-                }
+            val method = pluginInstanceClass.declaredMethods.find { it.name == "loadPlugin" }
+            if (method != null) {
+                module.deoptimize(method)
+                module.hook(method).intercept(PluginLoadHooker())
+                xLog("ModuleInit : Whitelist -> PluginInstance.loadPlugin hooked")
+            } else {
+                xLogWarn("ModuleInit : Whitelist -> PluginInstance.loadPlugin not found")
             }
-        } catch (_: Exception) {
+        }.onFailure { e ->
+            if (e is ClassNotFoundException) {
+                xLogWarn("ModuleInit : Whitelist -> $PLUGIN_INSTANCE_CLASS not found")
+            } else {
+                xLogError("ModuleInit : Whitelist -> ERROR: Failed to hook PluginInstance", e)
+            }
         }
 
-        runCatching {
-            doHookInClassLoader(defaultClassLoader)
-        }
+        // Initial hook in default class loader
+        doHookInClassLoader(defaultClassLoader)
     }
 
     private fun doHookInClassLoader(cl: ClassLoader?) {
-        if (cl == null || hookedClassLoaders.contains(cl)) return
+        if (cl == null || !hookedClassLoaders.add(cl)) return
 
+        // Hook NotificationSettingsManager (canShowFocus, canCustomFocus)
         runCatching {
             val targetClass = cl.loadClass(TARGET_CLASS)
-            hookedClassLoaders.add(cl)
-            for (method in targetClass.declaredMethods) {
-                if (method.name == "canShowFocus" || method.name == "canCustomFocus") {
+            val methods = targetClass.declaredMethods.filter { 
+                it.name == "canShowFocus" || it.name == "canCustomFocus" 
+            }
+            
+            if (methods.isNotEmpty()) {
+                methods.forEach { method ->
                     module.deoptimize(method)
                     module.hook(method).intercept(ReturnTrueHooker())
                 }
+                xLog("ModuleInit : Whitelist -> Focus whitelist unlocked (${methods.joinToString { it.name }})")
+            }
+        }.onFailure { e ->
+            if (e !is ClassNotFoundException) {
+                xLogError("ModuleInit : Whitelist -> ERROR: Focus whitelist target hook failed in $cl", e)
             }
         }
 
+        // Hook AuthCallback (invokeSuspend)
         runCatching {
             val authClass = cl.loadClass(AUTH_CALLBACK_CLASS)
-            for (method in authClass.declaredMethods) {
-                if (method.name == "invokeSuspend") {
-                    module.deoptimize(method)
-                    module.hook(method).intercept(AuthResultHooker())
-                }
+            val method = authClass.declaredMethods.find { it.name == "invokeSuspend" }
+            
+            if (method != null) {
+                module.deoptimize(method)
+                module.hook(method).intercept(AuthResultHooker())
+                xLog("ModuleInit : Whitelist -> Focus whitelist auth callback hooked")
+            }
+        }.onFailure { e ->
+            if (e !is ClassNotFoundException) {
+                xLogError("ModuleInit : Whitelist -> ERROR: Focus whitelist auth hook failed in $cl", e)
             }
         }
     }
@@ -63,7 +88,7 @@ object UnlockFocusWhitelist {
     class PluginLoadHooker : Hooker {
         override fun intercept(chain: Chain): Any? {
             val result = chain.proceed()
-            try {
+            runCatching {
                 val thisObj = chain.thisObject ?: return result
                 thisObj.javaClass.declaredFields.forEach { f ->
                     if (f.name == "mPluginContext" || f.name == "mContext") {
@@ -74,7 +99,7 @@ object UnlockFocusWhitelist {
                         }
                     }
                 }
-            } catch (_: Exception) {}
+            }
             return result
         }
     }
@@ -97,18 +122,20 @@ object UnlockFocusWhitelist {
             if (!enabled) {
                 return chain.proceed()
             }
-            try {
+            runCatching {
                 val thisObj = chain.thisObject
                 thisObj.javaClass.declaredFields.forEach { f ->
+                    // Handle obfuscated field name if any, currently checking for "authBundle"
                     if (f.name.contains("authBundle")) {
                         f.isAccessible = true
                         (f.get(thisObj) as? Bundle)?.putInt("result_code", 0)
                     }
                 }
-            } catch (_: Exception) {}
+            }
             return chain.proceed()
         }
     }
 }
+
 
 

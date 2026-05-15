@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.content.SharedPreferences
 import android.view.View
 import com.lidesheng.hyperlyric.root.utils.CoverColorHelper
+import com.lidesheng.hyperlyric.root.utils.xLog
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import com.lidesheng.hyperlyric.root.utils.xLogError
 import io.github.libxposed.api.XposedModule
@@ -15,12 +17,12 @@ import io.github.libxposed.api.XposedModule
  * 策略：Hook updateTemplate()，在系统解析完 IslandTemplate 后，
  * 将 highlightColor 设置为专辑封面主色。系统会在 updateMedianLuma /
  * updateDarkLightMode 中自动使用该颜色渲染描边。
- *
- * 此方案让系统自己处理所有渲染细节（alpha/宽度/明暗适配），
- * 我们只需提供颜色数据。
  */
 @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
 object HookIslandGlow {
+    private const val BASE_CONTENT_VIEW_CLASS = "miui.systemui.dynamicisland.window.content.DynamicIslandBaseContentView"
+    private const val DATA_CLASS = "com.android.systemui.plugins.miui.dynamicisland.DynamicIslandData"
+
     private lateinit var module: XposedModule
     private var isHooked = false
 
@@ -31,37 +33,38 @@ object HookIslandGlow {
         if (isHooked) return
         module = xposedModule
 
-        try {
-            val baseContentViewClass = cl.loadClass(
-                "miui.systemui.dynamicisland.window.content.DynamicIslandBaseContentView"
-            )
+        runCatching {
+            val baseContentViewClass = cl.loadClass(BASE_CONTENT_VIEW_CLASS)
 
             // Hook updateTemplate — 注入 highlightColor
-            // 用 baseContentViewClass 的 ClassLoader 加载 DynamicIslandData（两个类在不同 APK 中）
-            val dataClass = baseContentViewClass.classLoader.loadClass(
-                "com.android.systemui.plugins.miui.dynamicisland.DynamicIslandData"
-            )
-            val updateTemplateMethod = baseContentViewClass.getDeclaredMethod(
-                "updateTemplate",
-                dataClass
-            )
-            updateTemplateMethod.isAccessible = true
-            module.deoptimize(updateTemplateMethod)
-            module.hook(updateTemplateMethod).intercept { chain ->
-                val result = chain.proceed()
-                injectHighlightColor(chain)
-                result
+            val dataClass = baseContentViewClass.classLoader?.loadClass(DATA_CLASS) ?: return@runCatching
+            val updateTemplateMethod = baseContentViewClass.declaredMethods.find { 
+                it.name == "updateTemplate" && it.parameterTypes.size == 1 && it.parameterTypes[0] == dataClass
             }
 
-        } catch (e: Exception) {
-            xLogError("HyperLyric Glow: init failed", e)
+            if (updateTemplateMethod != null) {
+                updateTemplateMethod.isAccessible = true
+                module.deoptimize(updateTemplateMethod)
+                module.hook(updateTemplateMethod).intercept { chain ->
+                    val result = chain.proceed()
+                    injectHighlightColor(chain)
+                    result
+                }
+                xLog("ModuleInit : IslandGlow -> DynamicIslandBaseContentView.updateTemplate hooked")
+            } else {
+                xLogWarn("ModuleInit : IslandGlow -> DynamicIslandBaseContentView.updateTemplate not found")
+            }
+        }.onFailure { e ->
+            if (e !is ClassNotFoundException) {
+                xLogError("ModuleInit : IslandGlow -> ERROR: Initialization failed", e)
+            }
         }
 
         isHooked = true
     }
 
     private fun injectHighlightColor(chain: io.github.libxposed.api.XposedInterface.Chain) {
-        try {
+        runCatching {
             val extractEnabled = prefs?.getBoolean(
                 RootConstants.KEY_HOOK_ISLAND_GLOW_EXTRACT_COLOR,
                 RootConstants.DEFAULT_HOOK_ISLAND_GLOW_EXTRACT_COLOR
@@ -84,35 +87,36 @@ object HookIslandGlow {
             val template = templateField.get(view) ?: return
 
             // 设置 highlightColor
-            val setHlMethod = template.javaClass.getMethod("setHighlightColor", String::class.java)
-            val colorStr = String.format("#%08X", mainColor)
-            setHlMethod.invoke(template, colorStr)
+            val setHlMethod = template.javaClass.methods.find { it.name == "setHighlightColor" && it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java }
+            if (setHlMethod != null) {
+                val colorStr = String.format("#%08X", mainColor)
+                setHlMethod.invoke(template, colorStr)
 
-            // 同时更新 _highlightColor LiveData，触发系统渲染管线
-            val hlField = findFieldInHierarchy(view.javaClass, "_highlightColor") ?: return
-            val hlLiveData = hlField.get(view) ?: return
-            val setValueMethod = hlLiveData.javaClass.getMethod("setValue", Object::class.java)
-            setValueMethod.invoke(hlLiveData, colorStr)
-
-        } catch (e: Exception) {
-            xLogError("Glow: injectHighlightColor error", e)
+                // 同时更新 _highlightColor LiveData/StateFlow，触发系统渲染管线
+                val hlField = findFieldInHierarchy(view.javaClass, "_highlightColor")
+                if (hlField != null) {
+                    val hlLiveData = hlField.get(view)
+                    if (hlLiveData != null) {
+                        val setValueMethod = hlLiveData.javaClass.methods.find { it.name == "setValue" && it.parameterTypes.size == 1 }
+                        setValueMethod?.invoke(hlLiveData, colorStr)
+                    }
+                }
+            }
+        }.onFailure { e ->
+            xLogError("ModuleInit : IslandGlow -> ERROR: Highlight color injection failed", e)
         }
     }
 
     private fun getPkgNameFromView(view: View): String {
-        try {
+        return runCatching {
             val dataField = findFieldInHierarchy(view.javaClass, "currentIslandData") ?: return ""
             val islandData = dataField.get(view) ?: return ""
-            val getExtrasMethod = islandData.javaClass.getMethod("getExtras")
-            val extras = getExtrasMethod.invoke(islandData) as? android.os.Bundle ?: return ""
-            return extras.getString("miui.pkg.name") ?: ""
-        } catch (_: Exception) {}
-        return ""
+            val getExtrasMethod = islandData.javaClass.methods.find { it.name == "getExtras" && it.parameterTypes.isEmpty() }
+            val extras = getExtrasMethod?.invoke(islandData) as? android.os.Bundle ?: return ""
+            extras.getString("miui.pkg.name") ?: ""
+        }.getOrDefault("")
     }
 
-    /**
-     * 在 class hierarchy 中向上查找字段
-     */
     private fun findFieldInHierarchy(clazz: Class<*>, fieldName: String): java.lang.reflect.Field? {
         var c: Class<*>? = clazz
         while (c != null && c != View::class.java) {
@@ -127,12 +131,16 @@ object HookIslandGlow {
         return null
     }
 
-    fun injectAndTriggerGlow(_contentView: View, _islandData: Any?, _prefs: SharedPreferences) {
+    /**
+     * 空桩，保持调用方兼容
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun injectAndTriggerGlow(contentView: View, islandData: Any?, sharedPrefs: SharedPreferences) {
         // highlightColor 已通过 updateTemplate Hook 注入，系统自动处理
     }
 
-    fun updateMusicGlow(_packageName: String, albumArt: Bitmap?, _prefs: SharedPreferences) {
-        val enabled = _prefs.getBoolean(
+    fun updateMusicGlow(albumArt: Bitmap?, sharedPrefs: SharedPreferences) {
+        val enabled = sharedPrefs.getBoolean(
             RootConstants.KEY_HOOK_ISLAND_GLOW_EXTRACT_COLOR,
             RootConstants.DEFAULT_HOOK_ISLAND_GLOW_EXTRACT_COLOR
         )
@@ -141,3 +149,4 @@ object HookIslandGlow {
         }
     }
 }
+

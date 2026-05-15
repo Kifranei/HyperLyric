@@ -2,8 +2,6 @@ package com.lidesheng.hyperlyric.root
 
 import android.content.SharedPreferences
 import com.lidesheng.hyperlyric.root.aitrans.AITranslator
-import com.lidesheng.hyperlyric.root.utils.xLog
-import com.lidesheng.hyperlyric.root.utils.xLogError
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.proify.lyricon.lyric.model.RichLyricLine
 import io.github.proify.lyricon.lyric.model.Song
@@ -76,7 +74,6 @@ object LyriconDataBridge {
             if (prefs != null) {
                 val aiEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, RootConstants.DEFAULT_HOOK_AI_TRANS_ENABLE)
                 if (aiEnabled) {
-                    xLog("AI: starting translation for ${song.name}")
                     startAiTranslation(song, prefs)
                 } else if (aiSetDisplayTranslation) {
                     // 仅当上一首歌的翻译行是 AI 加的，才复位
@@ -91,12 +88,6 @@ object LyriconDataBridge {
 
     private fun startAiTranslation(song: Song, prefs: SharedPreferences) {
         val configs = buildAiTranslationConfigs(prefs)
-        if (!configs.isUsable) {
-            xLog("AI: config unusable, skipping — apiKey empty?")
-            return
-        }
-
-        xLog("AI: enqueued — ${configs.baseUrl} model=${configs.model} lines=${song.lyrics?.size ?: 0}")
         aiTransScope.launch {
             try {
                 val translatedSong = AITranslator.translateSongSync(song, configs)
@@ -108,13 +99,9 @@ object LyriconDataBridge {
 
                     isDisplayTranslation = true
                     aiSetDisplayTranslation = true
-                    xLog("AI: success — ${song.name} (${lines.size} lines)")
                     HookIslandLyric.refreshActiveIsland()
-                } else {
-                    xLog("AI: returned same song, no translation applied for ${song.name}")
                 }
-            } catch (e: Exception) {
-                xLogError("AI: failed for ${song.name}", e)
+            } catch (_: Exception) {
             }
         }
     }

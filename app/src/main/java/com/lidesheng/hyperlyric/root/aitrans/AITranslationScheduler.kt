@@ -1,6 +1,9 @@
 package com.lidesheng.hyperlyric.root.aitrans
 
 import android.util.Log
+import com.lidesheng.hyperlyric.root.utils.xLog
+import com.lidesheng.hyperlyric.root.utils.xLogError
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.AiTranslationConfigs
 import kotlinx.coroutines.CancellationException
@@ -53,10 +56,7 @@ internal class AITranslationScheduler(
             )
             jobs[key] = job
             pending.addLast(job)
-            Log.i(
-                TAG,
-                "Queued AI translation: ${job.songName} pending=${pending.size}, running=$running"
-            )
+            xLog("AITranslation : Queue: Enqueued ${job.songName} (pending=${pending.size}, running=$running)")
             trimPendingLocked()
             dispatchNextLocked()
             return job.deferred
@@ -83,7 +83,7 @@ internal class AITranslationScheduler(
             dropped.state = TranslationJobState.CANCELLED
             jobs.remove(dropped.key, dropped)
             dropped.deferred.complete(null)
-            Log.w(TAG, "Dropped pending AI translation: ${dropped.songName}, reason=queue_full")
+            xLogWarn("AITranslation : Queue: Dropped pending task for ${dropped.songName} (Queue Full)")
         }
     }
 
@@ -94,10 +94,7 @@ internal class AITranslationScheduler(
 
             job.state = TranslationJobState.RUNNING
             running++
-            Log.i(
-                TAG,
-                "Running AI translation: ${job.songName} pending=${pending.size}, running=$running"
-            )
+            xLog("AITranslation : Task: Starting ${job.songName} (pending=${pending.size}, running=$running)")
             scope.launch { runJob(job) }
         }
     }
@@ -107,7 +104,7 @@ internal class AITranslationScheduler(
             val apiResults =
                 OpenAiTranslationClient.request(job.configs, job.song, job.originalLines)
             if (!apiResults.isNullOrEmpty() && job.generation == generation.get()) {
-                Log.i(TAG, "AI translation completed. Saving to cache: ${job.songName}")
+                xLog("AITranslation : Task: Completed ${job.songName} (Saved to cache)")
                 cache.putMemory(job.key, apiResults)
                 cache.saveToDb(job.key, apiResults)
             }
@@ -119,7 +116,7 @@ internal class AITranslationScheduler(
             throw e
         } catch (e: Exception) {
             job.state = TranslationJobState.COMPLETED
-            Log.e(TAG, "AI translation job failed for [${job.songName}]: ${e.message}", e)
+            xLogError("AITranslation : Task: Failed for [${job.songName}]", e)
             job.deferred.complete(null)
         } finally {
             synchronized(lock) {

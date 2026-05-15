@@ -15,6 +15,7 @@ import com.lidesheng.hyperlyric.root.utils.LyricStyleHelper
 import com.lidesheng.hyperlyric.root.utils.MediaMetadataHelper
 import com.lidesheng.hyperlyric.root.utils.TranslationHelper
 import com.lidesheng.hyperlyric.root.utils.xLogError
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedModule
@@ -57,14 +58,14 @@ object HookIslandLyric {
                         module.deoptimize(method)
                         module.hook(method).intercept(UpdateBigIslandHooker())
                     } catch (e: Exception) {
-                        xLogError("Failed to hook updateBigIslandView", e)
+                        xLogError("ModuleInit : SuperIsland -> ERROR: Hook updateBigIslandView failed", e)
                     }
                 } else if (name == "calculateBigIslandWidth") {
                     try {
                         module.deoptimize(method)
                         module.hook(method).intercept(PreInjectHooker())
                     } catch (e: Exception) {
-                        xLogError("Failed to hook calculateBigIslandWidth", e)
+                        xLogError("ModuleInit : SuperIsland -> ERROR: Hook calculateBigIslandWidth failed", e)
                     }
                 }
             }
@@ -73,9 +74,13 @@ object HookIslandLyric {
             HookIslandGlow.init(module, cl)
 
             isHookedSuccess = true
-            xLog("HyperLyric active: Super Island hooked successfully")
+            xLog("ModuleInit : SuperIsland -> Hooked successfully")
         } catch (e: Exception) {
-            xLogError("Exception in HookIslandLyric.hook method processing", e)
+            if (e is ClassNotFoundException || e is NoSuchMethodException) {
+                xLogWarn("ModuleInit : SuperIsland -> Target classes or methods not found")
+            } else {
+                xLogError("ModuleInit : SuperIsland -> ERROR: Hook processing failed", e)
+            }
         }
     }
 
@@ -104,7 +109,7 @@ object HookIslandLyric {
                     }
                 }
             } catch (e: Exception) {
-                xLogError("Exception in PreInjectHooker", e)
+                xLogError("ModuleInit : SuperIsland -> ERROR: Pre-injection failed", e)
             }
             return chain.proceed()
         }
@@ -394,7 +399,7 @@ object HookIslandLyric {
                         
                         // 刷新时同步更新光效
                         val mediaInfo = MediaMetadataHelper.getMediaInfo(cv.context, pkgName)
-                        HookIslandGlow.updateMusicGlow(pkgName, mediaInfo.albumArt, prefs)
+                        HookIslandGlow.updateMusicGlow(mediaInfo.albumArt, prefs)
 
                         triggerSystemRelayout(cv)
                     }

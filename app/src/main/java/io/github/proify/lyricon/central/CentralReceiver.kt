@@ -10,6 +10,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.lidesheng.hyperlyric.root.utils.xLog
+import com.lidesheng.hyperlyric.root.utils.xLogError
 import io.github.proify.lyricon.central.provider.ProviderManager
 import io.github.proify.lyricon.central.provider.RemoteProvider
 import io.github.proify.lyricon.provider.IProviderBinder
@@ -22,7 +24,7 @@ internal object CentralReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         Log.d(TAG, "onReceive action: ${intent?.action}")
         if (context == null) {
-            Log.e(TAG, "Context is null in onReceive!")
+            xLogError("Central: Context is null in onReceive!")
             return
         }
 
@@ -39,7 +41,7 @@ internal object CentralReceiver : BroadcastReceiver() {
         return when (T::class) {
             IProviderBinder::class -> IProviderBinder.Stub.asInterface(binder) as? T
             else -> {
-                Log.e(TAG, "Unknown binder type")
+                xLogError("Central: Unknown binder type")
                 null
             }
         }
@@ -48,12 +50,12 @@ internal object CentralReceiver : BroadcastReceiver() {
     private fun registerProvider(intent: Intent) {
         val bundle = intent.getBundleExtra(Constants.EXTRA_BUNDLE)
         if (bundle == null) {
-            Log.e(TAG, "Extra bundle is null!")
+            xLogError("Central: Extra bundle is null!")
             return
         }
         val binder = getBinder<IProviderBinder>(intent)
         if (binder == null) {
-            Log.e(TAG, "Failed to extract IProviderBinder from intent!")
+            xLogError("Central: Failed to extract IProviderBinder from intent!")
             return
         }
         Log.d(TAG, "Successfully extracted binder, fetching provider info...")
@@ -67,17 +69,14 @@ internal object CentralReceiver : BroadcastReceiver() {
             if (providerInfo?.providerPackageName.isNullOrBlank() ||
                 providerInfo.playerPackageName.isBlank()
             ) {
-                Log.e(TAG, "Provider info is invalid")
+                xLogError("Central: Provider info is invalid")
                 return
             }
 
             val registered = ProviderManager.getProvider(providerInfo)
             if (registered != null) {
                 provider = registered
-                Log.e(
-                    TAG,
-                    "Provider already registered, Sharing the same player service $providerInfo"
-                )
+                xLogError("Central: Provider already registered, Sharing the same player service $providerInfo")
             } else {
                 provider = RemoteProvider(binder, providerInfo)
                 ProviderManager.register(provider)
@@ -87,7 +86,7 @@ internal object CentralReceiver : BroadcastReceiver() {
             binder.onRegistrationCallback(provider.service)
 
         } catch (e: Exception) {
-            Log.e(TAG, "Provider registration failed", e)
+            xLogError("Central: Provider registration failed", e)
             provider?.let { ProviderManager.unregister(it) }
         }
     }
