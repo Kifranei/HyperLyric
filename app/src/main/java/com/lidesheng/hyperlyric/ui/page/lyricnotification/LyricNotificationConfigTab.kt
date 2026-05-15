@@ -1,0 +1,85 @@
+package com.lidesheng.hyperlyric.ui.page.lyricnotification
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.lidesheng.hyperlyric.ui.utils.pageScrollModifiers
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+
+@Composable
+fun LyricNotificationConfigTab(
+    lazyListState: LazyListState,
+    scrollBehavior: ScrollBehavior,
+    contentPadding: PaddingValues,
+    notificationType: Int,
+    onNotificationTypeChange: (Int) -> Unit,
+    islandLeftIconStyle: Int,
+    onIslandLeftIconStyleChange: (Int) -> Unit,
+    disableLyricSplitEnabled: Boolean,
+    onDisableLyricSplitToggle: (Boolean) -> Unit,
+    limitWidthEnabled: Boolean,
+    onLimitWidthToggle: (Boolean) -> Unit,
+    maxWidth: Int,
+    onMaxWidthChange: (Int) -> Unit,
+    notificationClickAction: Int,
+    onNotificationClickActionChange: (Int) -> Unit,
+    showProgressEnabled: Boolean,
+    onShowProgressToggle: (Boolean) -> Unit,
+    progressColorEnabled: Boolean,
+    onProgressColorToggle: (Boolean) -> Unit,
+    showAlbumArtEnabled: Boolean,
+    onShowAlbumArtToggle: (Boolean) -> Unit,
+    focusNotificationType: Int,
+    onFocusNotificationTypeChange: (Int) -> Unit,
+    normalNotificationTitleStyle: Int,
+    onNormalNotificationTitleStyleChange: (Int) -> Unit,
+    onAutostartClick: () -> Unit,
+    onBatteryOptimizationClick: () -> Unit,
+    onlineLyricEnabled: Boolean,
+    onOnlineLyricToggle: (Boolean) -> Unit,
+    onlineLyricCacheLimit: Int,
+    onCacheLimitClick: () -> Unit
+) {
+    LazyColumn(
+        state = lazyListState,
+        modifier = Modifier.pageScrollModifiers(
+            enableScrollEndHaptic = true,
+            showTopAppBar = true,
+            topAppBarScrollBehavior = scrollBehavior
+        ),
+        contentPadding = contentPadding
+    ) {
+        configSections(
+            notificationType = notificationType,
+            onNotificationTypeChange = onNotificationTypeChange,
+            islandLeftIconStyle = islandLeftIconStyle,
+            onIslandLeftIconStyleChange = onIslandLeftIconStyleChange,
+            disableLyricSplitEnabled = disableLyricSplitEnabled,
+            onDisableLyricSplitToggle = onDisableLyricSplitToggle,
+            limitWidthEnabled = limitWidthEnabled,
+            onLimitWidthToggle = onLimitWidthToggle,
+            maxWidth = maxWidth,
+            onMaxWidthChange = onMaxWidthChange,
+            notificationClickAction = notificationClickAction,
+            onNotificationClickActionChange = onNotificationClickActionChange,
+            showProgressEnabled = showProgressEnabled,
+            onShowProgressToggle = onShowProgressToggle,
+            progressColorEnabled = progressColorEnabled,
+            onProgressColorToggle = onProgressColorToggle,
+            showAlbumArtEnabled = showAlbumArtEnabled,
+            onShowAlbumArtToggle = onShowAlbumArtToggle,
+            focusNotificationType = focusNotificationType,
+            onFocusNotificationTypeChange = onFocusNotificationTypeChange,
+            normalNotificationTitleStyle = normalNotificationTitleStyle,
+            onNormalNotificationTitleStyleChange = onNormalNotificationTitleStyleChange,
+            onAutostartClick = onAutostartClick,
+            onBatteryOptimizationClick = onBatteryOptimizationClick,
+            onlineLyricEnabled = onlineLyricEnabled,
+            onOnlineLyricToggle = onOnlineLyricToggle,
+            onlineLyricCacheLimit = onlineLyricCacheLimit,
+            onCacheLimitClick = onCacheLimitClick
+        )
+    }
+}
