@@ -141,8 +141,11 @@ object NotificationManagerHelper {
                 val segments = ArrayList<NotificationCompat.ProgressStyle.Segment>(2)
 
                 if (uiState.progress > 0) {
-                    val color = if (uiState.progressColorEnabled) uiState.color else 0xFF2C2C2C.toInt()
-                    segments.add(NotificationCompat.ProgressStyle.Segment(uiState.progress).setColor(color))
+                    val segment = NotificationCompat.ProgressStyle.Segment(uiState.progress)
+                    if (uiState.progressColorEnabled) {
+                        segment.setColor(uiState.color)
+                    }
+                    segments.add(segment)
                 }
                 if (remaining > 0) {
                     segments.add(NotificationCompat.ProgressStyle.Segment(remaining).setColor(0x40FFFFFF))

@@ -150,8 +150,8 @@ class FocusNotificationBuilder(
     private fun buildOS2ProgressInfo(): JSONObject {
         val json = JSONObject()
         json.put("progress", uiState.progress)
-        val color = if (uiState.progressColorEnabled) getColorHex(uiState.color) else "#FF2C2C2C"
-        val colorEnd = if (uiState.progressColorEnabled) getColorHex(uiState.colorEnd) else "#FF2C2C2C"
+        val color = if (uiState.progressColorEnabled) getColorHex(uiState.color) else "#3482FF"
+        val colorEnd = if (uiState.progressColorEnabled) getColorHex(uiState.colorEnd) else "#3482FF"
         json.put("colorProgress", color)
         json.put("colorProgressEnd", colorEnd)
         return json
@@ -161,13 +161,16 @@ class FocusNotificationBuilder(
         val json = JSONObject()
         json.put("title", uiState.songInfo)
         json.put("progress", uiState.progress)
-        val color = if (uiState.progressColorEnabled) getColorHex(uiState.color) else "#FF2C2C2C"
-        json.put("color", color)
+        if (uiState.progressColorEnabled) {
+            json.put("color", getColorHex(uiState.color))
+        }
 
         if (uiState.songInfoHighlightColorEnabled) {
             val hex = getColorHex(uiState.color)
             json.put("colorTitle", hex)
             json.put("colorTitleDark", hex)
+            json.put("colorContent", hex)
+            json.put("colorContentDark", hex)
         }
         return json
     }
@@ -177,7 +180,7 @@ class FocusNotificationBuilder(
             // 返回 8 位颜色格式 (#FFRRGGBB)
             String.format("#FF%06X", 0xFFFFFF and color)
         } else {
-            "#FF2C2C2C"
+            "#3482FF"
         }
     }
 }
