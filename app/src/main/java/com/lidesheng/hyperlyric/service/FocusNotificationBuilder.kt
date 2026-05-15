@@ -54,6 +54,9 @@ class FocusNotificationBuilder(
 
     private fun buildParamIsland(): JSONObject {
         val json = JSONObject()
+        if (uiState.highlightColorEnabled) {
+            json.put("highlightColor", getColorHex(uiState.color)) // 使用封面动态取色
+        }
         json.put("bigIslandArea", buildBigIslandArea())
         json.put("smallIslandArea", buildSmallIslandArea())
         return json
@@ -79,11 +82,13 @@ class FocusNotificationBuilder(
             imageTextLeft.put("picInfo", buildPicInfo(1, picKey))
             val textInfo = JSONObject()
             textInfo.put("title", uiState.islandTitleLeft)
+            textInfo.put("showHighlightColor", uiState.highlightColorEnabled)
             imageTextLeft.put("textInfo", textInfo)
         } else {
             // 纯文本模式 (style == 3: 无)
             val textInfo = JSONObject()
             textInfo.put("title", uiState.islandTitleLeft)
+            textInfo.put("showHighlightColor", uiState.highlightColorEnabled)
             imageTextLeft.put("textInfo", textInfo)
         }
         json.put("imageTextInfoLeft", imageTextLeft)
@@ -91,6 +96,7 @@ class FocusNotificationBuilder(
         // 大岛主文本区 (右侧)
         val islandTitleText = JSONObject()
         islandTitleText.put("title", uiState.title)
+        islandTitleText.put("showHighlightColor", uiState.highlightColorEnabled)
         json.put("textInfo", islandTitleText)
 
         return json
@@ -151,9 +157,10 @@ class FocusNotificationBuilder(
 
     private fun getColorHex(color: Int): String {
         return if (color != 0) {
-            String.format("#%06X", 0xFFFFFF and color)
+            // 返回 8 位颜色格式 (#FFRRGGBB)
+            String.format("#FF%06X", 0xFFFFFF and color)
         } else {
-            "#2C2C2C"
+            "#FF2C2C2C"
         }
     }
 }

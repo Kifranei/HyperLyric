@@ -43,6 +43,8 @@ fun LazyListScope.configSections(
     onLimitWidthToggle: (Boolean) -> Unit,
     maxWidth: Int,
     onMaxWidthChange: (Int) -> Unit,
+    highlightColorEnabled: Boolean,
+    onHighlightColorToggle: (Boolean) -> Unit,
     notificationClickAction: Int,
     onNotificationClickActionChange: (Int) -> Unit,
     showProgressEnabled: Boolean,
@@ -111,6 +113,14 @@ fun LazyListScope.configSections(
                         title = stringResource(R.string.title_disable_lyric_split),
                         checked = disableLyricSplitEnabled,
                         onCheckedChange = onDisableLyricSplitToggle
+                    )
+                }
+
+                AnimatedVisibility(visible = notificationType == 1) {
+                    SwitchPreference(
+                        title = stringResource(R.string.title_lyric_highlight_color),
+                        checked = highlightColorEnabled,
+                        onCheckedChange = onHighlightColorToggle
                     )
                 }
 

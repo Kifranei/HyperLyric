@@ -41,7 +41,8 @@ object NotificationManagerHelper {
         val notificationAlbumBitmapCircular: Bitmap? = null,
         val islandLeftIconStyle: Int = 0,
         val focusNotificationType: Int = 0,
-        val showAlbumArt: Boolean = true
+        val showAlbumArt: Boolean = true,
+        val highlightColorEnabled: Boolean = false
     )
 
     private var lastAlbumBitmap: Bitmap? = null

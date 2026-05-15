@@ -209,6 +209,15 @@ fun DynamicIslandNotificationPage() {
         )
     }
 
+    var highlightColorEnabled by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                ServiceConstants.KEY_NOTIFICATION_HIGHLIGHT_COLOR,
+                ServiceConstants.DEFAULT_NOTIFICATION_HIGHLIGHT_COLOR
+            )
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(state = snackbarHostState) },
         topBar = {
@@ -443,7 +452,12 @@ fun DynamicIslandNotificationPage() {
                                 prefs.edit { putBoolean(ServiceConstants.KEY_ONLINE_LYRIC_ENABLED, checked) }
                             },
                             onlineLyricCacheLimit = onlineLyricCacheLimitState,
-                            onCacheLimitClick = { showCacheLimitDialog = true }
+                            onCacheLimitClick = { showCacheLimitDialog = true },
+                            highlightColorEnabled = highlightColorEnabled,
+                            onHighlightColorToggle = { checked ->
+                                highlightColorEnabled = checked
+                                prefs.edit { putBoolean(ServiceConstants.KEY_NOTIFICATION_HIGHLIGHT_COLOR, checked) }
+                            }
                         )
                     }
 

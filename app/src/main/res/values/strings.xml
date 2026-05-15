@@ -129,6 +129,7 @@
     <string name="title_show_progress">显示进度条</string>
     <string name="summary_show_progress">其他系统切勿关闭！仅通过澎湃3设备测试</string>
     <string name="title_progress_color">进度条强调色</string>
+    <string name="title_lyric_highlight_color">歌词强调色</string>
     <string name="summary_progress_color">切歌后生效</string>
     <string name="title_show_album_art">显示专辑封面</string>
     <string name="title_focus_style">焦点通知样式</string>
