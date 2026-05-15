@@ -3,6 +3,7 @@ package com.lidesheng.hyperlyric.root
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
+import com.lidesheng.hyperlyric.root.utils.xLogError
 
 /**
  * MIUI 灵动岛视图管理助手
@@ -107,15 +108,19 @@ object IslandViewHelper {
      * 触发灵动岛系统的布局刷新
      */
     fun triggerSystemRelayout(islandView: ViewGroup) {
-        val viewClass = islandView.javaClass
-        try {
-            viewClass.getMethod("updateBigIslandViewWidth").invoke(islandView)
-            return
-        } catch (_: Exception) {}
-
-        try {
-            viewClass.getMethod("calculateBigIslandWidth").invoke(islandView)
-        } catch (_: Exception) {}
+        runCatching {
+            val viewClass = islandView.javaClass
+            // 优先尝试 updateBigIslandViewWidth
+            val updateWidthMethod = viewClass.methods.find { it.name == "updateBigIslandViewWidth" }
+            if (updateWidthMethod != null) {
+                updateWidthMethod.invoke(islandView)
+            } else {
+                // 兜底尝试 calculateBigIslandWidth
+                viewClass.methods.find { it.name == "calculateBigIslandWidth" }?.invoke(islandView)
+            }
+        }.onFailure { e ->
+            xLogError("IslandHelper: Failed to trigger system relayout", e)
+        }
     }
 
     /**
