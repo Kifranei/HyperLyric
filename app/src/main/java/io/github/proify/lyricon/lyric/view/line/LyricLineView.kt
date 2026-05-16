@@ -45,6 +45,14 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     val lineWidth: Float get() = _model.width
 
+    // ---- Metadata marquee overrides (called from HyperLyric) ----
+    fun setMarqueeSpeed(speed: Float) { scrollRenderer.scrollSpeed = speed }
+    fun setMarqueeInitialDelay(ms: Int) { scrollRenderer.initialDelayMs = ms }
+    fun setMarqueeLoopDelay(ms: Int) { scrollRenderer.loopDelayMs = ms }
+    fun setMarqueeRepeatCount(count: Int) { scrollRenderer.repeatCount = count }
+    fun setMarqueeStopAtEnd(stop: Boolean) { scrollRenderer.stopAtEnd = stop }
+    fun setPeerLineWidth(width: Float) { scrollRenderer.peerLineWidth = width }
+
     val isPlainText: Boolean get() = _model.isPlainText
     val isWordSync: Boolean get() = !isPlainText
     val isOverflow: Boolean get() = lineWidth > measuredWidth
@@ -56,6 +64,13 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         set(value) {
             field = value
             syncRenderer.isScrollOnly = value
+        }
+
+    var centerIfPossible: Boolean = false
+        set(value) {
+            field = value
+            syncRenderer.centerIfPossible = value
+            scrollRenderer.centerIfPossible = value
         }
 
     var playListener: LyricPlayListener? = null
@@ -137,8 +152,9 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     fun configureWith(
         text: TextLook, highlight: Highlight, marquee: Marquee,
-        gradient: Boolean, fadingEdge: Int
+        gradient: Boolean, fadingEdge: Int, center: Boolean
     ) {
+        this.centerIfPossible = center
         updateColor(text.color, highlight.background, highlight.foreground)
         setTextSize(text.size)
         textPaint.typeface = text.typeface

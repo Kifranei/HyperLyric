@@ -35,6 +35,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     private var releaseSeedIntensity = 0f
 
     var isScrollOnly = false
+    override var centerIfPossible = false
 
     var isCharMotionEnabled = true
 
@@ -190,7 +191,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
             state.scrollOffset, model.width > viewWidth,
             progressAnimator.currentWidth,
             sustainEffects,
-            isGradientEnabled, isScrollOnly, isCharMotionEnabled,
+            isGradientEnabled, isScrollOnly, isCharMotionEnabled, centerIfPossible,
             bgPaint, hlPaint, paint
         )
     }

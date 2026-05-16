@@ -104,8 +104,8 @@ class NotificationPresenter(
             notificationTitleLeft = globalState.notificationTitleLeft,
             notificationTitleRight = globalState.notificationTitleRight,
             albumBitmap = globalState.albumBitmap?.takeIf { !it.isRecycled },
-            color = if (sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)) globalState.albumColor else 0xFF2C2C2C.toInt(),
-            colorEnd = if (sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)) globalState.albumColorEnd else 0xFF2C2C2C.toInt(),
+            color = globalState.albumColor,
+            colorEnd = globalState.albumColorEnd,
             progress = progressPercent,
             isPlaying = globalState.isPlaying,
             targetPackageName = globalState.targetPackageName,
@@ -115,7 +115,10 @@ class NotificationPresenter(
             notificationAlbumBitmapCircular = globalState.notificationAlbumBitmapCircular?.takeIf { !it.isRecycled },
             islandLeftIconStyle = sp.getInt(ServiceConstants.KEY_ISLAND_LEFT_ICON, ServiceConstants.DEFAULT_ISLAND_LEFT_ICON),
             focusNotificationType = sp.getInt(ServiceConstants.KEY_NOTIFICATION_FOCUS_STYLE, ServiceConstants.DEFAULT_NOTIFICATION_FOCUS_STYLE),
-            showAlbumArt = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM)
+            showAlbumArt = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_ALBUM, ServiceConstants.DEFAULT_NOTIFICATION_ALBUM),
+            highlightColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_HIGHLIGHT_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_HIGHLIGHT_COLOR),
+            songInfoHighlightColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_SONG_INFO_HIGHLIGHT_COLOR),
+            progressColorEnabled = sp.getBoolean(ServiceConstants.KEY_NOTIFICATION_PROGRESS_COLOR, ServiceConstants.DEFAULT_NOTIFICATION_PROGRESS_COLOR)
         )
 
         val isScreenOn = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive == true

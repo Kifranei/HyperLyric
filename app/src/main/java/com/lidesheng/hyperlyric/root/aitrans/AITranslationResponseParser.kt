@@ -1,6 +1,7 @@
 package com.lidesheng.hyperlyric.root.aitrans
 
 import android.util.Log
+import com.lidesheng.hyperlyric.root.utils.xLogError
 import io.github.proify.android.extensions.json
 
 internal object AITranslationResponseParser {
@@ -32,7 +33,7 @@ internal object AITranslationResponseParser {
             return trimmed.substring(arrayStart, arrayEnd + 1)
         }
 
-        Log.e(TAG, "No JSON payload found in response: ${trimForLog(trimmed)}")
+        xLogError("AITranslation : API: No JSON payload found in response: ${trimForLog(trimmed)}")
         return null
     }
 

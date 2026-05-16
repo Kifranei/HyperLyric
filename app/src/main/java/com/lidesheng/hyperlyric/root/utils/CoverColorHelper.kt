@@ -5,12 +5,14 @@ import android.graphics.Bitmap
 object CoverColorHelper {
 
     private var cachedKey: String? = null
+    private var cachedBitmap: Bitmap? = null
     private var cachedLightColors: IntArray? = null
     private var cachedDarkColors: IntArray? = null
 
     fun extractColors(bitmap: Bitmap, useGradient: Boolean, songKey: String? = null): Pair<IntArray, IntArray> {
         val key = "${songKey}_${useGradient}"
-        if (key == cachedKey && cachedLightColors != null && cachedDarkColors != null) {
+    
+        if (key == cachedKey && bitmap === cachedBitmap && cachedLightColors != null && cachedDarkColors != null) {
             return Pair(cachedLightColors!!, cachedDarkColors!!)
         }
 
@@ -19,6 +21,7 @@ object CoverColorHelper {
         val darkColors = result.onBlackBackground.toIntArray()
 
         cachedKey = key
+        cachedBitmap = bitmap
         cachedLightColors = lightColors
         cachedDarkColors = darkColors
         return Pair(lightColors, darkColors)
@@ -32,6 +35,7 @@ object CoverColorHelper {
 
     fun clearCache() {
         cachedKey = null
+        cachedBitmap = null
         cachedLightColors = null
         cachedDarkColors = null
     }

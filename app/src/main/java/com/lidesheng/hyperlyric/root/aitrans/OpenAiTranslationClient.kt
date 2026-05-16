@@ -1,6 +1,9 @@
 package com.lidesheng.hyperlyric.root.aitrans
 
 import android.util.Log
+import com.lidesheng.hyperlyric.root.utils.xLog
+import com.lidesheng.hyperlyric.root.utils.xLogError
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.lyric.model.Song
@@ -23,7 +26,7 @@ internal object OpenAiTranslationClient {
         texts: List<String>
     ): List<TranslationItem>? = withContext(Dispatchers.IO) {
         if (configs.apiKey.isNullOrBlank()) {
-            Log.e(TAG, "Request aborted: API Key is null or blank.")
+            xLogError("AITranslation : API: Request Aborted (API Key is missing)")
             return@withContext null
         }
 
@@ -60,7 +63,7 @@ internal object OpenAiTranslationClient {
         var connection: HttpURLConnection? = null
         try {
             val url = URL(apiUrl)
-            Log.d(TAG, "Connecting to OpenAI compatible API: $apiUrl")
+            xLog("AITranslation : API: Post ${configs.model} -> $apiUrl")
 
             connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
@@ -80,22 +83,23 @@ internal object OpenAiTranslationClient {
                 val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
                 val responseObj = json.decodeFromString<OpenAiChatResponse>(responseBody)
                 val content = responseObj.choices.firstOrNull()?.message?.content ?: run {
-                    Log.e(TAG, "Empty content in API response.")
+                    xLogError("AITranslation : API: Error (Empty content in choice)")
                     return@withContext null
                 }
+                xLog("AITranslation : API: Success (Received content length=${content.length})")
                 AITranslationResponseParser.parse(content, requestIndices)
             } else {
-                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
-                Log.e(TAG, "API request failed with code $responseCode: $errorBody")
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "No error body"
+                xLogError("AITranslation : API: Failed ($responseCode) -> ${errorBody.take(100)}")
                 null
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (e: EOFException) {
-            Log.w(TAG, "AI response stream ended unexpectedly: ${e.message ?: "EOF"}")
+        } catch (_: EOFException) {
+            xLogWarn("AITranslation : API: Connection Closed (EOF)")
             null
         } catch (e: Exception) {
-            Log.e(TAG, "Network or Parsing error in doOpenAiRequest: ${e.message}", e)
+            xLogError("AITranslation : API: Exception (${e.javaClass.simpleName})", e)
             null
         } finally {
             connection?.disconnect()

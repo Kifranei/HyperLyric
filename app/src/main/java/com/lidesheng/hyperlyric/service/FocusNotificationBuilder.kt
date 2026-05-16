@@ -54,6 +54,9 @@ class FocusNotificationBuilder(
 
     private fun buildParamIsland(): JSONObject {
         val json = JSONObject()
+        if (uiState.highlightColorEnabled) {
+            json.put("highlightColor", getColorHex(uiState.color)) // 使用高亮度主色
+        }
         json.put("bigIslandArea", buildBigIslandArea())
         json.put("smallIslandArea", buildSmallIslandArea())
         return json
@@ -79,11 +82,13 @@ class FocusNotificationBuilder(
             imageTextLeft.put("picInfo", buildPicInfo(1, picKey))
             val textInfo = JSONObject()
             textInfo.put("title", uiState.islandTitleLeft)
+            textInfo.put("showHighlightColor", uiState.highlightColorEnabled)
             imageTextLeft.put("textInfo", textInfo)
         } else {
             // 纯文本模式 (style == 3: 无)
             val textInfo = JSONObject()
             textInfo.put("title", uiState.islandTitleLeft)
+            textInfo.put("showHighlightColor", uiState.highlightColorEnabled)
             imageTextLeft.put("textInfo", textInfo)
         }
         json.put("imageTextInfoLeft", imageTextLeft)
@@ -91,6 +96,7 @@ class FocusNotificationBuilder(
         // 大岛主文本区 (右侧)
         val islandTitleText = JSONObject()
         islandTitleText.put("title", uiState.title)
+        islandTitleText.put("showHighlightColor", uiState.highlightColorEnabled)
         json.put("textInfo", islandTitleText)
 
         return json
@@ -120,6 +126,14 @@ class FocusNotificationBuilder(
         json.put("title", uiState.notificationTitleLeft)
         // OS2 使用 songInfo，OS3 使用 lyric (notificationTitleRight)
         json.put("content", if (uiState.focusNotificationType == 1) uiState.songInfo else uiState.notificationTitleRight)
+
+        if (uiState.songInfoHighlightColorEnabled) {
+            val hex = getColorHex(uiState.color)
+            json.put("colorTitle", hex)
+            json.put("colorTitleDark", hex)
+            json.put("colorContent", hex)
+            json.put("colorContentDark", hex)
+        }
         return json
     }
 
@@ -136,8 +150,10 @@ class FocusNotificationBuilder(
     private fun buildOS2ProgressInfo(): JSONObject {
         val json = JSONObject()
         json.put("progress", uiState.progress)
-        json.put("colorProgress", getColorHex(uiState.color))
-        json.put("colorProgressEnd", getColorHex(uiState.colorEnd))
+        val color = if (uiState.progressColorEnabled) getColorHex(uiState.color) else "#3482FF"
+        val colorEnd = if (uiState.progressColorEnabled) getColorHex(uiState.colorEnd) else "#3482FF"
+        json.put("colorProgress", color)
+        json.put("colorProgressEnd", colorEnd)
         return json
     }
 
@@ -145,15 +161,26 @@ class FocusNotificationBuilder(
         val json = JSONObject()
         json.put("title", uiState.songInfo)
         json.put("progress", uiState.progress)
-        json.put("color", getColorHex(uiState.color))
+        if (uiState.progressColorEnabled) {
+            json.put("color", getColorHex(uiState.color))
+        }
+
+        if (uiState.songInfoHighlightColorEnabled) {
+            val hex = getColorHex(uiState.color)
+            json.put("colorTitle", hex)
+            json.put("colorTitleDark", hex)
+            json.put("colorContent", hex)
+            json.put("colorContentDark", hex)
+        }
         return json
     }
 
     private fun getColorHex(color: Int): String {
         return if (color != 0) {
-            String.format("#%06X", 0xFFFFFF and color)
+            // 返回 8 位颜色格式 (#FFRRGGBB)
+            String.format("#FF%06X", 0xFFFFFF and color)
         } else {
-            "#2C2C2C"
+            "#3482FF"
         }
     }
 }

@@ -2,8 +2,6 @@ package com.lidesheng.hyperlyric.root
 
 import android.content.SharedPreferences
 import com.lidesheng.hyperlyric.root.aitrans.AITranslator
-import com.lidesheng.hyperlyric.root.utils.xLog
-import com.lidesheng.hyperlyric.root.utils.xLogError
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
 import io.github.proify.lyricon.lyric.model.RichLyricLine
 import io.github.proify.lyricon.lyric.model.Song
@@ -45,9 +43,16 @@ object LyriconDataBridge {
     @Volatile
     var isTextMode: Boolean = false
 
-    /** 是否显示翻译（由插件回调控制） */
+    /** 是否显示翻译（由插件回调控制；AI 翻译成功也会置 true） */
     @Volatile
     var isDisplayTranslation: Boolean = true
+
+    /** 是否显示罗马音（由插件回调控制） */
+    @Volatile
+    var isDisplayRoma: Boolean = true
+
+    /** 标记 isDisplayTranslation 是否由 AI 翻译置 true，用于 AI 关闭后正确复位 */
+    private var aiSetDisplayTranslation: Boolean = false
 
     private var timingNavigator: TimingNavigator<TimedLine> = TimingNavigator(emptyArray())
     private var interludeTracker = InterludeTracker(8_000L)
@@ -70,6 +75,10 @@ object LyriconDataBridge {
                 val aiEnabled = prefs.getBoolean(RootConstants.KEY_HOOK_AI_TRANS_ENABLE, RootConstants.DEFAULT_HOOK_AI_TRANS_ENABLE)
                 if (aiEnabled) {
                     startAiTranslation(song, prefs)
+                } else if (aiSetDisplayTranslation) {
+                    // 仅当上一首歌的翻译行是 AI 加的，才复位
+                    isDisplayTranslation = false
+                    aiSetDisplayTranslation = false
                 }
             }
         } else {
@@ -79,36 +88,33 @@ object LyriconDataBridge {
 
     private fun startAiTranslation(song: Song, prefs: SharedPreferences) {
         val configs = buildAiTranslationConfigs(prefs)
-        if (!configs.isUsable) return
-
         aiTransScope.launch {
             try {
                 val translatedSong = AITranslator.translateSongSync(song, configs)
                 if (translatedSong !== song && translatedSong.lyrics != null) {
-                    // Update the current song with translations
                     currentSong = translatedSong
                     val processor = SongPreprocessor(TitleSlot.NAME_ARTIST)
                     val lines = processor.prepare(translatedSong)
                     timingNavigator = TimingNavigator(lines.toTypedArray())
 
-                    xLog("AI translation applied to: ${song.name}")
-                    // Refresh the island to show translations
+                    isDisplayTranslation = true
+                    aiSetDisplayTranslation = true
                     HookIslandLyric.refreshActiveIsland()
                 }
-            } catch (e: Exception) {
-                xLogError("AI translation failed for: ${song.name}", e)
+            } catch (_: Exception) {
             }
         }
     }
 
     private fun buildAiTranslationConfigs(prefs: SharedPreferences): AiTranslationConfigs {
-        val providerName = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROVIDER, AiTranslationProvider.OPENAI.name) ?: AiTranslationProvider.OPENAI.name
+        val providerName = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROVIDER, AiTranslationProvider.OPENAI.name)
+            ?: AiTranslationProvider.OPENAI.name
         val provider = try { AiTranslationProvider.valueOf(providerName) } catch (_: Exception) { AiTranslationProvider.OPENAI }
 
         return AiTranslationConfigs(
             provider = providerName,
-            targetLanguage = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_TARGET_LANG, ""),
-            apiKey = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_API_KEY, ""),
+            targetLanguage = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_TARGET_LANG, "") ?: "",
+            apiKey = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_API_KEY, "") ?: "",
             model = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_MODEL, "").orEmpty().ifBlank { provider.model },
             baseUrl = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_BASE_URL, "").orEmpty().ifBlank { provider.url },
             prompt = prefs.getString(RootConstants.KEY_HOOK_AI_TRANS_PROMPT, "") ?: "",
@@ -162,6 +168,8 @@ object LyriconDataBridge {
         currentLyricLine = null
         isTextMode = false
         isDisplayTranslation = true
+        isDisplayRoma = true
+        aiSetDisplayTranslation = false
         timingNavigator = TimingNavigator(emptyArray())
     }
 }

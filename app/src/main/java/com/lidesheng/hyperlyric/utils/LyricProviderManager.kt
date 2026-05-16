@@ -1,4 +1,4 @@
-package com.lidesheng.hyperlyric.ui.utils
+package com.lidesheng.hyperlyric.utils
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -8,8 +8,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.lidesheng.hyperlyric.R
+import com.lidesheng.hyperlyric.ui.component.icon.GeminiColor
 import java.text.Collator
 import java.util.Locale
+
+data class ModuleTag(
+    val iconRes: Int? = null,
+    val imageVector: ImageVector? = null,
+    val title: String? = null,
+    val titleRes: Int = -1,
+    val isRainbow: Boolean = false
+)
 
 data class LyricModule(
     val packageInfo: PackageInfo,
@@ -17,7 +28,8 @@ data class LyricModule(
     val description: String?,
     val author: String?,
     val category: String?,
-    val isCertified: Boolean = false
+    val isCertified: Boolean = false,
+    val tags: List<ModuleTag> = emptyList()
 )
 
 data class ProviderUiState(
@@ -31,6 +43,24 @@ data class ModuleCategory(
 )
 
 object LyricProviderManager {
+    val providerToTargetMap = mapOf(
+        "io.github.proify.lyricon.cmprovider" to listOf("com.netease.cloudmusic", "com.hihonor.cloudmusic"), //网易云、荣耀定制版网易云
+        "io.github.proify.lyricon.qmprovider" to listOf("com.tencent.qqmusic"), //QQ音乐
+        "io.github.proify.lyricon.kwprovider" to listOf("cn.kuwo.player"), //酷我音乐
+        "io.github.proify.lyricon.kgprovider" to listOf("com.kugou.android", "com.kugou.android.lite"), //酷狗、酷狗极速版
+        "io.github.proify.lyricon.spotifyprovider" to listOf("com.spotify.music"), //Spotify
+        "io.github.proify.lyricon.amprovider" to listOf("com.apple.android.music"), //Apple Music
+        "io.github.proify.lyricon.localprovider" to listOf("com.salt.music"), //椒盐音乐
+        "io.github.proify.lyricon.saltprovider" to listOf("com.salt.music"), //椒盐音乐
+        "io.github.proify.lyricon.qmhdprovider" to listOf("com.tencent.qqmusicpad"), //QQ音乐HD
+        "io.github.proify.lyricon.qishuiprovider" to listOf("com.luna.music"), //汽水音乐
+        "io.github.proify.lyricon.paprovider" to listOf("com.maxmpz.audioplayer"), //Poweramp
+        "io.github.proify.lyricon.musicfreeprovider" to listOf("fun.upup.musicfree"), //MusicFree
+        "io.github.proify.lyricon.lxprovider" to listOf("cn.toside.music.mobile", "com.ikunshare.music.mobile", "com.lxnetease.music.mobile"), //落雪、IKunMusic、LxNetease
+        "io.github.proify.lyricon.gramophoneprovider" to listOf("org.akanework.gramophone"), //Gramophone
+    )
+
+
 
 
     suspend fun loadProviders(context: Context, stateFlow: MutableStateFlow<ProviderUiState>) {
@@ -106,10 +136,43 @@ object LyricProviderManager {
                 description = metaData.getString("lyricon_module_description"),
                 author = metaData.getString("lyricon_module_author"),
                 category = metaData.getString("lyricon_module_category"),
-                isCertified = isCertified
+                isCertified = isCertified,
+                tags = extractTags(pm, appInfo, metaData)
             )
         } catch (_: Exception) {
             null
+        }
+    }
+
+    private fun extractTags(pm: PackageManager, appInfo: ApplicationInfo, metaData: android.os.Bundle): List<ModuleTag> {
+        val tagsResId = metaData.getInt("lyricon_module_tags")
+        val rawTags = if (tagsResId != 0) {
+            runCatching {
+                val resources = pm.getResourcesForApplication(appInfo)
+                resources.getStringArray(tagsResId).toList()
+            }.getOrDefault(emptyList())
+        } else {
+            metaData.getString("lyricon_module_tags")?.let { listOf(it) } ?: emptyList()
+        }
+        return rawTags.mapNotNull { tagKey ->
+            if (tagKey.isBlank()) return@mapNotNull null
+            getPredefinedTag(tagKey) ?: ModuleTag(title = tagKey)
+        }
+    }
+
+    private fun getPredefinedTag(key: String): ModuleTag? {
+        return when (key) {
+            $$"$syllable" -> ModuleTag(
+                imageVector = GeminiColor,
+                titleRes = R.string.module_tag_syllable,
+                isRainbow = true
+            )
+            $$"$translation" -> ModuleTag(
+                iconRes = R.drawable.translate_24px,
+                titleRes = R.string.module_tag_translation
+            )
+            $$"$bluetooth" -> ModuleTag(titleRes = R.string.module_tag_bluetooth)
+            else -> null
         }
     }
 

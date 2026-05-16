@@ -9,6 +9,7 @@ import com.lidesheng.hyperlyric.root.utils.ConfigSync
 import com.lidesheng.hyperlyric.ui.utils.Constants as UIConstants
 import com.lidesheng.hyperlyric.service.Constants as ServiceConstants
 import com.lidesheng.hyperlyric.root.utils.Constants as RootConstants
+import com.lidesheng.hyperlyric.utils.LyricProviderManager
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -119,7 +120,6 @@ object DynamicLyricData {
         _musicState.update { it.copy(albumColor = color, albumColorEnd = colorEnd) }
     }
 
-
     fun updateRightTitles(
         islandText: String,
         notificationText: String = "",
@@ -207,13 +207,17 @@ object DynamicLyricData {
     }
 
     fun toggleHookStatus(context: Context, packageName: String, enabled: Boolean) {
-        val currentSet = _hookWhitelistState.value.toMutableSet()
+        val currentWhitelist = _hookWhitelistState.value.toMutableSet()
+        val currentAdded = _hookAddedState.value.toMutableSet()
+        
         if (enabled) {
-            currentSet.add(packageName)
+            currentWhitelist.add(packageName)
+            currentAdded.add(packageName) // 确保在已添加列表中，否则 Hook 端可能拦截
         } else {
-            currentSet.remove(packageName)
+            currentWhitelist.remove(packageName)
+            // 关闭时不从 Added 列表移除，保持其作为曾用项
         }
-        saveHookLists(context, currentSet, _hookAddedState.value)
+        saveHookLists(context, currentWhitelist, currentAdded)
     }
 
     fun removePackageFromHookPage(context: Context, packageName: String) {
@@ -224,6 +228,31 @@ object DynamicLyricData {
         whitelistSet.remove(packageName)
         
         saveHookLists(context, whitelistSet, addedSet)
+    }
+
+    /**
+     * 清理包名：如果一个 App 原本是由插件关联的，但现在插件已卸载，则自动清理其 Hook 记录。
+     */
+    fun cleanupOrphanedPackages(context: Context, installedProviderPkgs: Set<String>) {
+        val allPossibleTargets = LyricProviderManager.providerToTargetMap.values.flatten().toSet()
+        val currentlyCoveredTargets = installedProviderPkgs.flatMap { 
+            LyricProviderManager.providerToTargetMap[it] ?: emptyList()
+        }.toSet()
+
+        // 找出“原本在映射表中，但当前没有任何插件覆盖”的包名
+        val orphanedTargets = allPossibleTargets - currentlyCoveredTargets
+        val newAddedSet = _hookAddedState.value.toMutableSet()
+        val newWhitelistSet = _hookWhitelistState.value.toMutableSet()
+
+        var changed = false
+        orphanedTargets.forEach { orphaned: String ->
+            if (newAddedSet.remove(orphaned)) changed = true
+            if (newWhitelistSet.remove(orphaned)) changed = true
+        }
+
+        if (changed) {
+            saveHookLists(context, newWhitelistSet, newAddedSet)
+        }
     }
 
     private fun saveHookLists(context: Context, whitelist: Set<String>, added: Set<String>) {

@@ -1,126 +1,145 @@
-name: Android Release
+name: Android Build & Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  check-version:
-    runs-on: ubuntu-latest
-    outputs:
-      version_changed: ${{ steps.version-check.outputs.changed }}
-      version_name: ${{ steps.version-check.outputs.version_name }}
-    steps:
-      - name: 拉取代码 Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 
-
-      - name: 版本检测 Version Check
-        id: version-check
-        run: |
-          CUR_V_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
-          CUR_V_CODE=$(grep "versionCode =" app/build.gradle.kts | sed 's/.*= //')
-          echo "当前版本 Current: $CUR_V_NAME ($CUR_V_CODE)"
-          
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            PREV_CONTENT=$(git show HEAD~1:app/build.gradle.kts)
-            PREV_V_NAME=$(echo "$PREV_CONTENT" | grep "versionName =" | sed 's/.*"\(.*\)".*/\1/')
-            PREV_V_CODE=$(echo "$PREV_CONTENT" | grep "versionCode =" | sed 's/.*= //')
-            echo "前一版本 Previous: $PREV_V_NAME ($PREV_V_CODE)"
-          else
-            echo "没有找到历史版本，视为首次发布。"
-            PREV_V_NAME=""
-            PREV_V_CODE=""
-          fi
-          
-          if [ "$CUR_V_NAME" != "$PREV_V_NAME" ] || [ "$CUR_V_CODE" != "$PREV_V_CODE" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "version_name=$CUR_V_NAME" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
   build:
-    needs: check-version
-    if: needs.check-version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
+
     steps:
       - name: 拉取代码 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: 配置 JDK Setup JDK
-        uses: actions/setup-java@v4
+      - name: 版本检测 Version Gate
+        id: gate
+        run: |
+          V_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          echo "name=$V_NAME" >> $GITHUB_OUTPUT
+
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "manual trigger, proceeding"
+            exit 0
+          fi
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREV=$(git show HEAD~1:app/build.gradle.kts | grep "versionName =" | sed 's/.*"\(.*\)".*/\1/')
+            if [ "$V_NAME" != "$PREV" ]; then
+              echo "skip=false" >> $GITHUB_OUTPUT
+              echo "version $V_NAME != $PREV, proceeding"
+            else
+              echo "skip=true" >> $GITHUB_OUTPUT
+              echo "version unchanged ($V_NAME), skipping build"
+            fi
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 安装 JDK Setup Java
+        if: steps.gate.outputs.skip != 'true'
+        uses: actions/setup-java@v5
         with:
-          java-version: |
-            17
-            21
-          distribution: 'temurin'
-          cache: 'gradle'
+          distribution: temurin
+          java-version: '21'
+
+      - name: 安装 Android SDK Setup Android SDK
+        if: steps.gate.outputs.skip != 'true'
+        uses: android-actions/setup-android@v4
+        with:
+          api-level: 34
+          build-tools: '34.0.0'
+
+      - name: 配置 Gradle Setup Gradle
+        if: steps.gate.outputs.skip != 'true'
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: wrapper
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: 授权脚本 Grant Permission
+        if: steps.gate.outputs.skip != 'true'
         run: chmod +x gradlew
 
-      - name: 编译打包 Build APK
-        run: ./gradlew assembleOnlineRelease assembleOfflineRelease
+      - name: 构建 Build
+        if: steps.gate.outputs.skip != 'true'
+        run: ./gradlew assembleOnlineRelease assembleOfflineRelease --build-cache
 
-      - name: 整理 APK Prepare APKs
-        run: |
-          mkdir -p app/build/outputs/apk/release
-          # 显式拷贝，防止同名文件覆盖
-          cp app/build/outputs/apk/online/release/*.apk app/build/outputs/apk/release/online-release-unsigned.apk
-          cp app/build/outputs/apk/offline/release/*.apk app/build/outputs/apk/release/offline-release-unsigned.apk
-
-      - name: 签名 APK Sign APK
-        id: sign_app
-        uses: r0adkll/sign-android-release@v1
+      - name: 上传 Debug APK Upload Debug Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
         with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          name: debug-apks
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+      - name: 解码签名密钥 Decode Keystore
+        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
         env:
-          BUILD_TOOLS_VERSION: "34.0.0"
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: echo "$SIGNING_KEY" | base64 -d > release.jks
 
-      - name: 重命名 APK Rename APK
+      - name: 签名 Sign APKs
+        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
+        env:
+          STORE_PASS: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
         run: |
-          VERSION_NAME="${{ needs.check-version.outputs.version_name }}"
-          # 在汇总目录中根据签名后的特征重命名
-          mv app/build/outputs/apk/release/online-release-unsigned-signed.apk HyperLyric-v${VERSION_NAME}-online.apk || mv app/build/outputs/apk/release/online-release-unsigned.apk HyperLyric-v${VERSION_NAME}-online.apk
-          mv app/build/outputs/apk/release/offline-release-unsigned-signed.apk HyperLyric-v${VERSION_NAME}-offline.apk || mv app/build/outputs/apk/release/offline-release-unsigned.apk HyperLyric-v${VERSION_NAME}-offline.apk
+          BTDIR="$ANDROID_SDK_ROOT/build-tools/34.0.0"
+          ZA="$BTDIR/zipalign"
+          AS="$BTDIR/apksigner"
 
-      - name: 生成发布描述 Generate Release Body
+          V_NAME="${{ steps.gate.outputs.name }}"
+
+          # online
+          ONLINE_IN=$(echo app/build/outputs/apk/online/release/*.apk)
+          $ZA -v -p 4 $ONLINE_IN online-aligned.apk
+          $AS sign --ks release.jks --ks-pass env:STORE_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS --out HyperLyric-v${V_NAME}-online.apk online-aligned.apk
+
+          # offline
+          OFFLINE_IN=$(echo app/build/outputs/apk/offline/release/*.apk)
+          $ZA -v -p 4 $OFFLINE_IN offline-aligned.apk
+          $AS sign --ks release.jks --ks-pass env:STORE_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS --out HyperLyric-v${V_NAME}-offline.apk offline-aligned.apk
+
+      - name: 生成发布说明 Generate Release Body
+        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
         id: release_body
         run: |
           echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "更新内容：" >> $GITHUB_OUTPUT
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          PREV_TAG="${{ steps.gate.outputs.prev_tag }}"
           if [ -z "$PREV_TAG" ]; then
-            git log --pretty=format:"%s" | grep -v '^[[:space:]]*$' | awk '{print NR "、" $0}' >> $GITHUB_OUTPUT
+            git log --pretty=format:"%s" --no-merges | awk '!seen[$0]++' | awk 'NF' | head -20 | awk '{print NR "、" $0}' >> $GITHUB_OUTPUT
           else
-            git log $PREV_TAG..HEAD --pretty=format:"%s" | grep -v '^[[:space:]]*$' | awk '{print NR "、" $0}' >> $GITHUB_OUTPUT
+            git log $PREV_TAG..HEAD --pretty=format:"%s" --no-merges | awk '!seen[$0]++' | awk 'NF' | head -20 | awk '{print NR "、" $0}' >> $GITHUB_OUTPUT
           fi
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 发布 Release Create Release
-        id: create_release
+      - name: 创建发布 Create Release
+        if: github.event_name != 'pull_request' && steps.gate.outputs.skip == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.check-version.outputs.version_name }}
-          name: hyperlyric v${{ needs.check-version.outputs.version_name }}
+          tag_name: v${{ steps.gate.outputs.name }}
+          name: HyperLyric v${{ steps.gate.outputs.name }}
           body: ${{ steps.release_body.outputs.body }}
           draft: false
           prerelease: false
           generate_release_notes: true
           files: |
-            HyperLyric-v${{ needs.check-version.outputs.version_name }}-online.apk
-            HyperLyric-v${{ needs.check-version.outputs.version_name }}-offline.apk
+            HyperLyric-v${{ steps.gate.outputs.name }}-online.apk
+            HyperLyric-v${{ steps.gate.outputs.name }}-offline.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -45,6 +45,7 @@
     <string name="info_os_version">系统版本</string>
     <string name="info_android_version">Android版本</string>
     <string name="title_help">使用帮助</string>
+    <string name="title_changelog">更新日志</string>
     <string name="title_developer">开发者</string>
     <string name="dev_name">李得胜</string>
     <string name="title_licenses">项目引用与参考</string>
@@ -86,19 +87,20 @@
     <string name="title_view_logs">查看模块日志</string>
 
     <!-- ———————————————————————— HookSettingsPage ———————————————————————— -->
-    <string name="lyric_mode_verbatim">逐字歌词</string>
+    <string name="lyric_mode_verbatim">lyricon逐字歌词</string>
     <string name="lyric_mode_separated">分离歌词</string>
     <string name="title_lyric_mode">歌词模式</string>
     <string name="title_custom_config">自定义配置</string>
     <string name="title_super_island">超级岛</string>
     <string name="subtitle_super_island">暂停或切换音乐后生效</string>
-    <string name="title_lyrics">歌词</string>
+    <string name="title_lyrics">音乐信息</string>
     <string name="title_lyric_anim">歌词切换动画</string>
-    <string name="title_lyric_provider">歌词提供者</string>
+    <string name="title_lyric_provider">歌词提供服务</string>
     <string name="title_lyric_whitelist">歌词白名单</string>
 
     <!-- ———————————————————————— DynamicIslandNotificationPage ———————————————————————— -->
     <string name="dialog_cache_limit_title">在线歌词缓存上限</string>
+    <string name="label_cache_limit_range">0 – 10000</string>
     <string name="dialog_add_whitelist_title">输入应用包名</string>
     <string name="dialog_add_whitelist_hint">例如 com.netease.cloudmusic</string>
     <string name="save">保存</string>
@@ -127,6 +129,8 @@
     <string name="title_show_progress">显示进度条</string>
     <string name="summary_show_progress">其他系统切勿关闭！仅通过澎湃3设备测试</string>
     <string name="title_progress_color">进度条强调色</string>
+    <string name="title_lyric_highlight_color">歌词强调色</string>
+    <string name="title_song_info_highlight_color">歌曲信息强调色</string>
     <string name="summary_progress_color">切歌后生效</string>
     <string name="title_show_album_art">显示专辑封面</string>
     <string name="title_focus_style">焦点通知样式</string>
@@ -191,22 +195,30 @@
     <string name="title_fading_edge">羽化边缘长度</string>
     <string name="label_fading_edge_range">范围：0 ~ 100</string>
     <string name="title_marquee_speed">滚动速度</string>
-    <string name="label_marquee_speed_range">范围：10 ~ 500</string>
+    <string name="label_marquee_speed_range">范围：5 ~ 100</string>
+    <string name="title_marquee_metadata_speed">滚动速度</string>
+    <string name="title_marquee_metadata_mode">歌曲信息滚动</string>
+    <string name="summary_marquee_metadata_mode">针对歌曲信息</string>
+    <string name="title_marquee_metadata_delay">初始滚动延迟</string>
+    <string name="title_marquee_metadata_loop">循环间隔</string>
+    <string name="title_marquee_metadata_infinite">无限循环</string>
     <string name="title_marquee_delay">初始滚动延迟</string>
-    <string name="label_marquee_delay_range">ms 范围：0 ~ 5000</string>
+    <string name="label_marquee_delay_range">ms 范围：0 ~ 10000</string>
     <string name="title_marquee_loop">循环间隔</string>
-    <string name="label_marquee_loop_range">ms 范围：0 ~ 5000</string>
+    <string name="label_marquee_loop_range">ms 范围：0 ~ 10000</string>
     <string name="title_text_size_ratio">多行模式下文字大小比例</string>
     <string name="label_text_size_ratio_range">范围：10 ~ 100</string>
     <string name="title_bold">粗体</string>
     <string name="title_italic">斜体</string>
     <string name="title_gradient_progress">羽化进度样式</string>
     <string name="title_lyric_marquee">歌词滚动</string>
+    <string name="title_marquee">滚动</string>
+    <string name="summary_lyric_marquee">针对没有时间轴的歌词</string>
     <string name="title_infinite_loop">无限循环</string>
     <string name="title_stop_at_end">结束时在末尾停止</string>
     <string name="title_syllable_relative">相对进度歌词</string>
-    <string name="summary_syllable_relative">当歌词缺少单词数据时，将整行作为单词显示</string>
-    <string name="title_syllable_highlight">显示相对进度歌词高亮进度</string>
+    <string name="summary_syllable_relative">当歌词缺少字词时间轴时，将整行作为一个进度单元</string>
+    <string name="title_syllable_highlight">相对进度歌词高亮显示</string>
     <string name="title_sustain_glow">拉长音发光</string>
     <string name="summary_sustain_glow">为长时间保持的歌词音节添加柔和发光。</string>
     <string name="format_percent">%1$d%%</string>
@@ -218,7 +230,7 @@
     <string name="title_swap_translation">原词翻译对调位置</string>
     <string name="title_rainbow_lyric">彩虹歌词</string>
     <string name="summary_rainbow_lyric">开启后歌词使用彩虹渐变色，并优先于封面取色。</string>
-    <string name="title_extract_cover_color">提取封面颜色</string>
+    <string name="title_extract_cover_color">提取封面色</string>
     <string name="title_extract_cover_gradient">提取封面渐变色</string>
     <string name="title_word_motion">字词上浮动画</string>
     <string name="title_word_motion_cjk_lift">中日韩上浮系数</string>
@@ -238,17 +250,22 @@
     <string name="label_ai_trans_target_lang">目标语言</string>
     <string name="label_ai_trans_prompt">自定义翻译风格提示词</string>
     <string name="summary_ai_trans_prompt_hint">留空使用默认提示词</string>
+    <string name="title_verbatim_lyric">逐字歌词</string>
+
 
     <!-- ———————————————————————— LyricProviderPage ———————————————————————— -->
     <string name="refresh_pull_down">下拉刷新</string>
     <string name="refresh_release">松开刷新</string>
     <string name="refreshing">正在刷新...</string>
     <string name="refresh_success">刷新成功</string>
-    <string name="title_no_provider">暂未发现歌词提供者</string>
+    <string name="title_no_provider">暂未发现歌词提供器</string>
     <string name="summary_no_provider">请点击右上角图标前往 LyricProvider 仓库下载安装并启用插件</string>
     <string name="category_others">其他</string>
     <string name="unknown_author">未知作者</string>
     <string name="format_version_author">%1$s | %2$s</string>
+    <string name="module_tag_syllable">逐字歌词</string>
+    <string name="module_tag_translation">翻译</string>
+    <string name="module_tag_bluetooth">车载蓝牙歌词</string>
 
     <!-- ———————————————————————— SuperIslandSettingsPage ———————————————————————— -->
     <string name="title_layout">布局</string>
@@ -272,11 +289,13 @@
     <string name="option_content_lyricon_title_artist">lyricon标题-艺术家</string>
     <string name="option_content_lyricon_title_plus_artist">lyricon标题\n艺术家</string>
     <string name="option_content_lyricon_title_plus_artist_album">lyricon标题\n艺术家-专辑</string>
+    <string name="option_content_metadata_title_plus_artist">metadata标题\n艺术家</string>
     <string name="option_content_lyricon_lyric">lyricon歌词</string>
     <string name="format_padding_pair">%1$d,%2$d</string>
     <string name="title_behavior_after_pause">暂停音乐后行为</string>
     <string name="option_after_pause_default">恢复默认</string>
     <string name="option_after_pause_keep">保持不变</string>
+    <string name="title_glow_cover_color">边缘光效封面色</string>
 
     <!-- ———————————————————————— Shared ———————————————————————— -->
     <string name="filter">筛选</string>
@@ -292,7 +311,7 @@
     <string name="title_help_config_steps">配置流程</string>
     <string name="title_help_warm_tips">温馨提示</string>
     <string name="summary_help_bug_notice">目前版本存在bug，如果不适配你的机型或系统版本，可用通知型灵动岛歌词代替，还请谅解</string>
-    <string name="summary_help_super_island_steps">1、前往github下载对应lyricon词幕歌词提供器\n2、在lsposed中启用HyperLyric和歌词提供器\n3、打开HyperLyric主页的小米超级岛歌词开关\n4、点击进入歌词白名单页添加音乐软件包名\n5、重启系统界面和音乐软件</string>
+    <string name="summary_help_super_island_steps">1、前往github下载对应lyricon词幕歌词提供器\n2、在lsposed中启用HyperLyric和歌词提供器\n3、打开HyperLyric主页的小米超级岛歌词开关\n4、重启系统界面和音乐软件\n5、点击进入歌词提供服务页手动切换一次开关状态</string>
     <string name="summary_help_dynamic_island_hint">利用实时通知和小米焦点通知来实现灵动岛歌词效果，适用于支持这两种通知的设备</string>
     <string name="summary_help_focus_whitelist_hint">小米的焦点通知有白名单验证，需要你自己想办法绕过</string>
     <string name="summary_help_dynamic_island_steps">1、打开HyperLyric主页的通知型灵动岛歌词开关\n2、点击进入歌词白名单页添加音乐软件包名\n3、在音乐软件里打开蓝牙歌词功能，并连接蓝牙设备</string>
@@ -322,6 +341,7 @@
     <string name="level_error">Error</string>
     <string name="level_crash">Crash</string>
     <string name="export_all">导出日志</string>
+    <string name="module_logs_level">日志等级</string>
     <string name="no_logs_found">未找到相关日志</string>
     <string name="no_root_permission">应用未获取root权限，无法获取lsposed日志</string>
     <string name="title_log_detail">日志详情</string>
@@ -338,4 +358,5 @@
 
     <string name="channel_name_live">实时通知歌词</string>
     <string name="channel_name_focus">焦点通知歌词</string>
+    <string name="title_center_lyric">居中显示</string>
 </resources>

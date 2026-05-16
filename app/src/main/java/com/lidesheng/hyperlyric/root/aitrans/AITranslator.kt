@@ -2,6 +2,9 @@ package com.lidesheng.hyperlyric.root.aitrans
 
 import android.content.Context
 import android.util.Log
+import com.lidesheng.hyperlyric.root.utils.xLog
+import com.lidesheng.hyperlyric.root.utils.xLogError
+import com.lidesheng.hyperlyric.root.utils.xLogWarn
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.AiTranslationConfigs
 import kotlinx.coroutines.CancellationException
@@ -50,17 +53,18 @@ object AITranslator {
         configs: AiTranslationConfigs,
     ): Song {
         if (!configs.isUsable) {
-            Log.w(TAG, "Translation skipped: Configs not usable (missing API Key or disabled).")
+            xLogWarn("AITranslation : Request Skipped: Config unusable (Missing API Key or disabled).")
             return song
         }
         if (song.lyrics.isNullOrEmpty()) return song
 
+        xLog("AITranslation : Request: ${song.name} (${song.lyrics?.size ?: 0} lines)")
         return try {
             translateSong(song, configs)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "Critical error during translateSongSync: ${e.message}", e)
+            xLogError("AI: Critical error during translateSongSync", e)
             song
         }
     }
@@ -72,7 +76,7 @@ object AITranslator {
     ): List<TranslationItem>? = OpenAiTranslationClient.request(configs, song, texts)
 
     fun clearCache(callback: () -> Unit) {
-        Log.i(TAG, "Clearing all translation caches (Memory & DB)...")
+        xLog("AI: Clearing all translation caches (Memory & DB)...")
         scheduler.cancelPending()
         cache.clear(callback)
     }
@@ -83,23 +87,20 @@ object AITranslator {
         val songContentId = AITranslationKey.calculate(configs, song, originalLines)
 
         cache.getFromMemory(songContentId)?.let {
-            Log.d(TAG, "Memory cache hit for: ${song.name} [$songContentId]")
+            xLog("AITranslation : Cache: Memory Hit for ${song.name}")
             return AITranslationApplicator.apply(song, it)
         }
 
         cache.getFromDb(songContentId)?.let {
-            Log.d(TAG, "Database cache hit for: ${song.name} [$songContentId]")
+            xLog("AITranslation : Cache: Database Hit for ${song.name}")
             cache.putMemory(songContentId, it)
             return AITranslationApplicator.apply(song, it)
         }
 
-        Log.i(
-            TAG,
-            "Cache miss. Waiting for AI translation: ${song.name} (${originalLines.size} lines)"
-        )
+        xLog("AITranslation : Cache: Miss. Waiting for API translation...")
         val apiResults = scheduler.getOrEnqueue(songContentId, configs, song, originalLines).await()
         if (apiResults.isNullOrEmpty()) {
-            Log.w(TAG, "Failed to get translation from API.")
+            xLogWarn("AITranslation : Outcome: Failed to get translation for ${song.name}")
             return song
         }
         return AITranslationApplicator.apply(song, apiResults)

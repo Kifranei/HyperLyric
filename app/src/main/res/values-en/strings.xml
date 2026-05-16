@@ -45,6 +45,7 @@
     <string name="info_os_version">OS Version</string>
     <string name="info_android_version">Android Version</string>
     <string name="title_help">Help</string>
+    <string name="title_changelog">Changelog</string>
     <string name="title_developer">Developer</string>
     <string name="dev_name">lidesheng</string>
     <string name="title_licenses">Licenses</string>
@@ -86,19 +87,20 @@
     <string name="title_view_logs">View Module Logs</string>
 
     <!-- ———————————————————————— HookSettingsPage ———————————————————————— -->
-    <string name="lyric_mode_verbatim">Verbatim Lyrics</string>
+    <string name="lyric_mode_verbatim">Lyricon Verbatim Lyrics</string>
     <string name="lyric_mode_separated">Separated Lyrics</string>
     <string name="title_lyric_mode">Lyric Mode</string>
     <string name="title_custom_config">Custom Configuration</string>
     <string name="title_super_island">HyperIsland</string>
     <string name="subtitle_super_island">Takes effect after music paused or changed</string>
-    <string name="title_lyrics">Lyrics</string>
+    <string name="title_lyrics">Media Info</string>
     <string name="title_lyric_anim">Lyric Animation</string>
     <string name="title_lyric_provider">Lyric Provider</string>
     <string name="title_lyric_whitelist">Lyric Whitelist</string>
 
     <!-- ———————————————————————— DynamicIslandNotificationPage ———————————————————————— -->
     <string name="dialog_cache_limit_title">Online Lyric Cache Limit</string>
+    <string name="label_cache_limit_range">0 – 10000</string>
     <string name="dialog_add_whitelist_title">Enter Application Package Name</string>
     <string name="dialog_add_whitelist_hint">e.g. com.spotify.music</string>
     <string name="save">Save</string>
@@ -127,6 +129,8 @@
     <string name="title_show_progress">Show Progress Bar</string>
     <string name="summary_show_progress">Do not disable on other systems! Only tested on HyperOS 3</string>
     <string name="title_progress_color">Progress Bar Accent Color</string>
+    <string name="title_lyric_highlight_color">Lyric Highlight Color</string>
+    <string name="title_song_info_highlight_color">Song Info Highlight Color</string>
     <string name="summary_progress_color">Takes effect after track change</string>
     <string name="title_show_album_art">Show Album Art</string>
     <string name="title_focus_style">Notification Spotlight Style</string>
@@ -190,18 +194,26 @@
     <string name="label_font_weight_range">Range: 100 ~ 900</string>
     <string name="title_fading_edge">Fading Edge Length</string>
     <string name="label_fading_edge_range">Range: 0 ~ 100</string>
+    <string name="title_marquee">Marquee</string>
     <string name="title_marquee_speed">Marquee Speed</string>
-    <string name="label_marquee_speed_range">Range: 10 ~ 500</string>
+    <string name="label_marquee_speed_range">Range: 5 ~ 100</string>
+    <string name="title_marquee_metadata_speed">Marquee Speed</string>
+    <string name="title_marquee_metadata_mode">Metadata Marquee</string>
+    <string name="summary_marquee_metadata_mode">Marquee scrolling for song info</string>
+    <string name="title_marquee_metadata_delay">Initial Marquee Delay</string>
+    <string name="title_marquee_metadata_loop">Loop Interval</string>
+    <string name="title_marquee_metadata_infinite">Infinite Loop</string>
     <string name="title_marquee_delay">Initial Marquee Delay</string>
-    <string name="label_marquee_delay_range">ms Range: 0 ~ 5000</string>
+    <string name="label_marquee_delay_range">ms Range: 0 ~ 10000</string>
     <string name="title_marquee_loop">Loop Interval</string>
-    <string name="label_marquee_loop_range">ms Range: 0 ~ 5000</string>
+    <string name="label_marquee_loop_range">ms Range: 0 ~ 10000</string>
     <string name="title_text_size_ratio">Text Size Ratio in Multi-line Mode</string>
     <string name="label_text_size_ratio_range">Range: 10 ~ 100</string>
     <string name="title_bold">Bold</string>
     <string name="title_italic">Italic</string>
     <string name="title_gradient_progress">Gradient Progress Style</string>
     <string name="title_lyric_marquee">Lyric Marquee</string>
+    <string name="summary_lyric_marquee">Marquee scrolling for 没有时间轴的 lyric</string>
     <string name="title_infinite_loop">Infinite Loop</string>
     <string name="title_stop_at_end">Stop at End</string>
     <string name="title_syllable_relative">Relative Progress Lyrics</string>
@@ -238,17 +250,21 @@
     <string name="label_ai_trans_target_lang">Target Language</string>
     <string name="label_ai_trans_prompt">Custom Translation Prompt</string>
     <string name="summary_ai_trans_prompt_hint">Leave empty for default prompt</string>
+    <string name="title_verbatim_lyric">Verbatim Lyrics</string>
 
     <!-- ———————————————————————— LyricProviderPage ———————————————————————— -->
     <string name="refresh_pull_down">Pull down to refresh</string>
     <string name="refresh_release">Release to refresh</string>
-    <string name="refreshing">Refreshing...</string>
+    <string name="refreshing">Refreshing…</string>
     <string name="refresh_success">Refresh successful</string>
     <string name="title_no_provider">No lyric providers found</string>
     <string name="summary_no_provider">Click the top right icon to visit LyricProvider repo, download and enable plugins</string>
     <string name="category_others">Others</string>
     <string name="unknown_author">Unknown Author</string>
     <string name="format_version_author">%1$s | %2$s</string>
+    <string name="module_tag_syllable">Verbatim Lyrics</string>
+    <string name="module_tag_translation">Translation</string>
+    <string name="module_tag_bluetooth">车载蓝牙歌词</string>
 
     <!-- ———————————————————————— SuperIslandSettingsPage ———————————————————————— -->
     <string name="title_layout">Layout</string>
@@ -272,11 +288,13 @@
     <string name="option_content_lyricon_title_artist">Lyricon Title - Artist</string>
     <string name="option_content_lyricon_title_plus_artist">Lyricon Title\nArtist</string>
     <string name="option_content_lyricon_title_plus_artist_album">Lyricon Title\nArtist - Album</string>
+    <string name="option_content_metadata_title_plus_artist">Metadata Title\nArtist</string>
     <string name="option_content_lyricon_lyric">Lyricon Lyric</string>
     <string name="format_padding_pair">%1$d,%2$d</string>
     <string name="title_behavior_after_pause">Behavior after music paused</string>
     <string name="option_after_pause_default">Restore default</string>
     <string name="option_after_pause_keep">Keep unchanged</string>
+    <string name="title_glow_cover_color">Glow Highlight Cover Color</string>
 
     <!-- ———————————————————————— Shared ———————————————————————— -->
     <string name="filter">Filter</string>
@@ -296,7 +314,7 @@
     <string name="summary_help_dynamic_island_hint">Use real-time notifications and Xiaomi focus notifications to achieve dynamic island effects, suitable for devices that support both.</string>
     <string name="summary_help_focus_whitelist_hint">Xiaomi focus notifications have whitelist verification; you need to find a way to bypass it yourself.</string>
     <string name="summary_help_dynamic_island_steps">1. Turn on the Notification-style Dynamic Island switch on the HyperLyric home page\n2. Add music app package names in the whitelist page\n3. Turn on the Bluetooth lyrics feature in the music app and connect a Bluetooth device</string>
-    <string name="summary_help_salt_player">Salt Player is supported, more apps coming soon...</string>
+    <string name="summary_help_salt_player">Salt Player is supported, more apps coming soon…</string>
 
     <!-- Poetry Page -->
     <string name="back_to_top">Back to top</string>
@@ -321,6 +339,7 @@
     <string name="level_error">Error</string>
     <string name="level_crash">Crash</string>
     <string name="export_all">Export All</string>
+    <string name="module_logs_level">Logs Level</string>
     <string name="no_logs_found">No logs found</string>
     <string name="no_root_permission">App does not have root permission, cannot read LSPosed logs</string>
     <string name="title_log_detail">Log Detail</string>
@@ -337,4 +356,5 @@
 
     <string name="channel_name_live">Live Update Notification Lyrics</string>
     <string name="channel_name_focus">Xiaomi Notification Spotlight Lyrics</string>
+    <string name="title_center_lyric">Center Lyric</string>
 </resources>

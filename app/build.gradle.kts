@@ -14,7 +14,7 @@ android {
         minSdk = 33
         targetSdk = 37
         versionCode = 1928
-        versionName = "5.6"
+        versionName = "5.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -101,7 +101,6 @@ dependencies {
     implementation(libs.miuix.icons.android)
     implementation(libs.miuix.navigation3.ui.android)
     implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.haze)
 
 
     // --- 调试工具 ---

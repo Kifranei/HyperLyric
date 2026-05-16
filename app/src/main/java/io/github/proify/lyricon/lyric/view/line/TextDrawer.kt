@@ -79,6 +79,7 @@ internal class TextDrawer {
         useGradient: Boolean,
         scrollOnly: Boolean,
         charMotionEnabled: Boolean,
+        centerIfPossible: Boolean,
         bgPaint: TextPaint,
         hlPaint: TextPaint,
         normPaint: TextPaint
@@ -88,6 +89,7 @@ internal class TextDrawer {
             val xOffset = when {
                 isOverflow -> scrollX
                 model.isAlignedRight -> viewWidth - model.width
+                centerIfPossible -> (viewWidth - model.width) / 2f
                 else -> 0f
             }
             translate(xOffset, 0f)
